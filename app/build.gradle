@@ -5,7 +5,7 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        applicationId "com.iflytek.inputmethod.miui"
+        applicationId "com.tumuyan.trime"
         minSdkVersion 14
         targetSdkVersion 29
         versionCode 20210604
