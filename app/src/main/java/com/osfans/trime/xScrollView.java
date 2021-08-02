@@ -69,7 +69,7 @@ public class xScrollView extends HorizontalScrollView {
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_UP) {
             if (views != null) {
-                //Views.getDrawer().closeDrawers();
+
             }
         }
         return super.onInterceptTouchEvent(ev);
@@ -134,7 +134,7 @@ public class xScrollView extends HorizontalScrollView {
                     // When the scroll to the top or the most when it will not scroll, then move the layout.
                     isNeedMove();
 
-//                Log.i("MotionEvent "+isMoveing," d="+deltaX+" left="+left+" LR="+inner.getLeft()+", "+inner.getRight()+" scrollX="+this.getScrollX());
+//                Log.d("MotionEvent "+isMoveing," d="+deltaX+" left="+left+" LR="+inner.getLeft()+", "+inner.getRight()+" scrollX="+this.getScrollX());
 
                     if (isMoveing) {
                         // Initialize the head rectangle
@@ -154,8 +154,6 @@ public class xScrollView extends HorizontalScrollView {
                     isCount = true;
                     x = nowX;
                 }
-
-
 
                 break;
 
@@ -208,34 +206,4 @@ public class xScrollView extends HorizontalScrollView {
     public void setContextView(View view) {
         this.views = view;
     }
-
-
-
-    private String getInnerText() {
-        List<View> list = getAllChildViews(this);
-        StringBuffer buffer = new StringBuffer() ;
-
-        for(View v:list){
-            if(v instanceof TextView){
-                buffer.append(((TextView)v).getText());
-            }
-        }
-
-        return buffer.toString().trim();
-    }
-
-    private List<View> getAllChildViews(View view) {
-        List<View> allchildren = new ArrayList<View>();
-        if (view instanceof ViewGroup) {
-            ViewGroup vp = (ViewGroup) view;
-            for (int i = 0; i < vp.getChildCount(); i++) {
-                View viewchild = vp.getChildAt(i);
-                allchildren.add(viewchild);
-                //再次 调用本身（递归）
-                allchildren.addAll(getAllChildViews(viewchild));
-            }
-        }
-        return allchildren;
-    }
-
 } 

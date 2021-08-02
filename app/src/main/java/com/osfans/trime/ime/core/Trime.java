@@ -391,21 +391,16 @@ public class Trime extends InputMethodService
 
     private void loadBackground() {
 
-      if (//self.getResources().getConfiguration().orientation
-              orientation == Configuration.ORIENTATION_LANDSCAPE) {
+      if (
+        orientation == Configuration.ORIENTATION_LANDSCAPE) {
         int padding = mConfig.getPixel("keyboard_padding_landscape");
-//        mKeyboardView.setPadding(
-//                padding, mKeyboardView.getPaddingTop()
-//                , padding, mKeyboardView.getPaddingBottom());
-//        mInputRoot.findViewById(R.id.spacer_left).setMinimumWidth(padding);
-//        mInputRoot.findViewById(R.id.spacer_right).setMinimumWidth(padding);
 
-        View view =  mInputRoot.findViewById(R.id.spacer_left);
+        View view = mInputRoot.findViewById(R.id.spacer_left);
         LayoutParams layoutParams = view.getLayoutParams();
         layoutParams.width = padding;
         view.setLayoutParams(layoutParams);
 
-        view =  mInputRoot.findViewById(R.id.spacer_right);
+        view = mInputRoot.findViewById(R.id.spacer_right);
         layoutParams = view.getLayoutParams();
         layoutParams.width = padding;
         view.setLayoutParams(layoutParams);
@@ -1156,13 +1151,9 @@ public class Trime extends InputMethodService
       }
     } else if (i == -4) onKey(KeyEvent.KEYCODE_PAGE_UP, 0);
     else if (i == -5) onKey(KeyEvent.KEYCODE_PAGE_DOWN, 0);
-    else
-//       if (Rime.selectCandidate(i))
+    else // if (Rime.selectCandidate(i))
     {
-//      System.out.println("commit onKeyEvent"+i+" ");
-//      onRimeKey(new int[] {49+i,0}) ;
       handleKey(KeyEvent.KEYCODE_1+i,0);
-//      commitText();
     }
   }
 
@@ -1405,8 +1396,6 @@ public class Trime extends InputMethodService
               intent.setType("text/plain");
               intent.putExtra(Intent.EXTRA_TEXT, text);
               intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-//              intent.setComponent(new ComponentName("com.fooview.android.fooview", "com.fooview.android.fooview.FooClipboardProxy"));
               intent.setComponent(new ComponentName(ClipBoardManager[0],ClipBoardManager[1]));
 
               self.startActivity(intent);
