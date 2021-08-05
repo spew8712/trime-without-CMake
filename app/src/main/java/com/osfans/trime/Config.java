@@ -19,7 +19,6 @@
 package com.osfans.trime;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -35,8 +34,8 @@ import android.graphics.drawable.NinePatchDrawable;
 import android.os.SystemClock;
 import android.util.TypedValue;
 
-import com.osfans.trime.enums.InlineModeType;
 import com.osfans.trime.enums.WindowsPositionType;
+import com.osfans.trime.ime.core.Preferences;
 import com.osfans.trime.util.AppVersionUtils;
 
 import java.io.File;
@@ -54,8 +53,6 @@ public class Config {
   // 默认的用户数据路径
   private static final String RIME = "rime";
   private static final String TAG = "Config";
-  private static String userDataDir;
-  private static String sharedDataDir;
 
   private Map<String, Object> mStyle, mDefaultStyle;
   private String themeName;
@@ -63,19 +60,17 @@ public class Config {
   private String schema_id;
 
   private static Config self = null;
-  private SharedPreferences mPref;
 
   private Map<String, String> fallbackColors;
   private Map presetColorSchemes, presetKeyboards;
 
   private String[] ClipBoardCompare,ClipBoardOutput,ClipBoardManager;
 
+  private Preferences getPrefs() { return Preferences.Companion.defaultInstance(); }
+
   public Config(Context context) {
     self = this;
-    mPref = Function.getPref(context);
-    userDataDir = context.getString(R.string.default_user_data_dir);
-    sharedDataDir = context.getString(R.string.default_shared_data_dir);
-    themeName = mPref.getString("pref_selected_theme", "trime");
+    themeName = getPrefs().getLooks().getSelectedTheme();
     prepareRime(context);
     deployTheme(context);
     init();
@@ -83,9 +78,9 @@ public class Config {
   }
 
   private void prepareCLipBoardRule(){
-    ClipBoardCompare = mPref.getString("pref_clipboard_compare", "").trim().split("\n");
-    ClipBoardOutput =  mPref.getString("pref_clipboard_output", "").trim().split("\n");
-    ClipBoardManager =  mPref.getString("pref_clipboard_manager", "").trim().split(",");
+    ClipBoardCompare = getPrefs().getOther().getClipboardCompareRules().trim().split("\n");
+    ClipBoardOutput =  getPrefs().getOther().getClipboardOutputRules().trim().split("\n");
+    ClipBoardManager = getPrefs().getOther().getClipboardManagerRules().trim().split(",");
   }
 
   public String[] getClipBoardCompare(){ return ClipBoardCompare;}
@@ -103,9 +98,7 @@ public class Config {
   }
 
   public void setClipBoardManager(String str) {
-    SharedPreferences.Editor edit = mPref.edit();
-    edit.putString("pref_clipboard_manager", str);
-    edit.apply();
+    getPrefs().getOther().setClipboardManagerRules(str);
     prepareCLipBoardRule();
   }
 
@@ -113,34 +106,26 @@ public class Config {
     String s = str.replaceAll("\\s*\n\\s*","\n").trim();
     ClipBoardCompare = s.split("\n");
 
-    SharedPreferences.Editor edit = mPref.edit();
-    edit.putString("pref_clipboard_compare", s);
-    edit.apply();
+    getPrefs().getOther().setClipboardCompareRules(s);
   }
 
   public void setClipBoardOutput(String str) {
     String s = str.replaceAll("\\s*\n\\s*","\n").trim();
     ClipBoardOutput = s.split("\n");
 
-    SharedPreferences.Editor edit = mPref.edit();
-    edit.putString("pref_clipboard_output", s);
-    edit.apply();
+    getPrefs().getOther().setClipboardOutputRules(s);
   }
 
   public String getTheme() {
     return themeName;
   }
 
-  public boolean getSyncBackground(){
-    return mPref.getBoolean("pref_sync_bg",false);
-  }
-
   public String getSharedDataDir() {
-    return mPref.getString("shared_data_dir", sharedDataDir);
+    return getPrefs().getConf().getSharedDataDir();
   }
 
   public String getUserDataDir() {
-    return mPref.getString("user_data_dir", userDataDir);
+    return getPrefs().getConf().getUserDataDir();
   }
 
   public String getResDataDir(String sub) {
@@ -283,9 +268,7 @@ public class Config {
 
   public void setTheme(String theme) {
     themeName = theme;
-    SharedPreferences.Editor edit = mPref.edit();
-    edit.putString("pref_selected_theme", themeName);
-    edit.apply();
+    getPrefs().getLooks().setSelectedTheme(themeName);
     init();
   }
 
@@ -308,8 +291,8 @@ public class Config {
       Key.presetKeys = (Map<String, Map>) m.get("preset_keys");
       presetColorSchemes = (Map<String, Object>) m.get("preset_color_schemes");
       presetKeyboards = (Map<String, Object>) m.get("preset_keyboards");
-      Rime.setShowSwitches(getShowSwitches());
-      Rime.setShowSwitchArrow(getShowSwitchArrow());
+      Rime.setShowSwitches(getPrefs().getKeyboard().getSwitchesEnabled());
+      Rime.setShowSwitchArrow(getPrefs().getKeyboard().getSwitchArrowEnabled());
       reset();
     } catch (Exception e) {
       e.printStackTrace();
@@ -590,12 +573,12 @@ public class Config {
   }
 
   private Object getColorObject(String key) {
-    String scheme = getColorScheme();
+    String scheme = getPrefs().getLooks().getSelectedColor();
     if (!presetColorSchemes.containsKey(scheme)) scheme = getString("color_scheme"); //主題中指定的配色
     if (!presetColorSchemes.containsKey(scheme)) scheme = "default"; //主題中的default配色
     Map map = (Map<String, Object>) presetColorSchemes.get(scheme);
     if (map == null) return null;
-    setColor(scheme);
+    getPrefs().getLooks().setSelectedColor(scheme);
     Object o = map.get(key);
     String fallbackKey = key;
     while (o == null && fallbackColors.containsKey(fallbackKey)) {
@@ -626,19 +609,6 @@ public class Config {
     Object o = getColorObject(key);
     if (o == null) return null;
     return parseColor(o.toString());
-  }
-
-  
-
-  public String getColorScheme() {
-    return mPref.getString("pref_selected_color_scheme", "default");
-  }
-
-  public void setColor(String color) {
-    SharedPreferences.Editor edit = mPref.edit();
-    edit.putString("pref_selected_color_scheme", color);
-    edit.apply();
-    //deployTheme();
   }
 
   public String[] getColorKeys() {
@@ -712,61 +682,19 @@ public class Config {
     return drawableObject(o);
   }
 
-  public InlineModeType getInlinePreedit() {
-    switch (mPref.getString("inline_preedit", "preview")) {
-      case "preview":
-      case "preedit":
-      case "true":
-        return InlineModeType.INLINE_PREVIEW;
-      case "composition":
-        return InlineModeType.INLINE_COMPOSITION;
-      case "input":
-        return InlineModeType.INLINE_INPUT;
-    }
-    return InlineModeType.INLINE_NONE;
-  }
-
   public WindowsPositionType getWinPos() {
     return WindowsPositionType.fromString(getString("layout/position"));
   }
 
-  public boolean isShowStatusIcon() {
-    return mPref.getBoolean("pref_notification_icon", false);
-  }
-
-  public boolean isDestroyOnQuit() {
-    return mPref.getBoolean("pref_destroy_on_quit", false);
-  }
-
   public int getLongTimeout() {
-    int progress = mPref.getInt("longpress_timeout", 20);
+    int progress = getPrefs().getKeyboard().getLongPressTimeout();
     if (progress > 60) progress = 60;
     return progress * 10 + 100;
   }
 
   public int getRepeatInterval() {
-    int progress = mPref.getInt("repeat_interval", 4);
+    int progress = getPrefs().getKeyboard().getRepeatInterval();
     if (progress > 9) progress = 9;
     return progress * 10 + 10;
-  }
-
-  private boolean getShowSwitches() {
-    return mPref.getBoolean("show_switches", true);
-  }
-
-  private boolean getShowSwitchArrow(){
-    return mPref.getBoolean("show_switche_arrow", true);
-  }
-
-  public boolean getShowPreview() {
-    return mPref.getBoolean("show_preview", false);
-  }
-
-  public boolean getShowWindow() {
-    return mPref.getBoolean("show_window", true) && hasKey("window");
-  }
-
-  public boolean getSoftCursor() {
-    return mPref.getBoolean("soft_cursor", true);
   }
 }
