@@ -1,9 +1,5 @@
-# 同文安卓輸入法平臺/Trime: Rime IME for Android
-![build](https://github.com/osfans/trime/actions/workflows/last-commit-release.yml/badge.svg?branch=develop)
+# TRIME：安卓同文輸入法without CMake版 /Android-rime
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub release](https://img.shields.io/github/release/osfans/trime.svg)](https://github.com/osfans/trime/releases)
-[![F-Droid release](https://img.shields.io/f-droid/v/com.osfans.trime.svg)](https://f-droid.org/packages/com.osfans.trime)
-[![Latest build](https://img.shields.io/github/last-commit/osfans/trime.svg)](http://osfans.github.io/trime/)
 
 ## 關於/About
 源於開源的[注音倉頡輸入法]前端，
@@ -12,17 +8,14 @@
 旨在保護漢語各地方言母語，
 音碼形碼通用的輸入法平臺。
 
-## 下載/Download
-- 穩定版<br>
-[<img alt='Get it on F-Droid' src='https://fdroid.gitlab.io/artwork/badge/get-it-on.png' height='80px'/>](https://f-droid.org/packages/com.osfans.trime)
-[<img alt='Google Play立即下載' src='https://play.google.com/intl/en_us/badges/images/generic/zh-tw_badge_web_generic.png' height='80px'/>](https://play.google.com/store/apps/details?id=com.osfans.trime)
-[<img alt='酷安' src='https://static.coolapk.com/images/header-logo.png'
-height='80px'/>](https://www.coolapk.com/apk/com.osfans.trime)
-- 測試版
-[點擊下載](https://github.com/osfans/trime/tree/gh-pages)
+## 編譯/Build
+由于移除了原仓库的CMake相关文件，改为内置预编译的so文件，使得clone和build难度得到了极大地下降。  
+直接下载源码，或者clone，然后使用Android Studio打开即可。
 
-- 配置文件
-[rimerc](https://github.com/Bambooin/rimerc)
+## 下載/Download
+本仓库所有功能性的变更，均会提交pr给原仓库。因此这里永远都不会编译并发布正式版。 
+每次提交pr时，都会分享测试版本到同文用户QQ群。[github release页面](https://github.com/osfans/trime/releases)随缘更新。
+已经修改包名、App name，与正式版同文不存在冲突。
 
 ## 鳴謝/Credits
 - 開發：[osfans](https://github.com/osfans)
@@ -41,61 +34,6 @@ height='80px'/>](https://www.coolapk.com/apk/com.osfans.trime)
 - 之後，藉助JNI技術，享受了[librime](https://github.com/rime/librime)的成果，升級爲“同文輸入法平臺3.x”，簡稱“同文輸入法”。
 - 所以，TRIME是Tongwen RIME或是ThaeRvInputMEthod的縮寫。
 
-## 編譯/Build
-
-  Clone the project, **pay attention** it will take a while for large submodule boost and make sure your disk is enough to hold the source(about 1.5GB).
-```bash
-cd $your_folder
-git clone --recursive https://github.com/osfans/trime.git trime
-```
-  If you want to test the application, run the command:
-```bash
-cd $trime_folder
-make debug
-```
-  Or you can build signed application for release and make sure you create a file named gradle.properties which contains:
-```bash
-storePassword=myStorePassword
-keyPassword=mykeyPassword
-keyAlias=myKeyAlias
-storeFile=myStoreFileLocation
-```
-for [signing information](https://developer.android.com/studio/publish/app-signing.html). And run the command:
-```bash
-cd $trime_folder
-make release
-```
-The following guide is for the specific platform prebuild setting:
-- [Arch Linux](https://www.archlinux.org/)
-  ```bash
-   yaourt -S android-{ndk,sdk,sdk-build-tools,sdk-platform-tools,platform} gradle clang capnproto
-   make release
-  ```
-
-- Other Linux distributions
-
-  Use the package manager to install the dev environment and Android SDK NDK.
-
-- macOS
-
-  Install Android [SDK](https://developer.android.com/studio/index.html)
-  and [NDK](https://developer.android.com/ndk/index.html)
-  (You'd better install it by Android Studio or manually instead of by Homebrew).
-
-  Install [Homebrew](http://brew.sh/) and set
-  [Homebrew mirror](https://lug.ustc.edu.cn/wiki/mirrors/help/brew.git) of it if your network is slow.
-
-  ```bash
-   brew install automake cmake opencc boost python gradle doxygen clang capnp
-  ```
-
-  Set the path environment in ~/.bashrc if you use bash like this
-  ```bash
-   # Android
-   export ANDROID_HOME="your_android_sdk"
-   export ANDROID_NDK="your_android_ndk"
-   export PATH=${PATH}:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_NDK
-  ```
 ## 第三方庫/Third Party Library
 - [Boost C++ Libraries](https://www.boost.org/) (Boost Software License)
 - [Cap'n Proto](https://capnproto.org/) (MIT License)
