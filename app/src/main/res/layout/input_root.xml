@@ -33,6 +33,10 @@
             android:id="@+id/keyboard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/recycle_keyboard"/>
         <View
             android:id="@+id/spacer_right"
             android:layout_width="0dp"

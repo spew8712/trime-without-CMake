@@ -50,10 +50,18 @@ import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Adapter;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.flexbox.AlignItems;
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
 import com.osfans.trime.Candidate;
 import com.osfans.trime.Composition;
 import com.osfans.trime.Config;
@@ -617,6 +625,29 @@ public class Trime extends InputMethodService
 
     setShowComment(!Rime.getOption("_hide_comment"));
     mCandidate.setVisibility(!Rime.getOption("_hide_candidate") ? View.VISIBLE : View.GONE);
+
+
+
+    RecyclerView mRecyclerView = (RecyclerView)mInputRoot.findViewById(R.id.recycle_keyboard);
+    FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(this);
+    layoutManager.setFlexWrap(FlexWrap.WRAP);
+    layoutManager.setFlexDirection(FlexDirection.ROW);
+    layoutManager.setAlignItems(AlignItems.STRETCH);
+    layoutManager.setJustifyContent(JustifyContent.FLEX_START);
+    mRecyclerView.setLayoutManager(layoutManager);
+
+/*
+    ViewGroup.LayoutParams lp = te.getLayoutParams();
+    if (lp instanceof FlexboxLayoutManager.LayoutParams) {
+      FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams) lp;
+      flexboxLp.setFlexGrow(1.0f);
+    }
+*/
+
+
+
+
+
     loadBackground();
 
     return mInputRoot;
@@ -1458,16 +1489,22 @@ public class Trime extends InputMethodService
         if(mConfig.hasClipBoardManager()) {
           String[] ClipBoardManager = mConfig.getClipBoardManager();
 
-          ClipData clipData = clipBoard.getPrimaryClip();
-          ClipData.Item item = clipData.getItemAt(0);
+          try{
+            ClipData clipData = clipBoard.getPrimaryClip();
+            if(null == clipData)
+              return;
 
-          String text = item.getText().toString();
+            ClipData.Item item = clipData.getItemAt(0);
+            String text = item.getText().toString();
+            System.out.println("clipboard find 0:"+text);
+            text = item.coerceToText(getApplicationContext()).toString();
+            System.out.println("clipboard find 1:"+text);
 
-          String text2 = StringReplacer(text, mConfig.getClipBoardCompare());
-          if(text2.length()<1 || text2.equals(ClipBoardString) )
-            return;
+            String text2 = StringReplacer(text, mConfig.getClipBoardCompare());
+            if(text2.length()<1 || text2.equals(ClipBoardString) )
+              return;
 
-          if(StringNotMatch(text, mConfig.getClipBoardOutput()))
+            if(StringNotMatch(text, mConfig.getClipBoardOutput()))
             {
               ClipBoardString = text;
 
@@ -1478,7 +1515,12 @@ public class Trime extends InputMethodService
               intent.setComponent(new ComponentName(ClipBoardManager[0],ClipBoardManager[1]));
 
               self.startActivity(intent);
+              System.out.println("clipboard copy:"+text);
             }
+          }catch (Exception e){
+            e.printStackTrace();
+          }
+
           }
         }
     });
