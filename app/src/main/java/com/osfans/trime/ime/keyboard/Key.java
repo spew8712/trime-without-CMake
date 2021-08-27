@@ -15,13 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.osfans.trime;
+package com.osfans.trime.ime.keyboard;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
-import com.osfans.trime.enums.KeyEventType;
+import com.osfans.trime.Rime;
+import com.osfans.trime.ime.enums.KeyEventType;
+import com.osfans.trime.setup.Config;
 import java.util.List;
 import java.util.Map;
 
@@ -49,14 +52,14 @@ public class Key {
         KEY_STATE_NORMAL
       };
   public static List<String> androidKeys;
-  public static Map<String, Map> presetKeys;
+  public static Map<String, Map<?, ?>> presetKeys;
   private static final int EVENT_NUM = KeyEventType.values().length;
   public Event[] events = new Event[EVENT_NUM];
   public int edgeFlags;
   private static int symbolStart;
   private static String symbols;
-  private static KeyCharacterMap kcm = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
-  private Keyboard mKeyboard;
+  private static final KeyCharacterMap kcm = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
+  private final Keyboard mKeyboard;
   private Event ascii;
   private Event composing;
   private Event has_menu;
@@ -117,19 +120,19 @@ public class Key {
           };
       String eventType = eventTypes[i];
       s = Config.getString(mk, eventType);
-      if (!Function.isEmpty(s)) events[i] = new Event(mKeyboard, s);
+      if (!TextUtils.isEmpty(s)) events[i] = new Event(mKeyboard, s);
       else if (i == KeyEventType.CLICK.ordinal()) events[i] = new Event(mKeyboard, "");
     }
     s = Config.getString(mk, "composing");
-    if (!Function.isEmpty(s)) composing = new Event(mKeyboard, s);
+    if (!TextUtils.isEmpty(s)) composing = new Event(mKeyboard, s);
     s = Config.getString(mk, "has_menu");
-    if (!Function.isEmpty(s)) has_menu = new Event(mKeyboard, s);
+    if (!TextUtils.isEmpty(s)) has_menu = new Event(mKeyboard, s);
     s = Config.getString(mk, "paging");
-    if (!Function.isEmpty(s)) paging = new Event(mKeyboard, s);
+    if (!TextUtils.isEmpty(s)) paging = new Event(mKeyboard, s);
     if (composing != null || has_menu != null || paging != null)
       mKeyboard.getmComposingKeys().add(this);
     s = Config.getString(mk, "ascii");
-    if (!Function.isEmpty(s)) ascii = new Event(mKeyboard, s);
+    if (!TextUtils.isEmpty(s)) ascii = new Event(mKeyboard, s);
     label = Config.getString(mk, "label");
     hint = Config.getString(mk, "hint");
     if (mk.containsKey("send_bindings")) send_bindings = Config.getBoolean(mk, "send_bindings");
@@ -150,7 +153,7 @@ public class Key {
     return androidKeys;
   }
 
-  public static Map<String, Map> getPresetKeys() {
+  public static Map<String, Map<?, ?>> getPresetKeys() {
     return presetKeys;
   }
 
@@ -390,18 +393,14 @@ public class Key {
    *     key.
    */
   public boolean isInside(int x, int y) {
-    boolean leftEdge = (edgeFlags & Keyboard.EDGE_LEFT) > 0;
-    boolean rightEdge = (edgeFlags & Keyboard.EDGE_RIGHT) > 0;
-    boolean topEdge = (edgeFlags & Keyboard.EDGE_TOP) > 0;
-    boolean bottomEdge = (edgeFlags & Keyboard.EDGE_BOTTOM) > 0;
-    if ((x >= this.x || (leftEdge && x <= this.x + this.width))
+    final boolean leftEdge = (edgeFlags & Keyboard.EDGE_LEFT) > 0;
+    final boolean rightEdge = (edgeFlags & Keyboard.EDGE_RIGHT) > 0;
+    final boolean topEdge = (edgeFlags & Keyboard.EDGE_TOP) > 0;
+    final boolean bottomEdge = (edgeFlags & Keyboard.EDGE_BOTTOM) > 0;
+    return (x >= this.x || (leftEdge && x <= this.x + this.width))
         && (x < this.x + this.width || (rightEdge && x >= this.x))
         && (y >= this.y || (topEdge && y <= this.y + this.height))
-        && (y < this.y + this.height || (bottomEdge && y >= this.y))) {
-      return true;
-    } else {
-      return false;
-    }
+        && (y < this.y + this.height || (bottomEdge && y >= this.y));
   }
 
   /**
@@ -425,7 +424,7 @@ public class Key {
    */
   public int[] getCurrentDrawableState() {
     int[] states = KEY_STATE_NORMAL;
-    boolean isShifted = isShift() && mKeyboard.isShifted(); //臨時大寫
+    boolean isShifted = isShift() && mKeyboard.isShifted(); // 臨時大寫
     if (isShifted || on) {
       if (pressed) {
         states = KEY_STATE_PRESSED_ON;
@@ -519,8 +518,8 @@ public class Key {
 
   public String getLabel() {
     Event event = getEvent();
-    if (!Function.isEmpty(label) && event == getClick() && (ascii == null && !Rime.isAsciiMode()))
-      return label; //中文狀態顯示標籤
+    if (!TextUtils.isEmpty(label) && event == getClick() && (ascii == null && !Rime.isAsciiMode()))
+      return label; // 中文狀態顯示標籤
     return event.getLabel();
   }
 

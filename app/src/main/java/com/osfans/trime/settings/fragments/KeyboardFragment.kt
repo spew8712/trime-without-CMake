@@ -7,9 +7,11 @@ import androidx.core.view.forEach
 import androidx.preference.PreferenceFragmentCompat
 import com.osfans.trime.R
 import com.osfans.trime.Rime
+import com.osfans.trime.ime.core.Preferences
 import com.osfans.trime.ime.core.Trime
 
-class KeyboardFragment: PreferenceFragmentCompat(),
+class KeyboardFragment :
+    PreferenceFragmentCompat(),
     SharedPreferences.OnSharedPreferenceChangeListener {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.keyboard_preference)
@@ -18,45 +20,34 @@ class KeyboardFragment: PreferenceFragmentCompat(),
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        menu.forEach { item -> item.isVisible = false}
+        menu.forEach { item -> item.isVisible = false }
         super.onPrepareOptionsMenu(menu)
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         val trime = Trime.getService()
+        val prefs = Preferences.defaultInstance()
+        prefs.sync()
         when (key) {
-            "key_sound" -> {
-                trime?.resetEffect()
+            "keyboard__key_sound_volume" -> {
+                trime?.keyPressSound()
             }
-            "key_vibrate" -> {
-                trime?.resetEffect()
+            "keyboard__key_vibration_duration", "keyboard__key_vibration_amplitude" -> {
+                trime?.keyPressVibrate()
             }
-            "key_sound_volume" -> {
-                trime?.let {
-                    it.resetEffect()
-                    it.soundEffect()
-                }
-            }
-            "key_vibrate_duration", "key_vibrate_amplitude" -> {
-                trime?.let {
-                    it.resetEffect()
-                    it.vibrateEffect()
-                }
-            }
-            "speak_key", "speak_commit" -> {
-                trime?.resetEffect()
-            }
-            "longpress_timeout", "repeat_interval", "show_preview" -> {
+            "keyboard__key_long_press_timeout",
+            "keyboard__key_repeat_interval",
+            "keyboard__show_key_popup" -> {
                 trime?.resetKeyboard()
             }
-            "show_window" -> {
+            "keyboard__show_window" -> {
                 trime?.resetCandidate()
             }
-            "inline_preedit", "soft_cursor" -> {
+            "keyboard__inline_preedit", "keyboard__soft_cursor" -> {
                 trime?.loadConfig()
             }
-            "show_switches" -> {
-                sharedPreferences?.getBoolean(key, false)?.let { Rime.setShowSwitches(it) }
+            "keyboard__show_switches" -> {
+                Rime.setShowSwitches(prefs.keyboard.switchesEnabled)
             }
         }
     }

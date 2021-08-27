@@ -11,7 +11,6 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
@@ -22,19 +21,23 @@ import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceManager
+import com.blankj.utilcode.util.BarUtils
 import com.osfans.trime.R
 import com.osfans.trime.databinding.PrefActivityBinding
 import com.osfans.trime.ime.core.Preferences
 import com.osfans.trime.settings.components.SchemaPickerDialog
 import com.osfans.trime.util.RimeUtils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.coroutines.CoroutineContext
-import kotlin.system.exitProcess
 
 internal const val FRAGMENT_TAG = "FRAGMENT_TAG"
 
-class PrefMainActivity: AppCompatActivity(),
+class PrefMainActivity :
+    AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback,
     CoroutineScope {
     private val job = Job()
@@ -57,6 +60,18 @@ class PrefMainActivity: AppCompatActivity(),
 
         super.onCreate(savedInstanceState)
         binding = PrefActivityBinding.inflate(layoutInflater)
+        if (VERSION.SDK_INT >= VERSION_CODES.M) {
+            BarUtils.setNavBarColor(
+                this,
+                getColor(R.color.windowBackground)
+            )
+        } else if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+            BarUtils.setNavBarColor(
+                this,
+                @Suppress("DEPRECATION")
+                resources.getColor(R.color.windowBackground)
+            )
+        }
         setContentView(binding.root)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
@@ -142,7 +157,7 @@ class PrefMainActivity: AppCompatActivity(),
                         try {
                             RimeUtils.deploy(this@PrefMainActivity)
                         } catch (ex: Exception) {
-                            Log.e(FRAGMENT_TAG, "Deploy Exception: $ex")
+                            Timber.e(ex, "Deploy Exception")
                         } finally {
                             progressDialog.dismiss()
 //                              exitProcess(0)
@@ -176,7 +191,7 @@ class PrefMainActivity: AppCompatActivity(),
                 0
             )
         }
-        if (VERSION.SDK_INT >= VERSION_CODES.P) { //僅Android P需要此權限在最上層顯示懸浮窗、對話框
+        if (VERSION.SDK_INT >= VERSION_CODES.P) { // 僅Android P需要此權限在最上層顯示懸浮窗、對話框
             if (!Settings.canDrawOverlays(this)) { // 事先说明需要权限的理由
                 AlertDialog.Builder(this).apply {
                     setTitle(R.string.pref__draw_overlays_tip_title)
@@ -187,7 +202,7 @@ class PrefMainActivity: AppCompatActivity(),
                             Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                             Uri.parse("package:$packageName")
                         )
-                        //startActivityForResult(intent, OVERLAY_PERMISSION_REQ_CODE);
+                        // startActivityForResult(intent, OVERLAY_PERMISSION_REQ_CODE);
                         startActivity(intent)
                     }
                     setNegativeButton(android.R.string.cancel, null)
@@ -209,14 +224,14 @@ class PrefMainActivity: AppCompatActivity(),
 
         override fun onPreferenceTreeClick(preference: Preference?): Boolean {
             return when (preference?.key) {
-                "pref_enable" -> { //啓用
+                "pref_enable" -> { // 啓用
                     val intent = Intent()
                     intent.action = Settings.ACTION_INPUT_METHOD_SETTINGS
                     intent.addCategory(Intent.CATEGORY_DEFAULT)
                     startActivity(intent)
                     true
                 }
-                "pref_select" -> { //切換
+                "pref_select" -> { // 切換
                     (activity as PrefMainActivity).imeManager.showInputMethodPicker()
                     true
                 }
@@ -256,7 +271,6 @@ class PrefMainActivity: AppCompatActivity(),
                 Settings.Secure.DEFAULT_INPUT_METHOD
             ) ?: "(none)"
             return selectedImeIds == IME_ID
-
         }
     }
 }

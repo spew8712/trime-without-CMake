@@ -7,7 +7,7 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.5.10'
+    ext.kotlin_version = '1.5.20'
 
     /**
      * The repositories block configures the repositories Gradle uses to
@@ -29,7 +29,7 @@ buildscript {
      */
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
+        classpath 'com.android.tools.build:gradle:7.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -43,9 +43,29 @@ buildscript {
  * does not configure any dependencies.
  */
 
+plugins {
+    id "com.diffplug.spotless" version "5.14.2"
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+        target 'app/src/main/java/com/osfans/trime/**/*.java'
+        googleJavaFormat('1.7')
+    }
+    kotlin {
+        target 'app/src/main/java/com/osfans/trime/**/*.kt'
+        ktlint("0.42.1")
+        trimTrailingWhitespace()
+        indentWithSpaces()
+        endWithNewline()
     }
 }

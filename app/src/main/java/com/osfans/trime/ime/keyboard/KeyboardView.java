@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.osfans.trime;
+package com.osfans.trime.ime.keyboard;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -32,8 +32,8 @@ import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -43,15 +43,17 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import com.osfans.trime.enums.KeyEventType;
+import com.osfans.trime.R;
 import com.osfans.trime.ime.core.Preferences;
-
+import com.osfans.trime.ime.enums.KeyEventType;
+import com.osfans.trime.setup.Config;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import timber.log.Timber;
 
 /** 顯示{@link Keyboard 鍵盤}及{@link Key 按鍵} */
 public class KeyboardView extends View implements View.OnClickListener {
@@ -113,7 +115,6 @@ public class KeyboardView extends View implements View.OnClickListener {
   private static final boolean DEBUG = false;
   private static final int NOT_A_KEY = -1;
   private static final int[] LONG_PRESSABLE_STATE_SET = {android.R.attr.state_long_pressable};
-  private static String TAG = KeyboardView.class.getSimpleName();
 
   private Keyboard mKeyboard;
   private int mCurrentKeyIndex = NOT_A_KEY;
@@ -123,25 +124,25 @@ public class KeyboardView extends View implements View.OnClickListener {
   private StateListDrawable mKeyBackColor;
   private int key_symbol_color, hilited_key_symbol_color;
   private int mSymbolSize;
-  private Paint mPaintSymbol;
+  private final Paint mPaintSymbol;
   private float mShadowRadius;
   private int mShadowColor;
   private float mBackgroundDimAmount;
   private Drawable mBackground;
 
-  private TextView mPreviewText;
-  private PopupWindow mPreviewPopup;
+  private final TextView mPreviewText;
+  private final PopupWindow mPreviewPopup;
   private int mPreviewOffset;
   private int mPreviewHeight;
   // Working variable
   private final int[] mCoordinates = new int[2];
 
-  private PopupWindow mPopupKeyboard;
+  private final PopupWindow mPopupKeyboard;
   private boolean mMiniKeyboardOnScreen;
   private View mPopupParent;
   private int mMiniKeyboardOffsetX;
   private int mMiniKeyboardOffsetY;
-  private Map<Key, View> mMiniKeyboardCache;
+  private final Map<Key, View> mMiniKeyboardCache;
   private Key[] mKeys;
 
   /** Listener for {@link OnKeyboardActionListener}. */
@@ -168,8 +169,8 @@ public class KeyboardView extends View implements View.OnClickListener {
 
   private boolean mProximityCorrectOn;
 
-  private Paint mPaint;
-  private Rect mPadding;
+  private final Paint mPaint;
+  private final Rect mPadding;
 
   private long mDownTime;
   private long mLastMoveTime;
@@ -180,21 +181,21 @@ public class KeyboardView extends View implements View.OnClickListener {
   private int mDownKey = NOT_A_KEY;
   private long mLastKeyTime;
   private long mCurrentKeyTime;
-  private int[] mKeyIndices = new int[12];
+  private final int[] mKeyIndices = new int[12];
   private GestureDetector mGestureDetector;
   private int mRepeatKeyIndex = NOT_A_KEY;
-  private int mPopupLayout;
+  private final int mPopupLayout;
   private boolean mAbortKey;
   private Key mInvalidatedKey;
-  private Rect mClipRegion = new Rect(0, 0, 0, 0);
+  private final Rect mClipRegion = new Rect(0, 0, 0, 0);
   private boolean mPossiblePoly;
-  private SwipeTracker mSwipeTracker = new SwipeTracker();
-  private int mSwipeThreshold;
-  private boolean mDisambiguateSwipe;
+  private final SwipeTracker mSwipeTracker = new SwipeTracker();
+  private final int mSwipeThreshold;
+  private final boolean mDisambiguateSwipe;
 
   // Variables for dealing with multiple pointers
   private int mOldPointerCount = 1;
-  private int[] mComboCodes = new int[10];
+  private final int[] mComboCodes = new int[10];
   private int mComboCount = 0;
   private boolean mComboMode = false;
 
@@ -202,19 +203,19 @@ public class KeyboardView extends View implements View.OnClickListener {
   private static int REPEAT_START_DELAY = 400;
   private static int LONGPRESS_TIMEOUT = ViewConfiguration.getLongPressTimeout();
 
-  private static int MAX_NEARBY_KEYS = 12;
-  private int[] mDistances = new int[MAX_NEARBY_KEYS];
+  private static final int MAX_NEARBY_KEYS = 12;
+  private final int[] mDistances = new int[MAX_NEARBY_KEYS];
 
   // For multi-tap
   private int mLastSentIndex;
   private long mLastTapTime;
   private static int MULTITAP_INTERVAL = 800; // milliseconds
-  private StringBuilder mPreviewLabel = new StringBuilder(1);
+  private final StringBuilder mPreviewLabel = new StringBuilder(1);
 
   /** Whether the keyboard bitmap needs to be redrawn before it's blitted. * */
   private boolean mDrawPending;
   /** The dirty region in the keyboard bitmap */
-  private Rect mDirtyRect = new Rect();
+  private final Rect mDirtyRect = new Rect();
   /** The keyboard bitmap for faster updates */
   private Bitmap mBuffer;
   /** Notes if the keyboard just changed, so that we could possibly reallocate the mBuffer. */
@@ -222,9 +223,9 @@ public class KeyboardView extends View implements View.OnClickListener {
   /** The canvas for the above mutable keyboard bitmap */
   private Canvas mCanvas;
   /** The accessibility manager for accessibility support */
-  //private AccessibilityManager mAccessibilityManager;
+  // private AccessibilityManager mAccessibilityManager;
   /** The audio manager for accessibility support */
-  //private AudioManager mAudioManager;
+  // private AudioManager mAudioManager;
   /**
    * Whether the requirement of a headset to hear passwords if accessibility is enabled is
    * announced.
@@ -236,7 +237,9 @@ public class KeyboardView extends View implements View.OnClickListener {
   private Method findStateDrawableIndex;
   private Method getStateDrawable;
 
-  private Preferences getPrefs() { return Preferences.Companion.defaultInstance(); }
+  private Preferences getPrefs() {
+    return Preferences.Companion.defaultInstance();
+  }
 
   private static class MyHandler extends Handler {
     private final WeakReference<KeyboardView> mKeyboardView;
@@ -348,11 +351,13 @@ public class KeyboardView extends View implements View.OnClickListener {
     try {
       findStateDrawableIndex =
           StateListDrawable.class.getMethod(
-              Build.VERSION.SDK_INT + Build.VERSION.PREVIEW_SDK_INT >= Build.VERSION_CODES.Q ?  "findStateDrawableIndex" : "getStateDrawableIndex",
+              Build.VERSION.SDK_INT + Build.VERSION.PREVIEW_SDK_INT >= Build.VERSION_CODES.Q
+                  ? "findStateDrawableIndex"
+                  : "getStateDrawableIndex",
               int[].class);
       getStateDrawable = StateListDrawable.class.getMethod("getStateDrawable", int.class);
     } catch (Exception ex) {
-      Log.e(TAG, "Get Drawable Exception: " + ex);
+      Timber.e(ex, "Get Drawable Exception");
     }
 
     LayoutInflater inflate =
@@ -374,10 +379,10 @@ public class KeyboardView extends View implements View.OnClickListener {
     mPopupLayout = R.layout.keyboard_popup_keyboard;
     mPopupKeyboard = new PopupWindow(context);
     mPopupKeyboard.setBackgroundDrawable(null);
-    //mPopupKeyboard.setClippingEnabled(false);
+    // mPopupKeyboard.setClippingEnabled(false);
 
     mPopupParent = this;
-    //mPredicting = true;
+    // mPredicting = true;
 
     mPadding = new Rect(0, 0, 0, 0);
     mMiniKeyboardCache = new HashMap<Key, View>();
@@ -402,8 +407,8 @@ public class KeyboardView extends View implements View.OnClickListener {
                 final float absY = Math.abs(velocityY);
                 float deltaX = me2.getX() - me1.getX();
                 float deltaY = me2.getY() - me1.getY();
-                int travelX = 0; //getWidth() / 2; // Half the keyboard width
-                int travelY = 0; //getHeight() / 2; // Half the keyboard height
+                int travelX = 0; // getWidth() / 2; // Half the keyboard width
+                int travelY = 0; // getHeight() / 2; // Half the keyboard height
                 mSwipeTracker.computeCurrentVelocity(10);
                 final float endingVelocityX = mSwipeTracker.getXVelocity();
                 final float endingVelocityY = mSwipeTracker.getYVelocity();
@@ -665,8 +670,7 @@ public class KeyboardView extends View implements View.OnClickListener {
     if (keys == null) return;
     int length = keys.length;
     int dimensionSum = 0;
-    for (int i = 0; i < length; i++) {
-      Key key = keys[i];
+    for (Key key : keys) {
       dimensionSum += Math.min(key.getWidth(), key.getHeight()) + key.getGap();
     }
     if (dimensionSum < 0 || length == 0) return;
@@ -678,7 +682,7 @@ public class KeyboardView extends View implements View.OnClickListener {
   public void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     if (mKeyboard != null) {
-      //mKeyboard.resize(w, h);
+      // mKeyboard.resize(w, h);
     }
     // Release the buffer, if any and it will be reallocated on the next draw
     mBuffer = null;
@@ -737,8 +741,7 @@ public class KeyboardView extends View implements View.OnClickListener {
     final int keyCount = keys.length;
     final float symbolBase = padding.top - mPaintSymbol.getFontMetrics().top;
     final float hintBase = -padding.bottom - mPaintSymbol.getFontMetrics().bottom;
-    for (int i = 0; i < keyCount; i++) {
-      final Key key = keys[i];
+    for (final Key key : keys) {
       if (drawSingleKey && invalidKey != key) {
         continue;
       }
@@ -749,7 +752,7 @@ public class KeyboardView extends View implements View.OnClickListener {
           int index = (int) findStateDrawableIndex.invoke(mKeyBackColor, drawableState);
           keyBackground = (Drawable) getStateDrawable.invoke(mKeyBackColor, index);
         } catch (Exception ex) {
-          Log.e(TAG, "Get Drawable Exception" + ex);
+          Timber.e(ex, "Get Drawable Exception");
         }
       }
       if (keyBackground instanceof GradientDrawable) {
@@ -776,7 +779,7 @@ public class KeyboardView extends View implements View.OnClickListener {
       canvas.translate(key.getX() + kbdPaddingLeft, key.getY() + kbdPaddingTop);
       keyBackground.draw(canvas);
 
-      if (!Function.isEmpty(label)) {
+      if (!TextUtils.isEmpty(label)) {
         // For characters, use large font. For labels like "Done", use small font.
         if (key.getKey_text_size() != null) {
           paint.setTextSize(key.getKey_text_size());
@@ -806,7 +809,7 @@ public class KeyboardView extends View implements View.OnClickListener {
                 mPaintSymbol);
           }
 
-          if (!Function.isEmpty(hint)) {
+          if (!TextUtils.isEmpty(hint)) {
             mPaintSymbol.setShadowLayer(mShadowRadius, 0, 0, mShadowColor);
             canvas.drawText(
                 hint,
@@ -915,7 +918,7 @@ public class KeyboardView extends View implements View.OnClickListener {
           if (!key.hasEvent(type)) return;
         }
         int code = key.getCode(type);
-        //TextEntryState.keyPressedAt(key, x, y);
+        // TextEntryState.keyPressedAt(key, x, y);
         int[] codes = new int[MAX_NEARBY_KEYS];
         Arrays.fill(codes, NOT_A_KEY);
         getKeyIndices(x, y, codes);
@@ -1033,8 +1036,8 @@ public class KeyboardView extends View implements View.OnClickListener {
     }
 
     if (previewPopup.isShowing()) {
-      //previewPopup.update(mPopupPreviewX, mPopupPreviewY, popupWidth, popupHeight);
-      previewPopup.dismiss(); //禁止窗口動畫
+      // previewPopup.update(mPopupPreviewX, mPopupPreviewY, popupWidth, popupHeight);
+      previewPopup.dismiss(); // 禁止窗口動畫
     }
     previewPopup.setWidth(popupWidth);
     previewPopup.setHeight(popupHeight);
@@ -1185,7 +1188,7 @@ public class KeyboardView extends View implements View.OnClickListener {
                 mKeyboardActionListener.onRelease(primaryCode);
               }
             });
-        //mInputView.setSuggest(mSuggest);
+        // mInputView.setSuggest(mSuggest);
         Keyboard keyboard;
         if (popupKey.getPopupCharacters() != null) {
           keyboard =
@@ -1222,7 +1225,7 @@ public class KeyboardView extends View implements View.OnClickListener {
       mPopupKeyboard.setHeight(mMiniKeyboardContainer.getMeasuredHeight());
       mPopupKeyboard.showAtLocation(this, Gravity.NO_GRAVITY, x, y);
       mMiniKeyboardOnScreen = true;
-      //mMiniKeyboard.onTouchEvent(getTranslatedEvent(me));
+      // mMiniKeyboard.onTouchEvent(getTranslatedEvent(me));
       invalidateAllKeys();
       return true;
     } else {
@@ -1292,7 +1295,7 @@ public class KeyboardView extends View implements View.OnClickListener {
 
     if (action == MotionEvent.ACTION_POINTER_UP
         || (mOldPointerCount > 1 && action == MotionEvent.ACTION_UP)) {
-      //並擊鬆開前的虛擬按鍵事件
+      // 並擊鬆開前的虛擬按鍵事件
       MotionEvent ev =
           MotionEvent.obtain(
               now,
@@ -1306,7 +1309,7 @@ public class KeyboardView extends View implements View.OnClickListener {
     }
 
     if (action == MotionEvent.ACTION_POINTER_DOWN) {
-      //並擊中的按鍵事件，需要按鍵提示
+      // 並擊中的按鍵事件，需要按鍵提示
       MotionEvent ev =
           MotionEvent.obtain(
               now, now, MotionEvent.ACTION_DOWN, me.getX(index), me.getY(index), me.getMetaState());
@@ -1369,7 +1372,7 @@ public class KeyboardView extends View implements View.OnClickListener {
         mDownKey = keyIndex;
         mDownTime = me.getEventTime();
         mLastMoveTime = mDownTime;
-        if (action == MotionEvent.ACTION_POINTER_DOWN) break; //並擊鬆開前的虛擬按鍵事件
+        if (action == MotionEvent.ACTION_POINTER_DOWN) break; // 並擊鬆開前的虛擬按鍵事件
         checkMultiTap(eventTime, keyIndex);
         mKeyboardActionListener.onPress(keyIndex != NOT_A_KEY ? mKeys[keyIndex].getCode() : 0);
         if (mCurrentKey >= 0 && mKeys[mCurrentKey].getClick().isRepeatable()) {
@@ -1553,9 +1556,9 @@ public class KeyboardView extends View implements View.OnClickListener {
     static final int NUM_PAST = 4;
     static final int LONGEST_PAST_TIME = 200;
 
-    final float mPastX[] = new float[NUM_PAST];
-    final float mPastY[] = new float[NUM_PAST];
-    final long mPastTime[] = new long[NUM_PAST];
+    final float[] mPastX = new float[NUM_PAST];
+    final float[] mPastY = new float[NUM_PAST];
+    final long[] mPastTime = new long[NUM_PAST];
 
     float mYVelocity;
     float mXVelocity;

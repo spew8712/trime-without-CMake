@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.osfans.trime;
+package com.osfans.trime.util;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.SearchManager;
 import android.content.ClipData;
@@ -25,35 +26,30 @@ import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.icu.util.Calendar;
 import android.icu.util.ULocale;
 import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.preference.PreferenceManager;
-import android.util.Log;
+import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.KeyEvent;
-
+import androidx.annotation.NonNull;
+import com.osfans.trime.Rime;
 import com.osfans.trime.ime.core.Preferences;
 import com.osfans.trime.settings.PrefMainActivity;
-
 import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
+import timber.log.Timber;
 
 /** 實現打開指定程序、打開{@link PrefMainActivity 輸入法全局設置}對話框等功能 */
 public class Function {
-  private static String TAG = Function.class.getSimpleName();
-  private static SparseArray<String> sApplicationLaunchKeyCategories;
+  private static final SparseArray<String> sApplicationLaunchKeyCategories;
 
   static {
-    sApplicationLaunchKeyCategories = new SparseArray<String>();
+    sApplicationLaunchKeyCategories = new SparseArray<>();
     sApplicationLaunchKeyCategories.append(
         KeyEvent.KEYCODE_EXPLORER, "android.intent.category.APP_BROWSER");
     sApplicationLaunchKeyCategories.append(
@@ -73,7 +69,7 @@ public class Function {
       try {
         context.startActivity(intent);
       } catch (Exception ex) {
-        Log.e(TAG, "Start Activity Exception" + ex);
+        Timber.e(ex, "Start Activity Exception");
       }
       return true;
     }
@@ -100,7 +96,7 @@ public class Function {
       intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
       context.startActivity(intent);
     } catch (Exception ex) {
-      Log.e(TAG, "Start Activity Exception" + ex);
+      Timber.e(ex, "Start Activity Exception");
     }
   }
 
@@ -111,35 +107,30 @@ public class Function {
       switch (action) {
         case Intent.ACTION_WEB_SEARCH:
         case Intent.ACTION_SEARCH:
-          if (arg.startsWith("http")) { //web_search無法直接打開網址
+          if (arg.startsWith("http")) { // web_search無法直接打開網址
             startIntent(context, arg);
             return;
           }
           intent.putExtra(SearchManager.QUERY, arg);
           break;
-        case Intent.ACTION_SEND: //分享文本
+        case Intent.ACTION_SEND: // 分享文本
           intent.setType("text/plain");
           intent.putExtra(Intent.EXTRA_TEXT, arg);
           break;
         default:
-          if (!isEmpty(arg)) intent.setData(Uri.parse(arg));
+          if (!TextUtils.isEmpty(arg)) intent.setData(Uri.parse(arg));
           break;
       }
       intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
       context.startActivity(intent);
     } catch (Exception ex) {
-      Log.e(TAG, "Start Activity Exception" + ex);
+      Timber.e(ex, "Start Activity Exception");
     }
   }
 
-  public static void showPrefDialog(Context context) {
-    Intent intent = new Intent(context, PrefMainActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
-    context.startActivity(intent);
-  }
-
+  @SuppressLint("SimpleDateFormat")
   private static String getDate(String option) {
-    String s = "";
+    String s;
     String locale = "";
     if (option.contains("@")) {
       String[] ss = option.split(" ", 2);
@@ -151,33 +142,35 @@ public class Function {
         option = "";
       }
     }
-    if (VERSION.SDK_INT >= VERSION_CODES.N && !isEmpty(locale)) {
+    if (VERSION.SDK_INT >= VERSION_CODES.N && !TextUtils.isEmpty(locale)) {
       ULocale ul = new ULocale(locale);
       Calendar cc = Calendar.getInstance(ul);
       android.icu.text.DateFormat df;
-      if (isEmpty(option)) {
+      if (TextUtils.isEmpty(option)) {
         df = android.icu.text.DateFormat.getDateInstance(android.icu.text.DateFormat.LONG, ul);
       } else {
         df = new android.icu.text.SimpleDateFormat(option, ul);
       }
       s = df.format(cc, new StringBuffer(256), new FieldPosition(0)).toString();
     } else {
-      s = new SimpleDateFormat(option, Locale.getDefault()).format(new Date()); //時間
+      s = new SimpleDateFormat(option, Locale.getDefault()).format(new Date()); // 時間
     }
     return s;
   }
 
-  private static String getClipboard(Context context) {
-    ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-    ClipData primaryClip = clipboard.getPrimaryClip();
+  @NonNull
+  private static String getClipboard(@NonNull Context context) {
+    final ClipboardManager clipboard =
+        (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+    final ClipData primaryClip = clipboard.getPrimaryClip();
     if (primaryClip == null) {
       return "";
     }
-    ClipData.Item item = primaryClip.getItemAt(0);
+    final ClipData.Item item = primaryClip.getItemAt(0);
     if (item == null) {
       return "";
     }
-    CharSequence pasteData = item.getText();
+    final CharSequence pasteData = item.getText();
     if (pasteData != null) {
       return pasteData.toString();
     } else {
@@ -187,108 +180,30 @@ public class Function {
 
   public static String handle(Context context, String command, String option) {
     String s = null;
-    if (command == null) return s;
+    if (command == null) return null;
     switch (command) {
       case "date":
         s = getDate(option);
         break;
       case "run":
-        startIntent(context, option); //啓動程序
+        startIntent(context, option); // 啓動程序
         break;
       case "broadcast":
-        context.sendBroadcast(new Intent(option)); //廣播
+        context.sendBroadcast(new Intent(option)); // 廣播
         break;
       case "clipboard":
         s = getClipboard(context);
         break;
       default:
-        startIntent(context, command, option); //其他intent
+        startIntent(context, command, option); // 其他intent
         break;
     }
     return s;
   }
 
-  public static boolean isEmpty(CharSequence s) {
-    return (s == null) || (s.length() == 0);
-  }
-
-  public static void check() {
-    Rime.check(true);
-    System.exit(0); //清理內存
-  }
-
-  public static void deploy(Context context) {
-    Rime.destroy();
-    Rime.get(context, true);
-    //Trime trime = Trime.getService();
-    //if (trime != null) trime.invalidate();
-  }
-
-  public static void sync(Context context) {
-    Rime.syncUserData(context);
-  }
-
-  public static void syncBackground(Context ctx){
+  public static void syncBackground(Context ctx) {
     final Preferences prefs = Preferences.Companion.defaultInstance();
     prefs.getConf().setLastSyncTime(new Date().getTime());
     prefs.getConf().setLastSyncStatus(Rime.syncUserData(ctx));
-  }
-
-  public static String getVersion(Context context) {
-    try {
-      return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  /**
-   * Check if the app is installed.
-   *
-   * @param context the parent context
-   * @param app the app package name
-   * @return if the app is installed
-   *
-   * @deprecated use {@link com.blankj.utilcode.util.AppUtils#isAppInstalled(String)} instead.
-   */
-  @Deprecated
-  public static boolean isAppAvailable(Context context, String app) {
-    final PackageManager packageManager = context.getPackageManager();
-    List<PackageInfo> pinfo = packageManager.getInstalledPackages(0);
-    if (pinfo != null) {
-      for (int i = 0; i < pinfo.size(); i++) {
-        String pn = pinfo.get(i).packageName;
-        if (pn.equals(app)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Get the default shared preferences.
-   * @param context the parent context
-   * @return the default shared preferences
-   *
-   * @deprecated Use {@link com.osfans.trime.ime.core.Preferences} to organize
-   * shared preferences.
-   */
-  @Deprecated
-  public static SharedPreferences getPref(Context context) {
-    return PreferenceManager.getDefaultSharedPreferences(context);
-  }
-
-  public static boolean isDiffVer(Context context) {
-    String version = getVersion(context);
-    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-    String pref_ver = pref.getString("version_name", "");
-    boolean isDiff = !version.contentEquals(pref_ver);
-    if (isDiff) {
-      SharedPreferences.Editor edit = pref.edit();
-      edit.putString("version_name", version);
-      edit.apply();
-    }
-    return isDiff;
   }
 }

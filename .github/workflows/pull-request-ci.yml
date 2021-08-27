@@ -18,14 +18,19 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
       
-      - name: Set up adoptJDK 8
+      - name: Setup adopt JDK
         uses: actions/setup-java@v2
         with:
           distribution: "adopt"
-          java-version: 8
+          java-version: 11
+          # will restore cache of dependencies and wrappers
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
+
+      - name: Spotless code style check
+        run: make spotless
 
       - name: Build Trime
         run: make debug

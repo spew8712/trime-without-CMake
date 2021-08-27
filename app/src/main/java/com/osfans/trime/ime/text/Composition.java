@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.osfans.trime;
+package com.osfans.trime.ime.text;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
@@ -27,6 +28,7 @@ import android.os.Build.VERSION_CODES;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.AlignmentSpan;
@@ -35,15 +37,17 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.UnderlineSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
-
+import com.osfans.trime.Rime;
 import com.osfans.trime.ime.core.Trime;
-
+import com.osfans.trime.ime.keyboard.Event;
+import com.osfans.trime.setup.Config;
 import java.util.List;
 import java.util.Map;
+import timber.log.Timber;
 
 /** 編碼區，顯示已輸入的按鍵編碼，可使用方向鍵或觸屏移動光標位置 */
 public class Composition extends AppCompatTextView {
@@ -53,22 +57,24 @@ public class Composition extends AppCompatTextView {
   private int back_color, hilited_back_color, hilited_candidate_back_color;
   private Integer key_back_color;
   private Typeface tfText, tfLabel, tfCandidate, tfComment;
-  private int composition_pos[] = new int[2];
+  private final int[] composition_pos = new int[2];
   private int max_length, sticky_lines;
   private int max_entries = Candidate.getMaxCandidateCount();
   private boolean candidate_use_cursor, show_comment;
   private int highlightIndex;
   private List<Map<String, Object>> components;
   private SpannableStringBuilder ss;
-  private int span = 0;
+  private final int span = 0;
   private String movable;
-  private int move_pos[] = new int[2];
+  private final int[] move_pos = new int[2];
   private boolean first_move = true;
   private float mDx, mDy;
   private int mCurrentX, mCurrentY;
   private int candidate_num;
   private boolean all_phrases;
-  private View mInputRoot;
+  // private View mInputRoot;
+  // 候选高亮序号颜色
+  private Integer hilited_label_color;
 
   private class CompositionSpan extends UnderlineSpan {
     public CompositionSpan() {
@@ -138,8 +144,8 @@ public class Composition extends AppCompatTextView {
   }
 
   @TargetApi(21)
-  public class LetterSpacingSpan extends UnderlineSpan {
-    private float letterSpacing;
+  public static class LetterSpacingSpan extends UnderlineSpan {
+    private final float letterSpacing;
 
     /** @param letterSpacing 字符間距 */
     public LetterSpacingSpan(float letterSpacing) {
@@ -157,15 +163,16 @@ public class Composition extends AppCompatTextView {
     reset(context);
   }
 
+  @SuppressLint("ClickableViewAccessibility")
   @Override
-  public boolean onTouchEvent(MotionEvent event) {
+  public boolean onTouchEvent(@NonNull MotionEvent event) {
     int action = event.getAction();
     if (action == MotionEvent.ACTION_UP) {
       int n = getOffsetForPosition(event.getX(), event.getY());
       if (composition_pos[0] <= n && n <= composition_pos[1]) {
         String s =
             getText().toString().substring(n, composition_pos[1]).replace(" ", "").replace("‸", "");
-        n = Rime.RimeGetInput().length() - s.length(); //從右側定位
+        n = Rime.RimeGetInput().length() - s.length(); // 從右側定位
         Rime.RimeSetCaretPos(n);
         Trime.getService().updateComposing();
         return true;
@@ -177,13 +184,13 @@ public class Composition extends AppCompatTextView {
         if (action == MotionEvent.ACTION_DOWN) {
           if (first_move || movable.contentEquals("once")) {
             first_move = false;
-            int location[] = Trime.getLocationOnScreen(this);
+            int[] location = Trime.getLocationOnScreen(this);
             mCurrentX = location[0];
             mCurrentY = location[1];
           }
           mDx = mCurrentX - event.getRawX();
           mDy = mCurrentY - event.getRawY();
-        } else { //MotionEvent.ACTION_MOVE
+        } else { // MotionEvent.ACTION_MOVE
           mCurrentX = (int) (event.getRawX() + mDx);
           mCurrentY = (int) (event.getRawY() + mDy);
           Trime.getService().updateWindow(mCurrentX, mCurrentY);
@@ -199,7 +206,7 @@ public class Composition extends AppCompatTextView {
   }
 
   public void reset(Context context) {
-    Config config = Config.get(context);
+    final Config config = Config.get(context);
     components = (List<Map<String, Object>>) config.getValue("window");
     if (config.hasKey("layout/max_entries")) max_entries = config.getInt("layout/max_entries");
     candidate_use_cursor = config.getBoolean("candidate_use_cursor");
@@ -215,6 +222,10 @@ public class Composition extends AppCompatTextView {
     hilited_candidate_text_color = config.getColor("hilited_candidate_text_color");
     hilited_comment_text_color = config.getColor("hilited_comment_text_color");
     label_color = config.getColor("label_color");
+    hilited_label_color = config.getColor("hilited_label_color");
+    if (hilited_label_color == null) {
+      hilited_label_color = hilited_candidate_text_color;
+    }
 
     back_color = config.getColor("back_color");
     hilited_back_color = config.getColor("hilited_back_color");
@@ -230,19 +241,18 @@ public class Composition extends AppCompatTextView {
     setMinWidth(config.getPixel("layout/min_width"));
     setMinHeight(config.getPixel("layout/min_height"));
 
-    int max_width=config.getPixel("layout/max_width");
-    int real_margin=config.getPixel("layout/real_margin");
+    int max_width = config.getPixel("layout/max_width");
+    int real_margin = config.getPixel("layout/real_margin");
     int displayWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
-    Log.d("Composition.reset","max_width="+max_width+" displayWidth="+displayWidth);
-    if(max_width>displayWidth)
-      max_width = displayWidth;
-    setMaxWidth(max_width-real_margin*2);
+    Timber.d("max_width = %s, displayWidth = %s ", max_width, displayWidth);
+    if (max_width > displayWidth) max_width = displayWidth;
+    setMaxWidth(max_width - real_margin * 2);
 
     setMaxHeight(config.getPixel("layout/max_height"));
     int margin_x, margin_y, margin_bottom;
     margin_x = config.getPixel("layout/margin_x");
     margin_y = config.getPixel("layout/margin_y");
-    margin_bottom = config.getPixel("layout/margin_bottom",margin_y);
+    margin_bottom = config.getPixel("layout/margin_bottom", margin_y);
     setPadding(margin_x, margin_y, margin_x, margin_bottom);
     max_length = config.getInt("layout/max_length");
     sticky_lines = config.getInt("layout/sticky_lines");
@@ -254,7 +264,7 @@ public class Composition extends AppCompatTextView {
     tfComment = config.getFont("comment_font");
   }
 
-  private Object getAlign(Map m) {
+  private Object getAlign(Map<?, ?> m) {
     Layout.Alignment i = Layout.Alignment.ALIGN_NORMAL;
     if (m.containsKey("align")) {
       String align = Config.getString(m, "align");
@@ -275,12 +285,13 @@ public class Composition extends AppCompatTextView {
     return new AlignmentSpan.Standard(i);
   }
 
-  private void appendComposition(Map m) {
-    Rime.RimeComposition r = Rime.getComposition();
-    String s = r.getText();
+  private void appendComposition(Map<?, ?> m) {
+    final Rime.RimeComposition r = Rime.getComposition();
+    assert r != null;
+    final String s = r.getText();
     int start, end;
     String sep = Config.getString(m, "start");
-    if (!Function.isEmpty(sep)) {
+    if (!TextUtils.isEmpty(sep)) {
       start = ss.length();
       ss.append(sep);
       end = ss.length();
@@ -303,48 +314,44 @@ public class Composition extends AppCompatTextView {
     ss.setSpan(new ForegroundColorSpan(hilited_text_color), start, end, span);
     ss.setSpan(new BackgroundColorSpan(hilited_back_color), start, end, span);
     sep = Config.getString(m, "end");
-    if (!Function.isEmpty(sep)) ss.append(sep);
+    if (!TextUtils.isEmpty(sep)) ss.append(sep);
   }
 
   /**
-   * 计算悬浮窗显示候选词后，候选栏从第几个候选词开始展示
-   * 注意当all_phrases==true时，悬浮窗显示的候选词数量和候选栏从第几个开始，是不一致的
+   * 计算悬浮窗显示候选词后，候选栏从第几个候选词开始展示 注意当 all_phrases==true 时，悬浮窗显示的候选词数量和候选栏从第几个开始，是不一致的
+   *
    * @param min_length 候选词长度大于设定，才会显示到悬浮窗中
    * @param min_check 检查至少多少个候选词。当首选词长度不足时，继续检查后方候选词
-   * @return
+   * @return j
    */
-  private int calc_start_num(int min_length, int min_check) {
-    Rime.RimeCandidate[] candidates = Rime.getCandidates();
+  private int calcStartNum(int min_length, int min_check) {
+    final Rime.RimeCandidate[] candidates = Rime.getCandidates();
     if (candidates == null) return 0;
 
-    int j=min_check>max_entries?max_entries-1:min_check-1;
-    if(j>=candidates.length)
-      j=candidates.length-1;
-    for(;j>=0;j--){
-      String cand = candidates[j].text;
-      if(cand.length()>=min_length)
-        break;
+    int j = min_check > max_entries ? (max_entries - 1) : (min_check - 1);
+    if (j >= candidates.length) j = candidates.length - 1;
+    for (; j >= 0; j--) {
+      final String cand = candidates[j].text;
+      if (cand.length() >= min_length) break;
     }
 
-    if(j<0)
-      j=0;
+    if (j < 0) j = 0;
 
-    for(;j<max_entries && j<candidates.length;j++){
-      String cand = candidates[j].text;
-      if(cand.length()<min_length){
+    for (; j < max_entries && j < candidates.length; j++) {
+      final String cand = candidates[j].text;
+      if (cand.length() < min_length) {
         return j;
       }
     }
     return j;
   }
 
-
-//  生成悬浮窗内的文本
-  private void appendCandidates(Map m, int length,int end_num) {
-    Log.d("Composition","appendCandidates() length="+length);
+  /** 生成悬浮窗内的文本 */
+  private void appendCandidates(Map<?, ?> m, int length, int end_num) {
+    Timber.d("appendCandidates(): length = %s", length);
     int start, end;
 
-    Rime.RimeCandidate[] candidates = Rime.getCandidates();
+    final Rime.RimeCandidate[] candidates = Rime.getCandidates();
     if (candidates == null) return;
     String sep = Config.getString(m, "start");
     highlightIndex = candidate_use_cursor ? Rime.getCandHighlightIndex() : -1;
@@ -359,19 +366,17 @@ public class Composition extends AppCompatTextView {
     candidate_num = 0;
     for (Rime.RimeCandidate o : candidates) {
       String cand = o.text;
-      if (Function.isEmpty(cand)) cand = "";
+      if (TextUtils.isEmpty(cand)) cand = "";
       i++;
-      if (candidate_num >= max_entries)
-        break;
+      if (candidate_num >= max_entries) break;
 
-      if (!all_phrases && candidate_num>=end_num)
-        break;
+      if (!all_phrases && candidate_num >= end_num) break;
 
       if (all_phrases && cand.length() < length) {
         continue;
       }
       cand = String.format(candidate_format, cand);
-      String line_sep;
+      final String line_sep;
       if (candidate_num == 0) {
         line_sep = sep;
       } else if ((sticky_lines > 0 && sticky_lines >= i)
@@ -381,24 +386,20 @@ public class Composition extends AppCompatTextView {
       } else {
         line_sep = line;
       }
-      if (!Function.isEmpty(line_sep)) {
+      if (!TextUtils.isEmpty(line_sep)) {
         start = ss.length();
         ss.append(line_sep);
         end = ss.length();
         ss.setSpan(getAlign(m), start, end, span);
       }
-      if (!Function.isEmpty(label_format) && labels != null) {
-        String label = String.format(label_format, labels[i]);
+      if (!TextUtils.isEmpty(label_format) && labels != null) {
+        final String label = String.format(label_format, labels[i]);
         start = ss.length();
         ss.append(label);
         end = ss.length();
         ss.setSpan(
             new CandidateSpan(
-                i,
-                tfLabel,
-                hilited_candidate_text_color,
-                hilited_candidate_back_color,
-                label_color),
+                i, tfLabel, hilited_label_color, hilited_candidate_back_color, label_color),
             start,
             end,
             span);
@@ -421,7 +422,7 @@ public class Composition extends AppCompatTextView {
           span);
       ss.setSpan(new AbsoluteSizeSpan(candidate_text_size), start, end, span);
       String comment = o.comment;
-      if (show_comment && !Function.isEmpty(comment_format) && !Function.isEmpty(comment)) {
+      if (show_comment && !TextUtils.isEmpty(comment_format) && !TextUtils.isEmpty(comment)) {
         comment = String.format(comment_format, comment);
         start = ss.length();
         ss.append(comment);
@@ -443,23 +444,23 @@ public class Composition extends AppCompatTextView {
       candidate_num++;
     }
     sep = Config.getString(m, "end");
-    if (!Function.isEmpty(sep)) ss.append(sep);
+    if (!TextUtils.isEmpty(sep)) ss.append(sep);
   }
 
-  private void appendButton(Map m) {
+  private void appendButton(@NonNull Map<?, ?> m) {
     if (m.containsKey("when")) {
-      String when = Config.getString(m, "when");
+      final String when = Config.getString(m, "when");
       if (when.contentEquals("paging") && !Rime.isPaging()) return;
       if (when.contentEquals("has_menu") && !Rime.hasMenu()) return;
     }
-    String label;
-    Event e = new Event(Config.getString(m, "click"));
+    final String label;
+    final Event e = new Event(Config.getString(m, "click"));
     if (m.containsKey("label")) label = Config.getString(m, "label");
     else label = e.getLabel();
     int start, end;
     String sep = null;
     if (m.containsKey("start")) sep = Config.getString(m, "start");
-    if (!Function.isEmpty(sep)) {
+    if (!TextUtils.isEmpty(sep)) {
       start = ss.length();
       ss.append(sep);
       end = ss.length();
@@ -472,14 +473,14 @@ public class Composition extends AppCompatTextView {
     ss.setSpan(new EventSpan(e), start, end, span);
     ss.setSpan(new AbsoluteSizeSpan(key_text_size), start, end, span);
     sep = Config.getString(m, "end");
-    if (!Function.isEmpty(sep)) ss.append(sep);
+    if (!TextUtils.isEmpty(sep)) ss.append(sep);
   }
 
-  private void appendMove(Map m) {
+  private void appendMove(Map<?, ?> m) {
     String s = Config.getString(m, "move");
     int start, end;
     String sep = Config.getString(m, "start");
-    if (!Function.isEmpty(sep)) {
+    if (!TextUtils.isEmpty(sep)) {
       start = ss.length();
       ss.append(sep);
       end = ss.length();
@@ -494,29 +495,28 @@ public class Composition extends AppCompatTextView {
     ss.setSpan(new AbsoluteSizeSpan(key_text_size), start, end, span);
     ss.setSpan(new ForegroundColorSpan(key_text_color), start, end, span);
     sep = Config.getString(m, "end");
-    if (!Function.isEmpty(sep)) ss.append(sep);
+    if (!TextUtils.isEmpty(sep)) ss.append(sep);
   }
 
-  public int setWindow(int length,int min_check) {
+  public int setWindow(int length, int min_check) {
     if (getVisibility() != View.VISIBLE) return 0;
     Rime.RimeComposition r = Rime.getComposition();
     if (r == null) return 0;
     String s = r.getText();
-    if (Function.isEmpty(s)) return 0;
-    setSingleLine(true); //設置單行
+    if (TextUtils.isEmpty(s)) return 0;
+    setSingleLine(true); // 設置單行
     ss = new SpannableStringBuilder();
     int start_num = 0;
-    for (Map<String, Object> m : components) {
+    for (Map<?, ?> m : components) {
       if (m.containsKey("composition")) appendComposition(m);
       else if (m.containsKey("candidate")) {
-        start_num = calc_start_num(length,min_check);
-        Log.d("setWindow()","start_num="+start_num+" min_length="+length+" min_check="+min_check);
-        appendCandidates(m, length,start_num);
-      }
-      else if (m.containsKey("click")) appendButton(m);
+        start_num = calcStartNum(length, min_check);
+        Timber.d("start_num = %s, min_length = %s, min_check = %s", start_num, length, min_check);
+        appendCandidates(m, length, start_num);
+      } else if (m.containsKey("click")) appendButton(m);
       else if (m.containsKey("move")) appendMove(m);
     }
-    if (candidate_num > 0 || ss.toString().contains("\n")) setSingleLine(false); //設置單行
+    if (candidate_num > 0 || ss.toString().contains("\n")) setSingleLine(false); // 設置單行
     setText(ss);
     setMovementMethod(LinkMovementMethod.getInstance());
     return start_num;

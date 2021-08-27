@@ -16,40 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.osfans.trime;
+package com.osfans.trime.setup;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Log;
-import android.widget.Toast;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.osfans.trime.Rime;
 import com.osfans.trime.util.RimeUtils;
+import timber.log.Timber;
 
-/** 接收Intent廣播事件 */
+/** 接收 Intent 廣播事件 */
 public class IntentReceiver extends BroadcastReceiver {
   private static final String TAG = "IntentReceiver";
   private static final String COMMAND_DEPLOY = "com.osfans.trime.deploy";
   private static final String COMMAND_SYNC = "com.osfans.trime.sync";
 
   @Override
-  public void onReceive(Context ctx, Intent intent) {
+  public void onReceive(@NonNull Context context, @NonNull Intent intent) {
+    final @Nullable String command = intent.getAction();
 
-    String command = intent.getAction();
-
-    Log.d(TAG, "Receive Command = " + command);
-    //防止为空，虽然很少,但是可能会出现
-    //http://stackoverflow.com/questions/15048883/intent-getaction-is-returning-null
+    Timber.d("Receive Command = %s", command);
+    // 防止为空，虽然很少,但是可能会出现
+    // http://stackoverflow.com/questions/15048883/intent-getaction-is-returning-null
     if (command == null) return;
 
     switch (command) {
       case COMMAND_DEPLOY:
-        RimeUtils.INSTANCE.deploy(ctx);
+        RimeUtils.INSTANCE.deploy(context);
         System.exit(0);
         break;
       case COMMAND_SYNC:
-        RimeUtils.INSTANCE.sync(ctx);
+        RimeUtils.INSTANCE.sync(context);
         break;
       case Intent.ACTION_SHUTDOWN:
         Rime.destroy();
@@ -59,13 +59,13 @@ public class IntentReceiver extends BroadcastReceiver {
     }
   }
 
-  public void registerReceiver(Context context) {
+  public void registerReceiver(@NonNull Context context) {
     context.registerReceiver(this, new IntentFilter(COMMAND_DEPLOY));
     context.registerReceiver(this, new IntentFilter(COMMAND_SYNC));
     context.registerReceiver(this, new IntentFilter(Intent.ACTION_SHUTDOWN));
   }
 
-  public void unregisterReceiver(Context context) {
+  public void unregisterReceiver(@NonNull Context context) {
     context.unregisterReceiver(this);
   }
 }

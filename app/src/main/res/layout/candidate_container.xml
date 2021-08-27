@@ -19,7 +19,7 @@
  */
 -->
 
-<com.osfans.trime.xScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.osfans.trime.ime.text.ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/scroll"
   android:layout_width="wrap_content"
   android:layout_height="wrap_content"
@@ -28,10 +28,10 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:orientation="horizontal">
-    <com.osfans.trime.Candidate
+    <com.osfans.trime.ime.text.Candidate
         android:id="@+id/candidate"
         android:layout_width="1000dp"
         android:layout_height="120dp"
         />
   </LinearLayout>
-</com.osfans.trime.xScrollView>
+</com.osfans.trime.ime.text.ScrollView>

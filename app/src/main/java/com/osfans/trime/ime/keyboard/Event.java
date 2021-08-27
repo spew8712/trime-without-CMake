@@ -16,24 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.osfans.trime;
+package com.osfans.trime.ime.keyboard;
 
+import android.text.TextUtils;
 import android.view.KeyEvent;
+import androidx.annotation.NonNull;
+import com.osfans.trime.Rime;
+import com.osfans.trime.setup.Config;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /** {@link Key 按鍵}的各種事件（單擊、長按、滑動等） */
 public class Event {
-  private String TAG = "Event";
-  private Keyboard mKeyboard;
-  private int code = 0;
+  // private String TAG = "Event";
+  private final Keyboard mKeyboard;
+  private int code;
   private int mask = 0;
   private String text;
   private String label;
   private String preview;
-  private List<String> states;
+  private List<?> states;
   private String command;
   private String option;
   private String select;
@@ -45,19 +50,23 @@ public class Event {
   private boolean repeatable;
   private boolean sticky;
 
-  public Event(Keyboard keyboard, String s) {
+  // {send|key}
+  private static final Pattern sendPattern = Pattern.compile("\\{[^\\{\\}]+\\}");
+  private static final Pattern labelPattern = Pattern.compile("\\{[^\\{\\}]+?\\}");
+
+  public Event(Keyboard keyboard, @NonNull String s) {
     mKeyboard = keyboard;
-    if (s.matches("\\{[^\\{\\}]+\\}")) { //{send|key}
-      label = s.substring(1, s.length() -1);
-      int[] sends = parseSend(label); //send
+    if (sendPattern.matcher(s).matches()) {
+      label = s.substring(1, s.length() - 1);
+      int[] sends = parseSend(label); // send
       code = sends[0];
       mask = sends[1];
       if (code >= 0) return;
-      s = label; //key
+      s = label; // key
       label = null;
     }
     if (Key.presetKeys.containsKey(s)) {
-      Map m = Key.presetKeys.get(s);
+      Map<?, ?> m = Key.presetKeys.get(s);
       command = Config.getString(m, "command");
       option = Config.getString(m, "option");
       select = Config.getString(m, "select");
@@ -67,14 +76,15 @@ public class Event {
       shiftLock = Config.getString(m, "shift_lock");
       commit = Config.getString(m, "commit");
       String send = Config.getString(m, "send");
-      if (Function.isEmpty(send) && !Function.isEmpty(command)) send = "function"; //command默認發function
+      if (TextUtils.isEmpty(send) && !TextUtils.isEmpty(command))
+        send = "function"; // command默認發function
       int[] sends = parseSend(send);
       code = sends[0];
       mask = sends[1];
       parseLabel();
       text = Config.getString(m, "text");
-      if (code < 0 && Function.isEmpty(text)) text = s;
-      if (m.containsKey("states")) states = (List<String>) m.get("states");
+      if (code < 0 && TextUtils.isEmpty(text)) text = s;
+      if (m.containsKey("states")) states = (List<?>) m.get("states");
       sticky = Config.getBoolean(m, "sticky", false);
       repeatable = Config.getBoolean(m, "repeatable", false);
       functional = Config.getBoolean(m, "functional", true);
@@ -83,7 +93,7 @@ public class Event {
     } else {
       code = 0;
       text = s;
-      label = s.replaceAll("\\{[^\\{\\}]+?\\}", "");
+      label = labelPattern.matcher(s).replaceAll("");
     }
   }
 
@@ -127,9 +137,10 @@ public class Event {
     return shiftLock;
   }
 
+  @NonNull
   public static int[] parseSend(String s) {
     int[] sends = new int[2];
-    if (Function.isEmpty(s)) return sends;
+    if (TextUtils.isEmpty(s)) return sends;
     String codes;
     if (!s.contains("+")) codes = s;
     else {
@@ -142,8 +153,9 @@ public class Event {
     return sends;
   }
 
+  @NonNull
   private String adjustCase(String s) {
-    if (Function.isEmpty(s)) return "";
+    if (TextUtils.isEmpty(s)) return "";
     if (s.length() == 1 && mKeyboard != null && mKeyboard.isShifted())
       s = s.toUpperCase(Locale.getDefault());
     else if (s.length() == 1
@@ -154,13 +166,13 @@ public class Event {
   }
 
   public String getLabel() {
-    if (!Function.isEmpty(toggle)) return states.get(Rime.getOption(toggle) ? 1 : 0);
+    if (!TextUtils.isEmpty(toggle)) return (String) states.get(Rime.getOption(toggle) ? 1 : 0);
     return adjustCase(label);
   }
 
   public String getText() {
     String s = "";
-    if (!Function.isEmpty(text)) s = text;
+    if (!TextUtils.isEmpty(text)) s = text;
     else if (mKeyboard != null
         && mKeyboard.isShifted()
         && mask == 0
@@ -170,12 +182,12 @@ public class Event {
   }
 
   public String getPreviewText() {
-    if (!Function.isEmpty(preview)) return preview;
+    if (!TextUtils.isEmpty(preview)) return preview;
     return getLabel();
   }
 
   public String getToggle() {
-    if (!Function.isEmpty(toggle)) return toggle;
+    if (!TextUtils.isEmpty(toggle)) return toggle;
     return "ascii_mode";
   }
 
@@ -184,7 +196,7 @@ public class Event {
   }
 
   private void parseLabel() {
-    if (!Function.isEmpty(label)) return;
+    if (!TextUtils.isEmpty(label)) return;
     int c = code;
     if (c == KeyEvent.KEYCODE_SPACE) {
       label = Rime.getSchemaName();
@@ -195,7 +207,7 @@ public class Event {
 
   public static String getDisplayLabel(int keyCode) {
     String s = "";
-    if (keyCode < Key.getSymbolStart()) { //字母數字
+    if (keyCode < Key.getSymbolStart()) { // 字母數字
       if (Key.getKcm().isPrintingKey(keyCode)) {
         char c = Key.getKcm().getDisplayLabel(keyCode);
         if (Character.isUpperCase(c)) c = Character.toLowerCase(c);
@@ -203,7 +215,7 @@ public class Event {
       } else {
         s = Key.androidKeys.get(keyCode);
       }
-    } else if (keyCode < Key.androidKeys.size()) { //可見符號
+    } else if (keyCode < Key.androidKeys.size()) { // 可見符號
       keyCode -= Key.getSymbolStart();
       s = Key.getSymbols().substring(keyCode, keyCode + 1);
     }
@@ -212,11 +224,11 @@ public class Event {
 
   public static int getClickCode(String s) {
     int keyCode = -1;
-    if (Function.isEmpty(s)) { //空鍵
+    if (TextUtils.isEmpty(s)) { // 空鍵
       keyCode = 0;
-    } else if (Key.androidKeys.contains(s)) { //字母數字
+    } else if (Key.androidKeys.contains(s)) { // 字母數字
       keyCode = Key.androidKeys.indexOf(s);
-    } else if (Key.getSymbols().contains(s)) { //可見符號
+    } else if (Key.getSymbols().contains(s)) { // 可見符號
       keyCode = Key.getSymbolStart() + Key.getSymbols().indexOf(s);
     } else if (symbolAliases.containsKey(s)) {
       keyCode = symbolAliases.get(s);
@@ -247,7 +259,7 @@ public class Event {
     return new int[] {i, m};
   }
 
-  private static Map<String, Integer> masks =
+  private static final Map<String, Integer> masks =
       new HashMap<String, Integer>() {
         {
           put("Shift", KeyEvent.META_SHIFT_ON);
@@ -256,7 +268,7 @@ public class Event {
         }
       };
 
-  private static Map<String, Integer> symbolAliases =
+  private static final Map<String, Integer> symbolAliases =
       new HashMap<String, Integer>() {
         {
           put("#", KeyEvent.KEYCODE_POUND);

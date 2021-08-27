@@ -51,3 +51,11 @@ libs/*
 # VS Code
 .vscode/*
 /app/release/*
+
+
+# perf
+*.hprof
+
+# vim
+*.swp
+
