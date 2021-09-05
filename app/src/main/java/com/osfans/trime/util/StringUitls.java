@@ -22,7 +22,7 @@ public class StringUitls {
         }
       }
     }
-    return str.length();
+    return 0;
   }
 
   public static int findPrevSection(CharSequence str, int start) {

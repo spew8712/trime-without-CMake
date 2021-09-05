@@ -1,5 +1,8 @@
-name: Last commit release
-on: [push]
+name: Create release
+on:
+  push:
+    tags:
+      - '*'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,16 +33,32 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
+      - name: Setup keystore
+        run: |
+          echo "set up keystore for release"
+          echo "need help!!"
+          
       - name: Spotless code style check
         run: make spotless
 
       - name: Build Trime
         run: make debug
+        
+      - name: Build changelog
+        id: release_log
+        run: |
+          log=$(./script/changelog.sh)
+          # multiline
+          log="${log//'%'/'%25'}"
+          log="${log//$'\n'/'%0A'}"
+          log="${log//$'\r'/'%0D'}"
 
-      - name: Upload Trime artifact
-        uses: actions/upload-artifact@v2
+          echo "::set-output name=changelog::$log"
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
         with:
-          name: trime-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          # keep 360 days
-          retention-days: 360
+          artifacts: "app/build/outputs/apk/debug/app-debug.apk"
+          body: |
+            ${{ steps.release_log.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}
