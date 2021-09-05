@@ -48,12 +48,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import kotlin.jvm.Synchronized;
+import timber.log.Timber;
 
 /** 解析 YAML 配置文件 */
 public class Config {
@@ -99,7 +101,6 @@ public class Config {
   private void prepareCLipBoardRule() {
     clipBoardCompare = getPrefs().getOther().getClipboardCompareRules().trim().split("\n");
     clipBoardOutput = getPrefs().getOther().getClipboardOutputRules().trim().split("\n");
-    clipBoardManager = getPrefs().getOther().getClipboardManagerRules().trim().split(",");
   }
 
   public String[] getClipBoardCompare() {
@@ -246,14 +247,11 @@ public class Config {
     return true;
   }
 
-  private boolean copyFile(Context context, String fileName, boolean overwrite) {
-    if (fileName == null) {
-      return false;
-    }
+  private void copyFile(Context context, String fileName, boolean overwrite) {
+    if (fileName == null) return;
+
     final String targetFileName = new File(getSharedDataDir(), fileName).getPath();
-    if (new File(targetFileName).exists() && !overwrite) {
-      return true;
-    }
+    if (new File(targetFileName).exists() && !overwrite) return;
     final String sourceFileName = new File(RIME, fileName).getPath();
     final AssetManager assetManager = context.getAssets();
     try (InputStream in = assetManager.open(sourceFileName);
@@ -266,9 +264,7 @@ public class Config {
       out.flush();
     } catch (IOException e) {
       e.printStackTrace();
-      return false;
     }
-    return true;
   }
 
   private void deployTheme(Context context) {
@@ -660,7 +656,6 @@ public class Config {
    * 避免直接读取 default
    *
    * @return java.lang.String 首个已配置的主题方案名
-   * @date 8/13/21
    */
   private String getColorSchemeName() {
     String scheme = getPrefs().getLooks().getSelectedColor();
