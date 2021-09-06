@@ -17,6 +17,10 @@
 每次提交pr时，都会分享测试版本到同文用户QQ群。[github release页面](https://github.com/osfans/trime/releases)随缘更新。
 已经修改包名、App name，与正式版同文不存在冲突。
 
+## 使用/Use
+建议此版本与原版同文使用不同的文件夹。设置方法：打开同文设置-输入配置-用户文件夹，修改路径并新建对应文件夹。  
+新增和调整的功能可以在github commit说明中查看，wiki也有整理： https://github.com/tumuyan/trime-without-CMake/wiki  
+
 ## 鳴謝/Credits
 - 開發：[osfans](https://github.com/osfans)
 - 貢獻：[boboIqiqi](https://github.com/boboIqiqi)、[Bambooin](https://github.com/Bambooin)、[senchi96](https://github.com/senchi96)、[heiher](https://github.com/heiher)、[abay](https://github.com/a342191555)、[iovxw](https://github.com/iovxw)、[huyz-git](https://github.com/huyz-git)
