@@ -64,11 +64,9 @@ import androidx.annotation.Nullable;
 import com.blankj.utilcode.util.BarUtils;
 import com.osfans.trime.R;
 import com.osfans.trime.Rime;
+import com.osfans.trime.clipboard.ClipboardDao;
 import com.osfans.trime.databinding.CompositionContainerBinding;
 import com.osfans.trime.databinding.InputRootBinding;
-import com.osfans.trime.ime.SymbolKeyboard.ClipboardDao;
-import com.osfans.trime.ime.SymbolKeyboard.LiquidKeyboard;
-import com.osfans.trime.ime.SymbolKeyboard.TabView;
 import com.osfans.trime.ime.enums.InlineModeType;
 import com.osfans.trime.ime.enums.WindowsPositionType;
 import com.osfans.trime.ime.keyboard.Event;
@@ -76,6 +74,8 @@ import com.osfans.trime.ime.keyboard.Key;
 import com.osfans.trime.ime.keyboard.Keyboard;
 import com.osfans.trime.ime.keyboard.KeyboardSwitch;
 import com.osfans.trime.ime.keyboard.KeyboardView;
+import com.osfans.trime.ime.symbol.LiquidKeyboard;
+import com.osfans.trime.ime.symbol.TabView;
 import com.osfans.trime.ime.text.Candidate;
 import com.osfans.trime.ime.text.Composition;
 import com.osfans.trime.ime.text.ScrollView;
@@ -88,7 +88,8 @@ import com.osfans.trime.setup.IntentReceiver;
 import com.osfans.trime.setup.Rsa;
 import com.osfans.trime.util.Function;
 import com.osfans.trime.util.LocaleUtils;
-import com.osfans.trime.util.StringUitls;
+import com.osfans.trime.util.ShortcutUtils;
+import com.osfans.trime.util.StringUtils;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -156,7 +157,7 @@ public class Trime extends InputMethodService
       new Handler(
           msg -> {
             if (!((Trime) msg.obj).isShowInputRequested()) { // 若当前没有输入面板，则后台同步。防止面板关闭后5秒内再次打开
-              Function.syncBackground((Trime) msg.obj);
+              ShortcutUtils.INSTANCE.syncInBackground((Trime) msg.obj);
               ((Trime) msg.obj).loadConfig();
             }
             return false;
@@ -566,7 +567,6 @@ public class Trime extends InputMethodService
       mConfig = null;
       System.exit(0); // 清理內存
     }
-    if (rsa != null) handwriting(false);
     super.onDestroy();
   }
 
@@ -1195,7 +1195,7 @@ public class Trime extends InputMethodService
     boolean send_key_down_up = true;
     if (mask == 0 && mAsciiMode) {
       // 使用ASCII键盘输入英文字符时，直接上屏，跳过复杂的调用，从表面上解决issue #301 知乎输入英语后输入法失去焦点的问题
-      String keyText = StringUitls.toCharString(keyCode);
+      String keyText = StringUtils.INSTANCE.toCharString(keyCode);
       if (keyText.length() > 0) {
         ic.commitText(keyText, 1);
         send_key_down_up = false;
@@ -1587,10 +1587,10 @@ public class Trime extends InputMethodService
             if (item == null) return;
             final String text = item.coerceToText(self).toString();
 
-            final String text2 = StringUitls.stringReplacer(text, mConfig.getClipBoardCompare());
+            final String text2 = StringUtils.INSTANCE.replace(text, mConfig.getClipBoardCompare());
             if (text2.length() < 1 || text2.equals(ClipBoardString)) return;
 
-            if (StringUitls.stringNotMatch(text, mConfig.getClipBoardOutput())) {
+            if (StringUtils.INSTANCE.mismatch(text, mConfig.getClipBoardOutput())) {
               ClipBoardString = text2;
               liquidKeyboard.addClipboardData(text);
             }
