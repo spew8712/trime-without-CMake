@@ -122,6 +122,8 @@ public class Trime extends LifecycleInputMethodService {
   }
 
   private String currentApp; // 当前输入内容的App
+
+  private String currentExtApp, currentExtAppCls; // 当前使用的外部输入App的包名
   private boolean darkMode; // 当前键盘主题是否处于暗黑模式
   private KeyboardView mainKeyboardView; // 主軟鍵盤
   public KeyboardSwitcher keyboardSwitcher; // 键盘切换器
@@ -656,7 +658,7 @@ public class Trime extends LifecycleInputMethodService {
       if (listener != null) listener.onDestroy();
     }
     eventListeners.clear();
-    if (rsa != null) handwriting(false);
+    if (rsa != null) extAppCommand(false, currentExtApp);
     super.onDestroy();
 
     self = null;
@@ -891,7 +893,7 @@ public class Trime extends LifecycleInputMethodService {
     super.onFinishInputView(finishingInput);
     // Dismiss any pop-ups when the input-view is being finished and hidden.
     mainKeyboardView.closing();
-    if (rsa != null) handwriting(false);
+    if (rsa != null) extAppCommand(false, currentExtApp);
     performEscape();
     try {
       hideCompositionView();
@@ -1549,9 +1551,7 @@ public class Trime extends LifecycleInputMethodService {
    * @param ext_app 外部App包名
    */
   public void extAppCommit(String text, String ext_app) {
-    //  外部手写输入App的包名，暂未实现选择器
-    String ext_app1 = "com.example.input";
-    if (text == null || !ext_app1.equals(ext_app)) return;
+    if (text == null || currentExtApp == null || !currentExtApp.equals(ext_app)) return;
     text = rsa.privateDecode(text);
     if (text.length() < 1) return;
     if (text.equals("keycode:KEYCODE_FORWARD_DEL")) {
@@ -1568,14 +1568,34 @@ public class Trime extends LifecycleInputMethodService {
     }
   }
 
-  public void handwriting(boolean open) {
-    Intent intent = new Intent();
-    intent.setComponent(
-            new ComponentName("com.example.input", "com.example.softwaretest.HWService"));
+  public void extAppCommand(boolean open, String option) {
+    String[] strs = option.split("/");
+    String pkg = strs[0];
+    String cls = strs.length>1?strs[1]:"com.example.softwaretest.HWService";
+    if (pkg.isEmpty())
+      pkg = "com.example.input";
+    if (cls.isEmpty())
+      cls = "com.example.softwaretest.HWService";
+
+    // 如果调用的外部App发生变化，或命令为关闭，需要关闭上一个App；
+    if (currentExtApp!=null && (pkg.equals(currentExtApp) ^ open )) {
+      rsa = null;
+      Intent intent = new Intent();
+      intent.setComponent(
+              new ComponentName(currentExtApp, currentExtAppCls));
+      intent.putExtra("height", -1);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
+      else startService(intent);
+      currentExtApp = null;
+    }
+
 
     if (mainKeyboardView != null && open) {
       rsa = new Rsa();
       final Config mConfig = getImeConfig();
+
+      Intent intent = new Intent();
+      intent.setComponent(new ComponentName(pkg, cls));
       intent.putExtra("key", rsa.getPublicKey());
       intent.putExtra("height", inputRootBinding.inputRoot.getHeight());
       if (mCandidateRoot.getHeight() > 0)
@@ -1585,12 +1605,12 @@ public class Trime extends LifecycleInputMethodService {
       intent.putExtra("back_color", mConfig.getCurrentColor_("back_color"));
       intent.putExtra("text_color", mConfig.getCurrentColor_("text_color"));
       intent.putExtra("candidate_text_color", mConfig.getCurrentColor_("candidate_text_color"));
-    } else {
-      rsa = null;
-      intent.putExtra("height", -1);
+
+      currentExtApp = pkg;
+      currentExtAppCls = cls;
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
+      else startService(intent);
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
-    else startService(intent);
   }
 }

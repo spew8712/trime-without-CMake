@@ -38,6 +38,7 @@ object ShortcutUtils {
             "share_text" -> Trime.getService().shareText()
             "split_text" -> Trime.getService().splitText(option)
             "liquid_keyboard" -> Trime.getService().selectLiquidKeyboard(option)
+            "ext_app_input" -> Trime.getService().extAppCommand(true, option)
             else -> startIntent(command, option)
         }
         return null
