@@ -86,7 +86,6 @@ import com.osfans.trime.settings.components.ThemePickerDialog;
 import com.osfans.trime.setup.Config;
 import com.osfans.trime.setup.IntentReceiver;
 import com.osfans.trime.setup.Rsa;
-import com.osfans.trime.util.Function;
 import com.osfans.trime.util.LocaleUtils;
 import com.osfans.trime.util.ShortcutUtils;
 import com.osfans.trime.util.StringUtils;
@@ -388,7 +387,6 @@ public class Trime extends InputMethodService
         break;
       case "_handwriting":
         handwriting(true);
-
         break;
       default:
         if (option.startsWith("_keyboard_")
@@ -567,6 +565,7 @@ public class Trime extends InputMethodService
       mConfig = null;
       System.exit(0); // 清理內存
     }
+    if (rsa != null) handwriting(false);
     super.onDestroy();
   }
 
@@ -919,12 +918,13 @@ public class Trime extends InputMethodService
           return ic.performContextMenuAction(android.R.id.paste);
         case KeyEvent.KEYCODE_DPAD_RIGHT:
           if (getPrefs().getOther().getSelectionSense()) {
-            ExtractedTextRequest etr = new ExtractedTextRequest();
+            final ExtractedTextRequest etr = new ExtractedTextRequest();
             etr.token = 0;
-            ExtractedText et = ic.getExtractedText(etr, 0);
+            final ExtractedText et = ic.getExtractedText(etr, 0);
             if (et != null) {
-              int move_to = StringUitls.findNextSection(et.text, et.startOffset + et.selectionEnd);
-              ic.setSelection(move_to, move_to);
+              int nextPosition =
+                  StringUtils.INSTANCE.findNextSection(et.text, et.startOffset + et.selectionEnd);
+              ic.setSelection(nextPosition, nextPosition);
               return true;
             }
             break;
@@ -935,9 +935,9 @@ public class Trime extends InputMethodService
             etr.token = 0;
             ExtractedText et = ic.getExtractedText(etr, 0);
             if (et != null) {
-              int move_to =
-                  StringUitls.findPrevSection(et.text, et.startOffset + et.selectionStart);
-              ic.setSelection(move_to, move_to);
+              int prevSection =
+                  StringUtils.INSTANCE.findPrevSection(et.text, et.startOffset + et.selectionStart);
+              ic.setSelection(prevSection, prevSection);
               return true;
             }
             break;
@@ -1097,7 +1097,7 @@ public class Trime extends InputMethodService
                 getActiveText(2),
                 getActiveText(3),
                 getActiveText(4));
-        s = Function.handle(this, event.getCommand(), arg);
+        s = (String) ShortcutUtils.INSTANCE.call(this, event.getCommand(), arg);
         if (s != null) {
           commitText(s);
           updateComposing();
@@ -1137,7 +1137,7 @@ public class Trime extends InputMethodService
         || handleEnter(keyCode)
         || handleBack(keyCode)) {
       Timber.i("Trime onKey");
-    } else if (Function.openCategory(this, keyCode)) {
+    } else if (ShortcutUtils.INSTANCE.openCategory(keyCode)) {
       Timber.i("Open category");
     } else {
       keyUpNeeded = true;
