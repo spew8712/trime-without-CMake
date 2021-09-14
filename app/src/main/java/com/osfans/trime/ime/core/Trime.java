@@ -1309,8 +1309,13 @@ public class Trime extends InputMethodService
       }
     } else if (i == -4) onKey(KeyEvent.KEYCODE_PAGE_UP, 0);
     else if (i == -5) onKey(KeyEvent.KEYCODE_PAGE_DOWN, 0);
-    else // if (Rime.selectCandidate(i))
-    {
+    else if (getPrefs().getOther().getClickCandidateAndCommit() || i > 9) {
+      if (Rime.selectCandidate(i)) {
+        commitText();
+      }
+    } else if (i == 9) {
+      handleKey(KeyEvent.KEYCODE_0, 0);
+    } else {
       handleKey(KeyEvent.KEYCODE_1 + i, 0);
     }
   }
