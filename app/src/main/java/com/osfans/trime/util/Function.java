@@ -36,6 +36,7 @@ import android.view.KeyEvent;
 import androidx.annotation.NonNull;
 import com.osfans.trime.Rime;
 import com.osfans.trime.ime.core.Preferences;
+import com.osfans.trime.ime.core.Trime;
 import com.osfans.trime.settings.PrefMainActivity;
 import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
@@ -192,6 +193,8 @@ public class Function {
       case "clipboard":
         s = getClipboard(context);
         break;
+      case "liquid_keyboard":
+        Trime.getService().selectLiquidKeyboard(option);
       default:
         startIntent(context, command, option); // 其他intent
         break;
