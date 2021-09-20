@@ -457,6 +457,7 @@ public class Trime extends InputMethodService
 
         tabView.updateCandidateWidth();
         inputRootBinding.scroll2.setBackground(mCandidateContainer.getBackground());
+        inputRootBinding.scroll2.move(tabView.getHightlightLeft(), tabView.getHightlightRight());
       } else symbleKeyboard.setVisibility(View.GONE);
     }
     if (mainKeyboard != null) mainKeyboard.setVisibility(tabIndex >= 0 ? View.GONE : View.VISIBLE);
@@ -1387,6 +1388,8 @@ public class Trime extends InputMethodService
       } else {
         mCandidate.setText(0);
       }
+      // 刷新候选词后，如果候选词超出屏幕宽度，滚动候选栏
+      inputRootBinding.scroll.move(mCandidate.getHightlightLeft(), mCandidate.getHightlightRight());
     }
     if (mKeyboardView != null) mKeyboardView.invalidateComposingKeys();
     if (!onEvaluateInputViewShown()) setCandidatesViewShown(canCompose); // 實體鍵盤打字時顯示候選欄
