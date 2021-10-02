@@ -157,4 +157,5 @@
     <string name="about__used_library_dialog_title">Trime | Open Source Libraries</string>
     <string name="other__selection_sense_title">Uset Ctrl+Left/Right to move the cursor</string>
     <string name="other__click_candidate_and_commit">Click candidate and commit directly</string>
+    <string name="keyboard__key_swipe_travel_title">Min travel for gesture</string>
 </resources>
