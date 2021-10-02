@@ -20,7 +20,7 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- 输入法平台名称  -->
-    <string name="trime_app_name">同文输入法·TRIME</string>
+    <string name="trime_app_name">同文输入法</string>
     <string name="settings__help_title">寻求帮助</string>
     <string name="pref_wiki">维基教程</string>
     <string name="pref_issues">问题反馈</string>
@@ -154,6 +154,6 @@
     <string name="about__support">支持</string>
     <string name="about__used_libraries">我们使用的库</string>
     <string name="about__used_library_dialog_title">同文输入法 | 开源软件库</string>
-    <string name="other__selection_sense_title">用Ctrl+Left/Right快速移动光标</string>
-    <string name="other__click_candidate_and_commit">点击候选词时直接上屏</string>
+    <string name="other__selection_sense_title">用 Ctrl+Left/Right 快速移动光标</string>
+    <string name="pref__system_default">系统默认</string>
 </resources>
