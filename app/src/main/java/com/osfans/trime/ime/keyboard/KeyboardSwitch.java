@@ -19,9 +19,11 @@
 package com.osfans.trime.ime.keyboard;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.text.TextUtils;
 import com.osfans.trime.setup.Config;
 import java.util.List;
+import timber.log.Timber;
 
 /** 管理多個{@link Keyboard 鍵盤} */
 public class KeyboardSwitch {
@@ -42,9 +44,17 @@ public class KeyboardSwitch {
   }
 
   public void reset(Context context) {
+    Timber.i("loadKeyboard keyboardSwitch.reset");
     mKeyboardNames = Config.get(context).getKeyboardNames();
     int n = mKeyboardNames.size();
     mKeyboards = new Keyboard[n];
+
+    final boolean land =
+        (context.getResources().getConfiguration().orientation
+            == Configuration.ORIENTATION_LANDSCAPE);
+    Config.get(context).getKeyboardPadding(land);
+    Timber.d("update KeyboardPadding: KeyboardSwitch.reset");
+
     for (int i = 0; i < n; i++) {
       mKeyboards[i] = new Keyboard(context, mKeyboardNames.get(i));
     }

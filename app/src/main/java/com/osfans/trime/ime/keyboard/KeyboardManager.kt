@@ -1,7 +1,9 @@
 package com.osfans.trime.ime.keyboard
 
 import android.content.Context
+import android.content.res.Configuration
 import com.osfans.trime.setup.Config
+import timber.log.Timber
 
 class KeyboardManager(
     context: Context,
@@ -47,6 +49,14 @@ class KeyboardManager(
     constructor(context: Context) : this(context, -1)
     init {
         instance = this
+
+        val land = (
+            context.resources.configuration.orientation
+                == Configuration.ORIENTATION_LANDSCAPE
+            )
+        Config.get(context).getKeyboardPadding(land)
+        Timber.d("update KeyboardPadding: KeyboardManager.init")
+
         keyboards = arrayOfNulls(keyboardNames.size)
         for (i in keyboardNames.indices) {
             keyboards[i] =

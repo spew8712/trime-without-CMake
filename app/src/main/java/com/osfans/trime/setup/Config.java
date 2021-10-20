@@ -280,6 +280,7 @@ public class Config {
   }
 
   private void init() {
+    Timber.d("init() themeName=%s schema_id=%s", themeName, schema_id);
     try {
       Rime.deploy_config_file(themeName + ".yaml", "config_version");
       Map<String, Object> m = Rime.config_get_map(themeName, "");
@@ -297,13 +298,14 @@ public class Config {
         Key.setSymbols("ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"$%&:<>?^_{|}~");
       Key.presetKeys = (Map<String, Map<?, ?>>) m.get("preset_keys");
       presetColorSchemes = (Map<?, ?>) m.get("preset_color_schemes");
-      initCurrentColors();
       presetKeyboards = (Map<?, ?>) m.get("preset_keyboards");
       liquidKeyboard = (Map<?, ?>) m.get("liquid_keyboard");
       initLiquidKeyboard();
       Rime.setShowSwitches(getPrefs().getKeyboard().getSwitchesEnabled());
       Rime.setShowSwitchArrow(getPrefs().getKeyboard().getSwitchArrowEnabled());
       reset();
+      initCurrentColors();
+      Timber.d("init() finins");
     } catch (Exception e) {
       e.printStackTrace();
       setTheme(defaultName);
@@ -457,6 +459,7 @@ public class Config {
   }
 
   public int[] getKeyboardPadding(boolean land_mode) {
+    Timber.i("update KeyboardPadding: getKeyboardPadding(boolean land_mode) ");
     return getKeyboardPadding(one_hand_mode, land_mode);
   }
 

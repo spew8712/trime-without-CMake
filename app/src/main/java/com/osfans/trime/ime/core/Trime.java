@@ -411,7 +411,6 @@ public class Trime extends InputMethodService
           else if (c == '2' && value) one_hand_mode = 2;
           else if (c == '3') one_hand_mode = value ? 1 : 2;
           else one_hand_mode = 0;
-          loadBackground();
           initKeyboard();
         }
     }
@@ -514,7 +513,7 @@ public class Trime extends InputMethodService
     int[] padding =
         mConfig.getKeyboardPadding(
             one_hand_mode, orientation == Configuration.ORIENTATION_LANDSCAPE);
-    Timber.i("padding= %s %s %s", padding[0], padding[1], padding[2]);
+    Timber.d("update KeyboardPadding: Trime.loadBackground");
     mKeyboardView.setPadding(padding[0], 0, padding[1], padding[2]);
 
     final Drawable d3 = mConfig.getDrawable_("root_background");
@@ -551,6 +550,9 @@ public class Trime extends InputMethodService
   /** 重置鍵盤、候選條、狀態欄等 !!注意，如果其中調用Rime.setOption，切換方案會卡住 */
   private void reset() {
     if (inputRootBinding == null) return;
+    if (symbleKeyboard != null) symbleKeyboard.setVisibility(View.GONE);
+    if (mainKeyboard != null) mainKeyboard.setVisibility(View.VISIBLE);
+
     mConfig.reset();
     loadConfig();
     mConfig.initCurrentColors();
@@ -565,7 +567,7 @@ public class Trime extends InputMethodService
     setNavBarColor();
     mNeedUpdateRimeOption = true; // 不能在Rime.onMessage中調用set_option，會卡死
     bindKeyboardToInputView();
-    loadBackground();
+    // loadBackground(); // reset()调用过resetCandidate()，resetCandidate()一键调用过loadBackground();
     updateComposing(); // 切換主題時刷新候選
   }
 

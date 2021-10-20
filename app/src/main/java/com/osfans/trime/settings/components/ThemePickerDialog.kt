@@ -11,7 +11,6 @@ import com.osfans.trime.setup.Config
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -107,7 +106,6 @@ class ThemePickerDialog(
 
     private suspend fun doInBackground(): String = withContext(Dispatchers.IO) {
         setTheme()
-        delay(1000) // Simulate async task
         return@withContext "OK"
     }
 
