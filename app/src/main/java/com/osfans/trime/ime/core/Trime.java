@@ -411,7 +411,11 @@ public class Trime extends InputMethodService
           else if (c == '2' && value) one_hand_mode = 2;
           else if (c == '3') one_hand_mode = value ? 1 : 2;
           else one_hand_mode = 0;
-          initKeyboard();
+
+          loadBackground();
+          if (mKeyboardSwitch != null) mKeyboardSwitch.reset(this);
+          resetKeyboard();
+          bindKeyboardToInputView();
         }
     }
     if (mKeyboardView != null) mKeyboardView.invalidateAllKeys();
@@ -513,7 +517,9 @@ public class Trime extends InputMethodService
     int[] padding =
         mConfig.getKeyboardPadding(
             one_hand_mode, orientation == Configuration.ORIENTATION_LANDSCAPE);
-    Timber.d("update KeyboardPadding: Trime.loadBackground");
+    Timber.d(
+        "update KeyboardPadding: Trime.loadBackground, one_hand_mode=%s land_mode=%s",
+        one_hand_mode, orientation == Configuration.ORIENTATION_LANDSCAPE);
     mKeyboardView.setPadding(padding[0], 0, padding[1], padding[2]);
 
     final Drawable d3 = mConfig.getDrawable_("root_background");
