@@ -1,11 +1,14 @@
 package com.osfans.trime.settings.components
 
-import android.app.AlertDialog
 import android.content.Context
+import android.os.Build
+import android.view.WindowManager
+import androidx.appcompat.app.AlertDialog
 import com.osfans.trime.R
 import com.osfans.trime.ime.core.Preferences
 import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.setup.Config
+import timber.log.Timber
 
 /** 顯示配色方案列表
  *  Show Color Scheme List
@@ -16,7 +19,7 @@ class ColorPickerDialog(
     val config: Config = Config.get(context)
     private val prefs get() = Preferences.defaultInstance()
     private var colorKeys: Array<String>
-    private var checkedColor: Int = 0
+    private var checkedColorKey: Int = 0
     val pickerDialog: AlertDialog
 
     init {
@@ -24,9 +27,9 @@ class ColorPickerDialog(
         colorKeys = config.colorKeys
         colorKeys.sort()
         val colorNames = config.getColorNames(colorKeys)
-        checkedColor = colorKeys.binarySearch(colorScheme)
+        checkedColorKey = colorKeys.binarySearch(colorScheme)
 
-        pickerDialog = AlertDialog.Builder(context).apply {
+        pickerDialog = AlertDialog.Builder(context, R.style.AlertDialogTheme).apply {
             setTitle(R.string.looks__selected_color_title)
             setCancelable(true)
             setNegativeButton(android.R.string.cancel, null)
@@ -34,18 +37,32 @@ class ColorPickerDialog(
                 selectColor()
             }
             setSingleChoiceItems(
-                colorNames, checkedColor
-            ) { _, id -> checkedColor = id }
+                colorNames, checkedColorKey
+            ) { _, id -> checkedColorKey = id }
         }.create()
     }
 
     private fun selectColor() {
-        if (checkedColor < 0 || checkedColor >= colorKeys.size) return
-        val colorKey = colorKeys[checkedColor]
+        Timber.i("select")
+        if (checkedColorKey !in colorKeys.indices) return
+        val colorKey = colorKeys[checkedColorKey]
         prefs.looks.selectedColor = colorKey
-        Trime.getService()?.initKeyboard() // 立刻重初始化键盘生效
+        Timber.i("initKeyboard")
+        Trime.getService().initKeyboard() // 立刻重初始化键盘生效
+        Timber.i("done")
     }
 
     /** 调用该方法显示对话框 **/
-    fun show() = pickerDialog.show()
+    fun show() {
+        pickerDialog.window?.let { window ->
+            window.attributes.token = Trime.getServiceOrNull()?.window?.window?.decorView?.windowToken
+            window.attributes.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
+            }
+            window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        }
+        pickerDialog.show()
+    }
 }
