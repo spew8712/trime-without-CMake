@@ -1,25 +1,19 @@
-## Pull request
-
+## PR Info
 #### Issue tracker
 Fixes will automatically close the related issue
 
 Fixes #
 
-#### Feature
-Describe feature of pull request
+#### Manual testing
+- [ ] Done
 
-#### Code of conduct
+#### Build tasks success
+Successfully running following tasks on local
 - [ ] [CONTRIBUTING](CONTRIBUTING.md)
-
-#### Gradle task
-Tasks passed on every commit
 - [ ] `./gradlew spotlessCheck`
 - [ ] `./gradlew assembleDebug`
 
-#### Manual test
-- [ ] Done
-
-#### Code Review
+#### Code Reviews
 1. No wildcards import
 2. Manual build and test pass
 3. GitHub action ci pass
@@ -27,8 +21,8 @@ Tasks passed on every commit
 5. Can be merged clean without conflicts
 6. PR will be merged by rebase upstream base
 
-#### Daily build
-Login to fetch artifact
+#### Daily build for review
+Fetch artifact after login
 
 https://github.com/osfans/trime/actions
 

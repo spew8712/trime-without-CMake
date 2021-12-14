@@ -1,35 +1,28 @@
-name: pull request ci
+name: Pull request ci
 on: [pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependency
+        run: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
+          sudo add-apt-repository 'deb http://deb.debian.org/debian experimental main'
+          sudo apt update
+          sudo apt-get -t experimental -y install capnproto=0.8.0-1
+
       - name: Checkout last commit
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
-      - name: Calculate JNI cache hash
-        id: cache-hash
-        run: script/cache-hash.sh
-
-      - name: Fetch JNI cache
-        uses: actions/cache@v2
-        id: jni-cache
-        with:
-          path: "app/prebuilt"
-          key: jni-debug-${{ steps.cache-hash.outputs.hash }}
-
-      - name: Fetch submodules
-        if: ${{ !steps.jni-cache.outputs.cache-hit }}
-        run: |
-          git submodule update --init --recursive
-
-      - name: Setup Java
+          submodules: 'recursive'
+      
+      - name: Setup adopt JDK
         uses: actions/setup-java@v2
         with:
-          distribution: "temurin"
-          java-version: 17
+          distribution: "adopt"
+          java-version: 11
           # will restore cache of dependencies and wrappers
           cache: 'gradle'
 
@@ -39,21 +32,13 @@ jobs:
       - name: Spotless code style check
         run: make spotless
 
-      - name: Install dependency
-        if: ${{ !steps.jni-cache.outputs.cache-hit }}
-        run: ./script/dependency.sh
-
       - name: Build Trime
         run: make debug
-
-      - name: Add JNI cache
-        if: ${{ !steps.jni-cache.outputs.cache-hit }}
-        run: cp -R app/build/intermediates/stripped_native_libs/debug/out/lib app/prebuilt
 
       - name: Upload Trime artifact
         uses: actions/upload-artifact@v2
         with:
-          name: trime.zip
-          path: app/build/outputs/apk/**/*.apk
+          name: trime-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           # keep 30 days
           retention-days: 30

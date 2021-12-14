@@ -10,14 +10,12 @@ import android.icu.util.Calendar
 import android.icu.util.ULocale
 import android.net.Uri
 import android.os.Build
-import android.text.TextUtils
 import android.util.SparseArray
 import android.view.KeyEvent
 import com.blankj.utilcode.util.ActivityUtils
 import com.blankj.utilcode.util.IntentUtils
 import com.osfans.trime.Rime
 import com.osfans.trime.ime.core.Preferences
-import com.osfans.trime.ime.core.Trime
 import java.text.FieldPosition
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -27,13 +25,12 @@ import java.util.Locale
  * Implementation to open/call specified application/function
  */
 object ShortcutUtils {
-    fun call(context: Context, command: String, option: String): CharSequence? {
+    fun call(context: Context, command: String, option: String): Any? {
         when (command) {
             "broadcast" -> context.sendBroadcast(Intent(option))
             "clipboard" -> return pasteFromClipboard(context)
             "date" -> return getDate(option)
             "run" -> startIntent(option)
-            "liquid_keyboard" -> Trime.getService().selectLiquidKeyboard(option)
             else -> startIntent(command, option)
         }
         return null
@@ -97,7 +94,7 @@ object ShortcutUtils {
                 locale = opt[0]
             }
         }
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !TextUtils.isEmpty(locale)) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val ul = ULocale(locale)
             val cc = Calendar.getInstance(ul)
             val df = if (option.isEmpty()) {
@@ -107,15 +104,14 @@ object ShortcutUtils {
             }
             df.format(cc, StringBuffer(256), FieldPosition(0)).toString()
         } else {
-            SimpleDateFormat(string, Locale.getDefault()).format(Date()) // Time
+            SimpleDateFormat(option, Locale.getDefault()).format(Date()) // Time
         }
     }
 
-    private fun pasteFromClipboard(context: Context): CharSequence? {
+    private fun pasteFromClipboard(context: Context): CharSequence {
         val systemClipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val systemPrimaryClip = systemClipboardManager.getPrimaryClip()
-        val clipItem = systemPrimaryClip?.getItemAt(0)
-        return clipItem?.coerceToText(context)
+        val systemPrimaryClip = systemClipboardManager.primaryClip
+        return if (systemPrimaryClip?.getItemAt(0)?.text == null) { "" } else systemPrimaryClip.getItemAt(0)?.text!!
     }
 
     fun syncInBackground(context: Context) {

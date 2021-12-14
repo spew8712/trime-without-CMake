@@ -20,21 +20,18 @@ package com.osfans.trime.ime.symbol;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import androidx.annotation.NonNull;
-import com.osfans.trime.ime.core.Trime;
+import com.osfans.trime.Rime;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
 import com.osfans.trime.setup.Config;
-import com.osfans.trime.util.GraphicUtils;
-import java.util.ArrayList;
 import timber.log.Timber;
 
 // 这是滑动键盘顶部的view，展示了键盘布局的多个标签。
@@ -45,130 +42,175 @@ public class TabView extends View {
   private static final int CANDIDATE_TOUCH_OFFSET = -12;
 
   private int highlightIndex;
-  private ArrayList<TabTag> tabTags;
-  private final GraphicUtils graphicUtils;
+  private TabTag[] candidates;
+  private int num_candidates;
 
-  private PaintDrawable candidateHighlight;
-  private final Paint separatorPaint;
-  private final Paint candidatePaint;
-  private Typeface candidateFont;
-  private int candidateTextColor, hilitedCandidateTextColor;
-  private int candidateViewHeight, commentHeight, candidateSpacing, candidatePadding;
-  private final boolean shouldShowComment = true;
-  private boolean isCommentOnTop;
-  private boolean shouldCandidateUseCursor;
-  // private final Rect[] tabGeometries = new Rect[MAX_CANDIDATE_COUNT + 2];
+  private Drawable candidateHighlight, candidateSeparator;
+  private final Paint paintCandidate;
+  private final Paint paintSymbol;
+  private final Paint paintComment;
+  private Typeface tfCandidate;
+  private Typeface tfHanB;
+  private Typeface tfLatin;
+  private int candidate_text_color, hilited_candidate_text_color;
+  private int candidate_view_height, comment_height, candidate_spacing, candidate_padding;
+  private final boolean show_comment = true;
+  private boolean comment_on_top;
+  private boolean candidate_use_cursor;
+
+  private final Rect[] candidateRect = new Rect[MAX_CANDIDATE_COUNT + 2];
 
   public void reset(Context context) {
     Config config = Config.get(context);
     candidateHighlight = new PaintDrawable(config.getColor("hilited_candidate_back_color"));
-    candidateHighlight.setCornerRadius(config.getFloat("layout/round_corner"));
+    ((PaintDrawable) candidateHighlight).setCornerRadius(config.getFloat("layout/round_corner"));
+    candidateSeparator = new PaintDrawable(config.getColor("candidate_separator_color"));
+    candidate_spacing = config.getPixel("candidate_spacing");
+    candidate_padding = config.getPixel("candidate_padding");
 
-    separatorPaint.setColor(config.getColor("candidate_separator_color"));
+    candidate_text_color = config.getColor("candidate_text_color");
+    hilited_candidate_text_color = config.getColor("hilited_candidate_text_color");
 
-    candidateSpacing = config.getPixel("candidate_spacing");
-    candidatePadding = config.getPixel("candidate_padding");
+    comment_height = config.getPixel("comment_height");
 
-    candidateTextColor = config.getColor("candidate_text_color");
-    hilitedCandidateTextColor = config.getColor("hilited_candidate_text_color");
+    int candidate_text_size = config.getPixel("candidate_text_size");
+    int comment_text_size = config.getPixel("comment_text_size");
+    candidate_view_height = config.getPixel("candidate_view_height");
 
-    commentHeight = config.getPixel("comment_height");
+    tfCandidate = config.getFont("candidate_font");
+    tfLatin = config.getFont("latin_font");
+    tfHanB = config.getFont("hanb_font");
+    Typeface tfComment = config.getFont("comment_font");
+    Typeface tfSymbol = config.getFont("symbol_font");
 
-    int candidateTextSize = config.getPixel("candidate_text_size");
-    candidateViewHeight = config.getPixel("candidate_view_height");
+    paintCandidate.setTextSize(candidate_text_size);
+    paintCandidate.setTypeface(tfCandidate);
+    paintSymbol.setTextSize(candidate_text_size);
+    paintSymbol.setTypeface(tfSymbol);
+    paintComment.setTextSize(comment_text_size);
+    paintComment.setTypeface(tfComment);
 
-    candidateFont = config.getFont("candidate_font");
-
-    candidatePaint.setTextSize(candidateTextSize);
-    candidatePaint.setTypeface(candidateFont);
-
-    isCommentOnTop = config.getBoolean("comment_on_top");
-    shouldCandidateUseCursor = config.getBoolean("candidate_use_cursor");
+    comment_on_top = config.getBoolean("comment_on_top");
+    candidate_use_cursor = config.getBoolean("candidate_use_cursor");
     invalidate();
   }
 
   public TabView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    candidatePaint = new Paint();
-    candidatePaint.setAntiAlias(true);
-    candidatePaint.setStrokeWidth(0);
+    paintCandidate = new Paint();
+    paintCandidate.setAntiAlias(true);
+    paintCandidate.setStrokeWidth(0);
+    paintSymbol = new Paint();
+    paintSymbol.setAntiAlias(true);
+    paintSymbol.setStrokeWidth(0);
+    paintComment = new Paint();
+    paintComment.setAntiAlias(true);
+    paintComment.setStrokeWidth(0);
 
-    separatorPaint = new Paint();
-    separatorPaint.setColor(Color.BLACK);
-
-    graphicUtils = new GraphicUtils(context);
     reset(context);
 
     setWillNotDraw(false);
   }
 
   private boolean isHighlighted(int i) {
-    return shouldCandidateUseCursor && i >= 0 && i == highlightIndex;
+    return candidate_use_cursor && i >= 0 && i == highlightIndex;
   }
 
-  public int getHightlightLeft() {
-    return tabTags.get(highlightIndex).geometry.left;
+  private void drawHighlight(Canvas canvas) {
+    if (isHighlighted(highlightIndex)) {
+      candidateHighlight.setBounds(candidateRect[highlightIndex]);
+      candidateHighlight.draw(canvas);
+    }
   }
 
-  public int getHightlightRight() {
-    return tabTags.get(highlightIndex).geometry.right;
+  private Typeface getFont(int codepoint, Typeface font) {
+    if (tfHanB != Typeface.DEFAULT && Character.isSupplementaryCodePoint(codepoint)) return tfHanB;
+    if (tfLatin != Typeface.DEFAULT && codepoint < 0x2e80) return tfLatin;
+    return font;
+  }
+
+  private void drawText(
+      String s, Canvas canvas, Paint paint, Typeface font, float center, float y) {
+    if (s == null) return;
+    int length = s.length();
+    if (length == 0) return;
+    int points = s.codePointCount(0, length);
+    float x = center - measureText(s, paint, font) / 2;
+    if (tfLatin != Typeface.DEFAULT || (tfHanB != Typeface.DEFAULT && length > points)) {
+      int offset = 0;
+      while (offset < length) {
+        int codepoint = s.codePointAt(offset);
+        int charCount = Character.charCount(codepoint);
+        int end = offset + charCount;
+        paint.setTypeface(getFont(codepoint, font));
+        canvas.drawText(s, offset, end, x, y, paint);
+        x += paint.measureText(s, offset, end);
+        offset = end;
+      }
+    } else {
+      paint.setTypeface(font);
+      canvas.drawText(s, x, y, paint);
+    }
+  }
+
+  private void drawCandidates(Canvas canvas) {
+    if (candidates == null) return;
+
+    float x, y;
+    int i = 0;
+
+    y = candidateRect[0].centerY() - (paintCandidate.ascent() + paintCandidate.descent()) / 2;
+    if (show_comment && comment_on_top) y += (float) comment_height / 2;
+
+    while (i < num_candidates) {
+      // Calculate a position where the text could be centered in the rectangle.
+      x = candidateRect[i].centerX();
+
+      paintCandidate.setColor(
+          isHighlighted(i) ? hilited_candidate_text_color : candidate_text_color);
+      drawText(getCandidate(i), canvas, paintCandidate, tfCandidate, x, y);
+      // Draw the separator at the right edge of each candidate.
+      candidateSeparator.setBounds(
+          candidateRect[i].right - candidateSeparator.getIntrinsicWidth(),
+          candidateRect[i].top,
+          candidateRect[i].right + candidate_spacing,
+          candidateRect[i].bottom);
+      candidateSeparator.draw(canvas);
+      i++;
+    }
   }
 
   @Override
   protected void onDraw(Canvas canvas) {
-    if (canvas == null) return;
-    if (tabTags == null) return;
+    if (canvas == null) {
+      return;
+    }
     super.onDraw(canvas);
 
-    // Draw highlight background
-    if (isHighlighted(highlightIndex)) {
-      candidateHighlight.setBounds(tabTags.get(highlightIndex).geometry);
-      candidateHighlight.draw(canvas);
-    }
-    // Draw tab text
-    float tabY =
-        /* (shouldShowComment && isCommentOnTop)
-        ? tabTags.get(0).geometry.centerY()
-            - (candidatePaint.ascent() + candidatePaint.descent()) / 2.0f
-            + commentHeight / 2.0f
-        : */ tabTags.get(0).geometry.centerY()
-            - (candidatePaint.ascent() + candidatePaint.descent()) / 2.0f;
-
-    for (TabTag computedTab : tabTags) {
-      int i = tabTags.indexOf(computedTab);
-      // Calculate a position where the text could be centered in the rectangle.
-      float tabX = computedTab.geometry.centerX();
-
-      candidatePaint.setColor(isHighlighted(i) ? hilitedCandidateTextColor : candidateTextColor);
-      graphicUtils.drawText(canvas, computedTab.text, tabX, tabY, candidatePaint, candidateFont);
-      // Draw the separator at the right edge of each candidate.
-      canvas.drawRect(
-          computedTab.geometry.right - candidateSpacing,
-          computedTab.geometry.top,
-          computedTab.geometry.right + candidateSpacing,
-          computedTab.geometry.bottom,
-          separatorPaint);
-    }
+    drawHighlight(canvas);
+    drawCandidates(canvas);
   }
 
-  public void updateTabWidth() {
-    tabTags = TabManager.get().getTabCandidates();
-    highlightIndex = TabManager.get().getSelected();
-
+  public void updateCandidateWidth() {
+    final int top = 0;
+    final int bottom = getHeight();
+    int i;
     int x = 0;
-    for (TabTag computedTab : tabTags) {
-      int i = tabTags.indexOf(computedTab);
-      computedTab.geometry = new Rect(x, 0, (int) (x + getTabWidth(i)), getHeight());
-      x += +getTabWidth(i) + candidateSpacing;
+
+    candidates = TabManager.get().getTabCandidates();
+    highlightIndex = TabManager.get().getSelected();
+    num_candidates = candidates.length;
+
+    for (i = 0; i < num_candidates; i++) {
+      candidateRect[i] = new Rect(x, top, x += getCandidateWidth(i), bottom);
+      x += candidate_spacing;
     }
     LayoutParams params = getLayoutParams();
     Timber.i("update, from Height=" + params.height + " width=" + params.width);
     params.width = x;
-    params.height =
-        (shouldShowComment && isCommentOnTop)
-            ? candidateViewHeight + commentHeight
-            : candidateViewHeight;
-    Timber.i("update, to Height=" + candidateViewHeight + " width=" + x);
+    params.height = candidate_view_height;
+    if (show_comment && comment_on_top) params.height += comment_height;
+    Timber.i("update, to Height=" + candidate_view_height + " width=" + x);
     setLayoutParams(params);
     params = getLayoutParams();
     Timber.i("update, reload Height=" + params.height + " width=" + params.width);
@@ -178,7 +220,7 @@ public class TabView extends View {
   @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
-    updateTabWidth();
+    updateCandidateWidth();
     Timber.i("onSizeChanged() w=" + w + ", Height=" + oldh + "=>" + h);
   }
 
@@ -191,11 +233,12 @@ public class TabView extends View {
   long time0;
 
   @Override
-  public boolean onTouchEvent(@NonNull MotionEvent me) {
+  public boolean onTouchEvent(MotionEvent me) {
+    int action = me.getAction();
     int x = (int) me.getX();
     int y = (int) me.getY();
 
-    switch (me.getActionMasked()) {
+    switch (action) {
       case MotionEvent.ACTION_DOWN:
         x0 = x;
         y0 = y;
@@ -203,18 +246,19 @@ public class TabView extends View {
         //        updateHighlight(x, y);
         break;
       case MotionEvent.ACTION_MOVE:
-        if (Math.abs(x - x0) > 100) time0 = 0;
+        if (x - x0 > 100 || x0 - x > 100) time0 = 0;
         break;
       case MotionEvent.ACTION_UP:
-        int i = getTabIndex(x, y);
+        int i = getCandidateIndex(x, y);
         if (i > -1) {
           performClick();
           TabTag tag = TabManager.getTag(i);
           if (tag.type == SymbolKeyboardType.NO_KEY) {
             switch (tag.command) {
               case EXIT:
-                Trime.getService().selectLiquidKeyboard(-1);
+                Rime.toggleOption("_liquid_keyboard");
                 break;
+
                 // TODO liquidKeyboard中除返回按钮外，其他按键均未实装
               case DEL_LEFT:
               case DEL_RIGHT:
@@ -225,9 +269,9 @@ public class TabView extends View {
           } else if (System.currentTimeMillis() - time0 < 500) {
             highlightIndex = i;
             invalidate();
-            Trime.getService().selectLiquidKeyboard(i);
+            Rime.toggleOption("_liquid_keyboard_" + i);
           }
-          Timber.d("index=" + i + " length=" + tabTags.size());
+          Timber.d("index=" + i + " length=" + candidates.length);
         }
         break;
     }
@@ -241,24 +285,55 @@ public class TabView extends View {
    * @param y 觸摸點縱座標
    * @return {@code >=0}: 觸摸點 (x, y) 處候選項序號，從0開始編號； {@code -1}: 觸摸點 (x, y) 處無候選項；
    */
-  private int getTabIndex(int x, int y) {
-    // Rect r = new Rect();
-    int retIndex = -1; // Returns -1 if there is no tab in the hitting rectangle.
-    for (TabTag computedTab : tabTags) {
-      /* Enlarge the rectangle to be more responsive to user clicks.
-      // r.set(tabGeometries[j++]);
-      //r.inset(0, CANDIDATE_TOUCH_OFFSET); */
-      if (computedTab.geometry.contains(x, y)) {
-        retIndex = tabTags.indexOf(computedTab);
+  private int getCandidateIndex(int x, int y) {
+    Rect r = new Rect();
+
+    int j = 0;
+    for (int i = 0; i < num_candidates; i++) {
+      // Enlarge the rectangle to be more responsive to user clicks.
+      r.set(candidateRect[j++]);
+      r.inset(0, CANDIDATE_TOUCH_OFFSET);
+      if (r.contains(x, y)) {
+        // Returns -1 if there is no candidate in the hitting rectangle.
+        return (i < num_candidates) ? i : -1;
       }
     }
-    return retIndex;
+    return -1;
   }
 
-  private float getTabWidth(int i) {
-    String s = tabTags.get(i).text;
-    return s != null
-        ? 2 * candidatePadding + graphicUtils.measureText(candidatePaint, s, candidateFont)
-        : 2 * candidatePadding;
+  private String getCandidate(int i) {
+    if (candidates != null && i >= 0) return candidates[i].text;
+    return "-1";
+  }
+
+  private float measureText(String s, Paint paint, Typeface font) {
+    float x = 0;
+    if (s == null) return x;
+    int length = s.length();
+    if (length == 0) return x;
+    int points = s.codePointCount(0, length);
+    if (tfLatin != Typeface.DEFAULT || (tfHanB != Typeface.DEFAULT && length > points)) {
+      int offset = 0;
+      while (offset < length) {
+        int codepoint = s.codePointAt(offset);
+        int charCount = Character.charCount(codepoint);
+        int end = offset + charCount;
+        paint.setTypeface(getFont(codepoint, font));
+        x += paint.measureText(s, offset, end);
+        offset = end;
+      }
+      paint.setTypeface(font);
+    } else {
+      paint.setTypeface(font);
+      x += paint.measureText(s);
+    }
+    return x;
+  }
+
+  private float getCandidateWidth(int i) {
+    String s = getCandidate(i);
+    float x = 2 * candidate_padding;
+    if (s != null) x += measureText(s, paintCandidate, tfCandidate);
+    return x;
   }
 }

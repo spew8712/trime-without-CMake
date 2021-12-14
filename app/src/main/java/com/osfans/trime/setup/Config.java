@@ -256,7 +256,6 @@ public class Config {
   }
 
   private void init() {
-    Timber.d("init() themeName=%s schema_id=%s", themeName, schema_id);
     try {
       Rime.deploy_config_file(themeName + ".yaml", "config_version");
       Map<String, ?> m = YamlUtils.INSTANCE.loadMap(themeName, "");
@@ -280,8 +279,6 @@ public class Config {
       Rime.setShowSwitches(getPrefs().getKeyboard().getSwitchesEnabled());
       Rime.setShowSwitchArrow(getPrefs().getKeyboard().getSwitchArrowEnabled());
       reset();
-      initCurrentColors();
-      Timber.d("init() finins");
     } catch (Exception e) {
       e.printStackTrace();
       setTheme(defaultName);
@@ -329,7 +326,6 @@ public class Config {
 
   private Object _getValue(String k1, Object defaultValue) {
     if (mStyle != null && mStyle.containsKey(k1)) return mStyle.get(k1);
-    if (mDefaultStyle != null && mDefaultStyle.containsKey(k1)) return mDefaultStyle.get(k1);
     return defaultValue;
   }
 
@@ -436,7 +432,6 @@ public class Config {
   }
 
   public int[] getKeyboardPadding(boolean land_mode) {
-    Timber.i("update KeyboardPadding: getKeyboardPadding(boolean land_mode) ");
     return getKeyboardPadding(one_hand_mode, land_mode);
   }
 
@@ -918,7 +913,7 @@ public class Config {
         }
         if (s.matches("(0x|#)?[a-f0-9]+")) return Color.parseColor(s.replace("0x", "#"));
       } catch (Exception e) {
-        Timber.e("getColorRealValue() unknown color, %s ; object %s", s, object);
+        Timber.e("getColorRealValue() unknown color, %s", s);
         e.printStackTrace();
       }
     }

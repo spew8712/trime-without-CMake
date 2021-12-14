@@ -1,3 +1,9 @@
-# Handle line endings automatically for files detected as text
-# and leave all files detected as binary untouched.
-*	text=auto
+*.so -delta
+*.a -delta
+*.apk -delta
+*.jar -delta
+*.o -delta
+*.obj -delta
+*.lib -delta
+*.bin -delta
+*.mbn -delta

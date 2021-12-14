@@ -193,7 +193,7 @@ class Preferences(
         var softCursorEnabled: Boolean = false
             get() = prefs.getPref(SOFT_CURSOR_ENABLED, true)
             private set
-        var popupWindowEnabled: Boolean = false
+        var floatingWindowEnabled: Boolean = false
             get() = prefs.getPref(FLOATING_WINDOW_ENABLED, true)
             private set
         var popupKeyPressEnabled: Boolean = false
@@ -292,7 +292,6 @@ class Preferences(
             const val SHOW_STATUS_BAR_ICON = "other__show_status_bar_icon"
             const val DESTROY_ON_QUIT = "other__destroy_on_quit"
             const val SELECTION_SENSE = "other__selection_sense"
-            const val CLICK_CANDIDATE_AND_COMMIT = "other__click_candidate_and_commit"
             const val CLIPBOARD_COMPARE_RULES = "other__clipboard_compare"
             const val CLIPBOARD_OUTPUT_RULES = "other__clipboard_output"
             const val CLIPBOARD_MANAGER_RULES = "other__clipboard_manager"
@@ -306,9 +305,6 @@ class Preferences(
         var selectionSense: Boolean
             get() = prefs.getPref(SELECTION_SENSE, true)
             set(v) = prefs.setPref(SELECTION_SENSE, v)
-        var clickCandidateAndCommit: Boolean
-            get() = prefs.getPref(CLICK_CANDIDATE_AND_COMMIT, true)
-            set(v) = prefs.setPref(CLICK_CANDIDATE_AND_COMMIT, v)
         var showStatusBarIcon: Boolean = false
             get() = prefs.getPref(SHOW_STATUS_BAR_ICON, false)
             private set

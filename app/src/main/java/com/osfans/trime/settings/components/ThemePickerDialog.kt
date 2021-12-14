@@ -1,25 +1,30 @@
 package com.osfans.trime.settings.components
 
-import android.app.Dialog
+import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.os.Build
+import android.os.IBinder
 import android.view.WindowManager
-import androidx.appcompat.app.AlertDialog
 import com.osfans.trime.R
 import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.setup.Config
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 /** 顯示配色方案列表 */
 class ThemePickerDialog(
-    private val context: Context
-) : CoroutineScope by MainScope() {
+    private val context: Context,
+    private val token: IBinder?
+) : CoroutineScope {
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     private val config = Config.get(context)
     private val themeKeys: Array<String?>
@@ -29,6 +34,7 @@ class ThemePickerDialog(
     @Suppress("DEPRECATION")
     private val progressDialog: ProgressDialog
 
+    constructor(context: Context) : this(context, null)
     init {
         val themeFile = config.theme + ".yaml"
         themeKeys = Config.getThemeKeys(true)
@@ -51,7 +57,7 @@ class ThemePickerDialog(
             }
         }
         // Init picker
-        pickerDialog = AlertDialog.Builder(context, R.style.AlertDialogTheme).apply {
+        pickerDialog = AlertDialog.Builder(context).apply {
             setTitle(R.string.looks__selected_theme_title)
             setCancelable(true)
             setNegativeButton(android.R.string.cancel, null)
@@ -68,15 +74,20 @@ class ThemePickerDialog(
         }
     }
 
-    private fun appendDialogParams(dialog: Dialog) {
-        dialog.window?.let { window ->
-            window.attributes.token = Trime.getServiceOrNull()?.window?.window?.decorView?.windowToken
-            window.attributes.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    private fun appendDialogParams(dialog: AlertDialog) {
+        val window = dialog.window
+        val lp = window?.attributes
+        lp?.let {
+            it.token = token
+            it.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             } else {
                 WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
             }
-            window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        }
+        window?.let {
+            it.attributes = lp
+            it.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         }
     }
 
@@ -84,7 +95,7 @@ class ThemePickerDialog(
 
     /** 调用该方法显示对话框 **/
     fun show() {
-        appendDialogParams(pickerDialog)
+        if (token != null) appendDialogParams(pickerDialog)
         pickerDialog.show()
     }
 
@@ -95,13 +106,13 @@ class ThemePickerDialog(
     }
 
     private fun onPreExecute() {
-        appendDialogParams(progressDialog)
+        if (token != null) appendDialogParams(progressDialog)
         progressDialog.show()
     }
 
     private suspend fun doInBackground(): String = withContext(Dispatchers.IO) {
         setTheme()
-        delay(500) // Simulate async task
+        delay(1000) // Simulate async task
         return@withContext "OK"
     }
 

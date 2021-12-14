@@ -25,6 +25,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import com.blankj.utilcode.util.ToastUtils;
 import com.osfans.trime.R;
@@ -105,13 +106,12 @@ public class Speech implements RecognitionListener {
       speechRecognizer.destroy();
     }
     Timber.i("onResults");
-    final Trime trime = Trime.getServiceOrNull();
-    if (trime != null) {
-      final ArrayList<String> matches =
-          results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-      final String openccConfig = Config.get(context).getString("speech_opencc_config");
-      for (String result : matches) trime.commitText(Rime.openccConvert(result, openccConfig));
-    }
+    @Nullable Trime trime = Trime.getService();
+    if (trime == null) return;
+    final ArrayList<String> matches =
+        results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+    final String openccConfig = Config.get(context).getString("speech_opencc_config");
+    for (String result : matches) trime.commitText(Rime.openccConvert(result, openccConfig));
   }
 
   @Override
@@ -119,8 +119,7 @@ public class Speech implements RecognitionListener {
     Timber.i("onRmsChanged: %s", rmsdB);
   }
 
-  @StringRes
-  private static int getErrorText(int errorCode) {
+  private static @StringRes int getErrorText(int errorCode) {
     final int message;
     switch (errorCode) {
       case SpeechRecognizer.ERROR_AUDIO:

@@ -77,7 +77,6 @@ public class Composition extends AppCompatTextView {
   // private View mInputRoot;
   // 候选高亮序号颜色
   private Integer hilited_label_color;
-  private TextInputManager textInputManager;
 
   private class CompositionSpan extends UnderlineSpan {
     public CompositionSpan() {
@@ -108,7 +107,7 @@ public class Composition extends AppCompatTextView {
 
     @Override
     public void onClick(View tv) {
-      textInputManager.onCandidatePressed(index);
+      Trime.getService().onCandidatePressed(index);
     }
 
     @Override
@@ -134,8 +133,8 @@ public class Composition extends AppCompatTextView {
 
     @Override
     public void onClick(View tv) {
-      textInputManager.onPress(event.getCode());
-      textInputManager.onEvent(event);
+      Trime.getService().onPress(event.getCode());
+      Trime.getService().onEvent(event);
     }
 
     @Override
@@ -163,8 +162,6 @@ public class Composition extends AppCompatTextView {
 
   public Composition(Context context, AttributeSet attrs) {
     super(context, attrs);
-    textInputManager = TextInputManager.Companion.getInstance();
-    setShowComment(!Rime.getOption("_hide_comment"));
     reset(context);
   }
 
@@ -198,7 +195,7 @@ public class Composition extends AppCompatTextView {
         } else { // MotionEvent.ACTION_MOVE
           mCurrentX = (int) (event.getRawX() + mDx);
           mCurrentY = (int) (event.getRawY() + mDy);
-          Trime.getService().updatePopupWindow(mCurrentX, mCurrentY);
+          Trime.getService().updateWindow(mCurrentX, mCurrentY);
         }
         return true;
       }

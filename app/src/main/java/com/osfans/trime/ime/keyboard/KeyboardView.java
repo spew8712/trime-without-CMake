@@ -47,7 +47,6 @@ import com.osfans.trime.R;
 import com.osfans.trime.databinding.KeyboardKeyPreviewBinding;
 import com.osfans.trime.ime.core.Preferences;
 import com.osfans.trime.ime.enums.KeyEventType;
-import com.osfans.trime.ime.lifecycle.CoroutineScopeJava;
 import com.osfans.trime.setup.Config;
 import com.osfans.trime.util.LeakGuardHandlerWrapper;
 import java.lang.reflect.Method;
@@ -55,18 +54,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.CoroutineScope;
 import timber.log.Timber;
 
 /** 顯示{@link Keyboard 鍵盤}及{@link Key 按鍵} */
-public class KeyboardView extends View implements View.OnClickListener, CoroutineScope {
-
-  @NonNull
-  @Override
-  public CoroutineContext getCoroutineContext() {
-    return CoroutineScopeJava.getMainScopeJava().getCoroutineContext();
-  }
+public class KeyboardView extends View implements View.OnClickListener {
 
   /** 處理按鍵、觸摸等輸入事件 */
   public interface OnKeyboardActionListener {
@@ -165,7 +156,6 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
   private int mStartX;
   private int mStartY;
   private int touchX0, touchY0;
-  private boolean touchOnePoint;
 
   private boolean mProximityCorrectOn;
 
@@ -284,8 +274,8 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
     hilited_key_symbol_color = config.getColor("hilited_key_symbol_color");
     mShadowColor = config.getColor("shadow_color");
 
-    mSymbolSize = config.getPixel("symbol_text_size", 10);
-    mKeyTextSize = config.getPixel("key_text_size", 22);
+    mSymbolSize = config.getPixel("symbol_text_size");
+    mKeyTextSize = config.getPixel("key_text_size");
     mVerticalCorrection = config.getPixel("vertical_correction");
     setProximityCorrectionEnabled(config.getBoolean("proximity_correction"));
     mPreviewOffset = config.getPixel("preview_offset");
@@ -352,7 +342,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
     try {
       findStateDrawableIndex =
           StateListDrawable.class.getMethod(
-              Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+              Build.VERSION.SDK_INT + Build.VERSION.PREVIEW_SDK_INT >= Build.VERSION_CODES.Q
                   ? "findStateDrawableIndex"
                   : "getStateDrawableIndex",
               int[].class);
@@ -368,7 +358,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
     mPaintSymbol = new Paint();
     mPaintSymbol.setAntiAlias(true);
     mPaintSymbol.setTextAlign(Align.CENTER);
-    // reset(context);
+    reset(context);
 
     mPreviewPopup = new PopupWindow(context);
     mPreviewPopup.setContentView(mPreviewText);
@@ -436,8 +426,12 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
                 } else if ((deltaY > travel || velocityY > mSwipeThreshold) && absX < absY) {
                   if (mDisambiguateSwipe && endingVelocityY < velocityY / 4) {
                     Timber.d(
-                        "swipeDebug.onFling sendDownKey, dY=%f, vY=%f, eVY=%f, travel=%d, mSwipeThreshold=%d",
-                        deltaY, velocityY, endingVelocityY, travel, mSwipeThreshold);
+                        "swipeDebug.onFling sendDownKey, dY=%f, vY=%f, eVY=%f, travel=%d, mSwipeThreshold="
+                            + mSwipeThreshold,
+                        deltaY,
+                        velocityY,
+                        endingVelocityY,
+                        travel);
                     sendDownKey = true;
                     type = KeyEventType.SWIPE_DOWN.ordinal();
                   } else {
@@ -759,9 +753,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
       if (keyBackground instanceof GradientDrawable) {
         ((GradientDrawable) keyBackground)
             .setCornerRadius(
-                key.getRound_corner() != null && key.getRound_corner() > 0
-                    ? key.getRound_corner()
-                    : mKeyboard.getRoundCorner());
+                key.getRound_corner() != null ? key.getRound_corner() : mKeyboard.getRoundCorner());
       }
       Integer color = key.getTextColorForState(drawableState);
       mPaint.setColor(color != null ? color : mKeyTextColor.getColorForState(drawableState, 0));
@@ -784,7 +776,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
 
       if (!TextUtils.isEmpty(label)) {
         // For characters, use large font. For labels like "Done", use small font.
-        if (key.getKey_text_size() != null && key.getKey_text_size() > 0) {
+        if (key.getKey_text_size() != null) {
           paint.setTextSize(key.getKey_text_size());
         } else {
           paint.setTextSize(label.length() > 1 ? mLabelTextSize : mKeyTextSize);
@@ -803,9 +795,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         if (mShowHint) {
           if (key.getLongClick() != null) {
             mPaintSymbol.setTextSize(
-                key.getSymbol_text_size() != null && key.getSymbol_text_size() > 0
-                    ? key.getSymbol_text_size()
-                    : mSymbolSize);
+                key.getSymbol_text_size() != null ? key.getSymbol_text_size() : mSymbolSize);
             mPaintSymbol.setShadowLayer(mShadowRadius, 0, 0, mShadowColor);
             canvas.drawText(
                 key.getSymbolLabel(),
@@ -1361,7 +1351,6 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
       case MotionEvent.ACTION_DOWN:
         touchX0 = touchX;
         touchY0 = touchY;
-        touchOnePoint = true;
       case MotionEvent.ACTION_POINTER_DOWN:
         mAbortKey = false;
         mStartX = touchX;
@@ -1375,7 +1364,6 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         mDownKey = keyIndex;
         mDownTime = me.getEventTime();
         mLastMoveTime = mDownTime;
-        touchOnePoint = false;
         if (action == MotionEvent.ACTION_POINTER_DOWN) break; // 並擊鬆開前的虛擬按鍵事件
         checkMultiTap(eventTime, keyIndex);
         mKeyboardActionListener.onPress(keyIndex != NOT_A_KEY ? mKeys[keyIndex].getCode() : 0);
@@ -1451,7 +1439,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         int absY = Math.abs(dy);
         int travel = getPrefs().getKeyboard().getSwipeTravel();
 
-        if (Math.max(absY, absX) > travel && touchOnePoint) {
+        if (Math.max(absY, absX) > travel) {
           int type;
           if (absX < absY) {
             Timber.d("swipeDebug.ext y, dX=%d, dY=%d", dx, dy);

@@ -10,7 +10,7 @@ import java.util.Map;
 public class TabManager {
   private int selected;
   private final List<SimpleKeyBean> keyboard;
-  private final ArrayList<TabTag> tabTags;
+  private final List<TabTag> tabTags;
   private final List<List<SimpleKeyBean>> keyboards;
   private static TabManager self;
   private final List<SimpleKeyBean> notKeyboard = new ArrayList<>();
@@ -27,17 +27,6 @@ public class TabManager {
 
   public static TabTag getTag(int i) {
     return self.tabTags.get(i);
-  }
-
-  public static int getTagIndex(String name) {
-    if (name == null || name.length() < 1) return 0;
-    for (int i = 0; i < self.tabTags.size(); i++) {
-      TabTag tag = self.tabTags.get(i);
-      if (tag.text.equals(name)) {
-        return i;
-      }
-    }
-    return 0;
   }
 
   private TabManager() {
@@ -123,7 +112,7 @@ public class TabManager {
     return selected;
   }
 
-  public ArrayList<TabTag> getTabCandidates() {
+  public TabTag[] getTabCandidates() {
     boolean addExit = true;
     for (TabTag tag : tabTags) {
       if (tag.command == KeyCommandType.EXIT) {
@@ -135,6 +124,6 @@ public class TabManager {
       tabTags.add(tagExit);
       keyboards.add(notKeyboard);
     }
-    return tabTags;
+    return tabTags.toArray(new TabTag[0]);
   }
 }

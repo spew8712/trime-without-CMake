@@ -1,15 +1,14 @@
 package com.osfans.trime.settings.components
 
-import android.app.Dialog
+import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.IBinder
 import android.view.WindowManager
-import androidx.appcompat.app.AlertDialog
 import com.osfans.trime.R
 import com.osfans.trime.Rime
-import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.settings.PrefMainActivity
 import com.osfans.trime.setup.Config
 import com.osfans.trime.util.RimeUtils
@@ -24,7 +23,8 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.system.exitProcess
 
 class SchemaPickerDialog(
-    private val context: Context
+    private val context: Context,
+    private val token: IBinder?
 ) : CoroutineScope {
 
     private val job = Job()
@@ -52,6 +52,8 @@ class SchemaPickerDialog(
         }
     }
 
+    constructor(context: Context) : this(context, null)
+
     init {
         @Suppress("DEPRECATION")
         progressDialog = ProgressDialog(context).apply {
@@ -61,7 +63,7 @@ class SchemaPickerDialog(
     }
 
     private fun showPickerDialog() {
-        pickerDialogBuilder = AlertDialog.Builder(context, R.style.AlertDialogTheme).apply {
+        pickerDialogBuilder = AlertDialog.Builder(context).apply {
             setTitle(R.string.pref_schemas)
             setCancelable(true)
             setPositiveButton(android.R.string.ok, null)
@@ -73,7 +75,7 @@ class SchemaPickerDialog(
                 setNegativeButton(android.R.string.cancel, null)
                 setPositiveButton(android.R.string.ok) { _, _ ->
                     @Suppress("DEPRECATION")
-                    progressDialog = ProgressDialog(context).also {
+                    progressDialog = ProgressDialog(context).apply {
                         setMessage(context.getString(R.string.deploy_progress))
                     }.also {
                         appendDialogParams(it)
@@ -103,19 +105,24 @@ class SchemaPickerDialog(
             }
         }
         val pickerDialog = pickerDialogBuilder!!.create()
-        appendDialogParams(pickerDialog)
+        if (token != null) appendDialogParams(pickerDialog)
         pickerDialog.show()
     }
 
-    private fun appendDialogParams(dialog: Dialog) {
-        dialog.window?.let { window ->
-            window.attributes.token = Trime.getServiceOrNull()?.window?.window?.decorView?.windowToken
-            window.attributes.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    private fun appendDialogParams(dialog: AlertDialog) {
+        val window = dialog.window
+        val lp = window?.attributes
+        lp?.let {
+            it.token = token
+            it.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             } else {
                 WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
             }
-            window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        }
+        window?.let {
+            it.attributes = lp
+            it.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         }
     }
 
@@ -172,7 +179,7 @@ class SchemaPickerDialog(
     }
 
     private fun onPreExecute() {
-        appendDialogParams(progressDialog)
+        if (token != null) appendDialogParams(progressDialog)
         progressDialog.show()
     }
 

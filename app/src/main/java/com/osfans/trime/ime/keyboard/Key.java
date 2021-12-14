@@ -143,15 +143,15 @@ public class Key {
       send_bindings = false;
     }
     if (isShift()) mKeyboard.setmShiftKey(this);
-    key_text_size = YamlUtils.INSTANCE.getPixel(mk, "key_text_size", 0);
-    symbol_text_size = YamlUtils.INSTANCE.getPixel(mk, "symbol_text_size", 0);
+    key_text_size = YamlUtils.INSTANCE.getPixel(mk, "key_text_size", 22);
+    symbol_text_size = YamlUtils.INSTANCE.getPixel(mk, "symbol_text_size", 10);
     key_text_color = Config.getColor(context, mk, "key_text_color");
     hilited_key_text_color = Config.getColor(context, mk, "hilited_key_text_color");
     key_back_color = config.getDrawable(mk, "key_back_color");
     hilited_key_back_color = config.getDrawable(mk, "hilited_key_back_color");
     key_symbol_color = Config.getColor(context, mk, "key_symbol_color");
     hilited_key_symbol_color = Config.getColor(context, mk, "hilited_key_symbol_color");
-    round_corner = YamlUtils.INSTANCE.getFloat(mk, "round_corner", 0);
+    round_corner = YamlUtils.INSTANCE.getFloat(mk, "round_corner", 5);
   }
 
   public static List<String> getAndroidKeys() {
