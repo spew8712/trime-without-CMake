@@ -41,13 +41,13 @@ style:
     max_height: 400 #最大高度
     min_width: 40 #最小寬度
     min_height: 0 #最小高度
-    margin_x: 5 #水平邊距
+    margin_x: 5 #水平邊距 NOTE: margin_{x, y, bottom} 实际为 padding
     margin_y: 5 #豎直邊距
     margin_bottom: 0 #底部边距 （用于适配特定背景图）
-    real_margin: 3 #屏幕左右边缘和悬浮窗之间的距离
     line_spacing: 0 #候选詞的行間距(px)
     line_spacing_multiplier: 1.2 #候选詞的行間距(倍數)
-    spacing: 1 #與預編輯或邊緣的距離
+    real_margin: 3 #屏幕左右边缘和悬浮窗之间的距离 TODO: 在 4.0 时给 real_margin 与 spacing 换一个更适合的名字
+    spacing: 1 #屏幕上下边缘或预编辑上下边缘和悬浮窗之间的距离
     round_corner: 8 #窗口圓角
     alpha: 0xdd #透明度(0-255)
     elevation: 5 #陰影(>=Android5.0)
@@ -905,7 +905,7 @@ preset_keys:
   paste: {label: 貼上, send: Control+v}
   paste_text: {label: 貼上文本, send: Control+Shift+Alt+v} #>=Android 6.0
   share_text: {label: 分享文本, send: Control+Alt+s} #>=Android 6.0
-  redo: {label: 重做, send: Control+y} #>=Android 6.0
+  redo: {label: 重做, send: Control+Shift+z} #>=Android 6.0
   undo: {label: 撤銷, send: Control+z} #>=Android 6.0
   # rime組合鍵
   F4: {label: 方案選單, send: F4}
@@ -932,7 +932,7 @@ preset_keys:
   Keyboard_default: {label: 返回, send: Eisu_toggle, select: .default}
   Keyboard_switch: {label: 鍵盤, send: Eisu_toggle, select: .next}
   Schema_switch: {label: 下一方案, send: Control+Shift+1}
-  liquid_keyboard_switch: { toggle: _liquid_keyboard, send: Mode_switch, states: [ 更多, 普通 ] }
+  liquid_keyboard_switch: { toggle: _liquid_keyboard, send: Mode_switch, states: [ 更多, 更多 ] }
   one_hand_switch_1: {toggle: _one_hand_mode_1, send: Mode_switch, states: [ 左手, 普通 ]}
   one_hand_switch_2: {toggle: _one_hand_mode_2, send: Mode_switch, states: [ 右手, 普通 ]}
   one_hand_switch_3: {toggle: _one_hand_mode_3, send: Mode_switch, states: [ 左手, 右手 ]}

@@ -221,8 +221,6 @@ public class Rime {
   private static boolean mOnMessage;
 
   static {
-    System.loadLibrary("opencc");
-    System.loadLibrary("rime");
     System.loadLibrary("rime_jni");
   }
 
@@ -272,7 +270,7 @@ public class Rime {
 
   public static String getCompositionText() {
     RimeComposition composition = getComposition();
-    return (composition == null) ? "" : composition.preedit;
+    return (composition == null || composition.preedit == null) ? "" : composition.preedit;
   }
 
   public static String getComposingText() {
@@ -533,7 +531,7 @@ public class Rime {
         getContexts(); // 切換中英文、簡繁體時更新候選
         final boolean value = !message_value.startsWith("!");
         final String option = message_value.substring(value ? 0 : 1);
-        trime.onOptionChanged(option, value);
+        trime.textInputManager.onOptionChanged(option, value);
         break;
     }
     mOnMessage = false;

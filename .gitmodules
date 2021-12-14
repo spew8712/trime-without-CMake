@@ -1,6 +1,3 @@
-[submodule "app/src/main/jni/OpenCC"]
-	path = app/src/main/jni/OpenCC
-	url = https://github.com/BYVoid/OpenCC.git
 [submodule "app/src/main/jni/yaml-cpp"]
 	path = app/src/main/jni/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
@@ -10,9 +7,6 @@
 [submodule "app/src/main/jni/leveldb"]
 	path = app/src/main/jni/leveldb
 	url = https://github.com/google/leveldb.git
-[submodule "app/src/main/jni/boost"]
-	path = app/src/main/jni/boost
-	url = https://github.com/boostorg/boost.git
 [submodule "app/src/main/jni/marisa-trie"]
 	path = app/src/main/jni/marisa-trie
 	url = https://github.com/s-yata/marisa-trie.git
@@ -25,9 +19,6 @@
 [submodule "app/src/main/jni/libiconv"]
 	path = app/src/main/jni/libiconv
 	url = https://github.com/osfans/libiconv-gnu.git
-[submodule "app/src/main/jni/capnproto"]
-	path = app/src/main/jni/capnproto
-	url = https://github.com/lotem/capnproto.git
 [submodule "app/src/main/jni/librime-charcode"]
 	path = app/src/main/jni/librime-charcode
 	url = https://github.com/rime/librime-charcode

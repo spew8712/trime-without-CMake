@@ -26,7 +26,7 @@
 - Contributors: [boboIqiqi](https://github.com/boboIqiqi)、[Bambooin](https://github.com/Bambooin)、[senchi96](https://github.com/senchi96)、[heiher](https://github.com/heiher)、[abay](https://github.com/a342191555)、[iovxw](https://github.com/iovxw)、[huyz-git](https://github.com/huyz-git)、[tumuyan](https://github.com/tumuyan)、[WhiredPlanck](https://github.com/WhiredPlanck)...
 - [Wiki Editors](https://github.com/osfans/trime/wiki): [xiaoqun2016](https://github.com/xiaoqun2016)、[boboIqiqi](https://github.com/boboIqiqi)...
 - Translators: 天真可爱的满满 (Chinese Traditional), 点解 (English) ...
-- Keyboard Makers: 天真可爱的满满、皛筱晓小笨鱼、吴琛11、熊猫阿Bo、默默ㄇㄛˋ...
+- Keyboard Designers: 天真可爱的满满、皛筱晓小笨鱼、吴琛11、熊猫阿Bo、默默ㄇㄛˋ...
 - Donations: See QR Code in [Releases](https://github.com/osfans/trime/releases)
 - Community: [Issues](https://github.com/osfans/trime/issues), [QQ Group（811142286）](https://jq.qq.com/?_wv=1027&k=AXdR80HN), [QQ Group（458845988）](https://jq.qq.com/?_wv=1027&k=n6xT4G3q), [Coolapk](http://www.coolapk.com/apk/com.osfans.trime), [Google Play](https://play.google.com/store/apps/details?id=com.osfans.trime) and [Tieba](http://tieba.baidu.com/f?kw=rime)
 - Projects: [RIME]、[OpenCC]、[Android Traditional Chinese IME] and so on.
@@ -38,7 +38,7 @@
 - 之後，藉助JNI技術，享受了[librime](https://github.com/rime/librime)的成果，升級爲“同文輸入法平臺3.x”，簡稱“同文輸入法”。  
 - 所以，TRIME是Tongwen RIME或是ThaeRvInputMEthod的縮寫。
 
-## 第三方庫/Third Party Library
+## 第三方庫/Third Party Libraries
 - [Boost C++ Libraries](https://www.boost.org/) (Boost Software License)
 - [Cap'n Proto](https://capnproto.org/) (MIT License)
 - [darts-clone](https://github.com/s-yata/darts-clone) (New BSD License)

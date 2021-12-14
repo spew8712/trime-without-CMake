@@ -1,5 +1,5 @@
 # 同文 Android 输入法平台
-![build](https://github.com/osfans/trime/actions/workflows/last-commit-release.yml/badge.svg?branch=develop)
+![build](https://github.com/osfans/trime/actions/workflows/commit-ci.yml/badge.svg?branch=develop)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub release](https://img.shields.io/github/release/osfans/trime.svg)](https://github.com/osfans/trime/releases)
 [![F-Droid release](https://img.shields.io/f-droid/v/com.osfans.trime.svg)](https://f-droid.org/packages/com.osfans.trime)
@@ -55,7 +55,7 @@ cd $trime_folder
 make debug
 ```
 
-或者要为应用签名以释放更新，请创建一个名为 `gradle.properties` 的文件，包含以下内容，注明[签名信息](https://developer.android.com/studio/publish/app-signing.html)：
+或者要为应用签名以释放更新，请创建一个名为 `keystore.properties` 的文件，包含以下内容，注明[签名信息](https://developer.android.com/studio/publish/app-signing.html)：
 
 ```bash
 storePassword=myStorePassword
@@ -83,20 +83,21 @@ make release
 
 #### macOS
 
-1. 推荐通过 Android Studio 或手动安装 Android [SDK](https://developer.android.com/studio/index.html) 和 [NDK](https://developer.android.com/ndk/index.html)。
-2. 安装 [Homebrew](http://brew.sh/)（如果网速过慢，可设置 [Homebrew 镜像](https://mirrors.ustc.edu.cn/help/brew.git.html)），然后运行：
+1. 安装 [Android SDK](https://developer.android.com/sdk/index.html)
 
+2. 设置相应的 ANDROID_SDK_ROOT
   ```bash
-   brew install automake cmake opencc boost python gradle doxygen clang capnp
+  # Android
+   export ANDROID_SDK_ROOT="android_sdk_path"
   ```
 
-  如果使用 bash，请在 ~/.bashrc 中设置环境变量：
+3. 设置 Homebrew [镜像](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/)(可选)
+
+4. 安装 [Homebrew](https://brew.sh/)
   ```bash
-   # Android
-   export ANDROID_HOME="your_android_sdk"
-   export ANDROID_NDK="your_android_ndk"
-   export PATH=${PATH}:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_NDK
+   brew install cmake capnp
   ```
+
 ## 第三方库
 - [Boost C++ Libraries](https://www.boost.org/) (Boost Software License)
 - [Cap'n Proto](https://capnproto.org/) (MIT License)
