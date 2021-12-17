@@ -26,15 +26,14 @@ import com.osfans.trime.R
 import com.osfans.trime.common.InputMethodUtils
 import com.osfans.trime.databinding.PrefActivityBinding
 import com.osfans.trime.ime.core.Preferences
+import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.settings.components.SchemaPickerDialog
 import com.osfans.trime.util.AndroidVersion
 import com.osfans.trime.util.RimeUtils
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 internal const val FRAGMENT_TAG = "FRAGMENT_TAG"
@@ -177,16 +176,14 @@ class PrefMainActivity :
                     setMessage(getString(R.string.deploy_progress))
                     show()
                 }
+                Trime.getServiceOrNull()?.initKeyboard()
                 launch {
-                    withContext(Dispatchers.IO) {
-                        try {
-                            RimeUtils.deploy(this@PrefMainActivity)
-                        } catch (ex: Exception) {
-                            Timber.e(ex, "Deploy Exception")
-                        } finally {
-                            progressDialog.dismiss()
-                            // exitProcess(0)
-                        }
+                    try {
+                        RimeUtils.deploy(this@PrefMainActivity)
+                    } catch (ex: Exception) {
+                        Timber.e(ex, "Deploy Exception")
+                    } finally {
+                        progressDialog.dismiss()
                     }
                 }
                 true
