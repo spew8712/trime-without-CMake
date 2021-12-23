@@ -17,7 +17,7 @@ public class Sound {
   private int lastKeycode; // 上次按键的键盘码
   private int[] sound; // 音频文件列表
   private final List<Key> keyset;
-  private   List<String> files;
+  private List<String> files;
   private static Sound self;
   private final boolean enable;
   private int progress = -1;
@@ -86,7 +86,7 @@ public class Sound {
               assert s != null;
               if (s.size() > 1) sounds = new int[s.size()];
               for (int j = 0; j < s.size(); j++) {
-                  sounds[j] = getSoundIndex(s.get(j));
+                sounds[j] = getSoundIndex(s.get(j));
               }
             }
             if (o.containsKey("keys")) {
@@ -136,13 +136,12 @@ public class Sound {
     else return KeyEvent.keyCodeFromString("KEYCODE_" + keyName);
   }
 
-  public int getSoundIndex(Object obj){
+  public int getSoundIndex(Object obj) {
     String t = (String) obj;
-    if (t.matches("\\d+"))
-      return Integer.parseInt(t);
+    if (t.matches("\\d+")) return Integer.parseInt(t);
 
-      int k = files.indexOf(t);
-      return Math.max(k, 0);
+    int k = files.indexOf(t);
+    return Math.max(k, 0);
   }
 
   private static class Key {
