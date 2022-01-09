@@ -24,47 +24,24 @@ public class DraftDao {
 
   public DraftDao() {}
 
-  public void insert(@NonNull DbBean clipboardBean) {
+  /** 插入新记录 * */
+  public void insert(@NonNull DbBean bean) {
     helper = new DbHelper(Trime.getService(), "draft.db");
     SQLiteDatabase db = helper.getWritableDatabase();
     db.execSQL(
         "insert into t_data(text,html,type,time) values(?,?,?,?)",
-        new Object[] {
-          clipboardBean.getText(),
-          clipboardBean.getHtml(),
-          clipboardBean.getType(),
-          clipboardBean.getTime()
-        });
+        new Object[] {bean.getText(), bean.getHtml(), bean.getType(), bean.getTime()});
     db.close();
   }
 
-  /** 删除文字相同的剪贴板记录，插入新记录 * */
-  public void add(@NonNull DbBean clipboardBean) {
+  /** 删除文字相同的记录，插入新记录 * */
+  public void add(@NonNull DbBean bean) {
     helper = new DbHelper(Trime.getService(), "draft.db");
     SQLiteDatabase db = helper.getWritableDatabase();
-    db.delete("t_data", "text=?", new String[] {clipboardBean.getText()});
+    db.delete("t_data", "text=?", new String[] {bean.getText()});
     db.execSQL(
         "insert into t_data(text,html,type,time) values(?,?,?,?)",
-        new Object[] {
-          clipboardBean.getText(),
-          clipboardBean.getHtml(),
-          clipboardBean.getType(),
-          clipboardBean.getTime()
-        });
-    db.close();
-  }
-
-  public void update(@NonNull DbBean clipboardBean) {
-    helper = new DbHelper(Trime.getService(), "draft.db");
-    SQLiteDatabase db = helper.getWritableDatabase();
-    db.execSQL(
-        "insert into t_data(text,html,type,time) values(?,?,?,?)",
-        new Object[] {
-          clipboardBean.getText(),
-          clipboardBean.getHtml(),
-          clipboardBean.getType(),
-          clipboardBean.getTime()
-        });
+        new Object[] {bean.getText(), bean.getHtml(), bean.getType(), bean.getTime()});
     db.close();
   }
 

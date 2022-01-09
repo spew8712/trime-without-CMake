@@ -23,6 +23,7 @@ public class ClipboardDao {
 
   public ClipboardDao() {}
 
+  /** 插入新记录 * */
   public void insert(@NonNull DbBean clipboardBean) {
     helper = new DbHelper(Trime.getService(), "clipboard.db");
     SQLiteDatabase db = helper.getWritableDatabase();
@@ -42,20 +43,6 @@ public class ClipboardDao {
     helper = new DbHelper(Trime.getService(), "clipboard.db");
     SQLiteDatabase db = helper.getWritableDatabase();
     db.delete("t_data", "text=?", new String[] {clipboardBean.getText()});
-    db.execSQL(
-        "insert into t_data(text,html,type,time) values(?,?,?,?)",
-        new Object[] {
-          clipboardBean.getText(),
-          clipboardBean.getHtml(),
-          clipboardBean.getType(),
-          clipboardBean.getTime()
-        });
-    db.close();
-  }
-
-  public void update(@NonNull DbBean clipboardBean) {
-    helper = new DbHelper(Trime.getService(), "clipboard.db");
-    SQLiteDatabase db = helper.getWritableDatabase();
     db.execSQL(
         "insert into t_data(text,html,type,time) values(?,?,?,?)",
         new Object[] {
