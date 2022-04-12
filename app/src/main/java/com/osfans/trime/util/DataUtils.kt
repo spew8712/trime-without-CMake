@@ -40,6 +40,8 @@ object DataUtils {
                 while (input.read(buffer).also { len = it } > 0) {
                     outputStream.write(buffer, 0, len)
                 }
+                input.close()
+                outputStream.close()
                 Timber.i("copyFile = ${file.absolutePath}, $outputPath")
                 return true
             } catch (e: Exception) {

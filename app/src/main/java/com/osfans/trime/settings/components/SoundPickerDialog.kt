@@ -12,7 +12,6 @@ import com.osfans.trime.setup.Config
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -92,7 +91,7 @@ class SoundPickerDialog(
 
     private suspend fun doInBackground(): String = withContext(Dispatchers.IO) {
         setSound()
-        delay(500) // Simulate async task
+//        delay(500) // Simulate async task
         return@withContext "OK"
     }
 

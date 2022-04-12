@@ -19,7 +19,7 @@
  */
 -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" 
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="com.osfans.trime" >
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -38,7 +38,8 @@
         android:theme="@style/PreferenceTheme">
 
         <service android:name=".TrimeImeService" android:label="@string/trime_app_name"
-                android:permission="android.permission.BIND_INPUT_METHOD">
+                android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
@@ -63,7 +64,8 @@
             android:name="com.osfans.trime.PrefLauncherAlias"
             android:label="@string/trime_app_name"
             android:launchMode="singleTask"
-            android:targetActivity=".settings.PrefMainActivity" >
+            android:targetActivity=".settings.PrefMainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.DEFAULT" />

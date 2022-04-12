@@ -14,7 +14,6 @@ import com.osfans.trime.util.RimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -167,7 +166,7 @@ class SchemaPickerDialog(
 
     private suspend fun doInBackground(): String = withContext(Dispatchers.IO) {
         initSchemas()
-        delay(1000) // Simulate async task
+//        delay(1000) // Simulate async task
         return@withContext "OK"
     }
 
