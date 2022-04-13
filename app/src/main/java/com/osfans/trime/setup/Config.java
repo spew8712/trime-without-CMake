@@ -706,6 +706,15 @@ public class Config {
     return Float.parseFloat(o.toString());
   }
 
+  public float getLiquidFloat(String key) {
+    if (liquidKeyboard != null) {
+      if (liquidKeyboard.containsKey(key)) {
+        return YamlUtils.INSTANCE.getFloat(liquidKeyboard, key, 0);
+      }
+    }
+    return getFloat(key);
+  }
+
   public float getFloat(String key, float defaultValue) {
     final Object o = getValue(key, defaultValue);
     if (o == null) return defaultValue;
@@ -1090,7 +1099,7 @@ public class Config {
     }
     if (object instanceof Long) {
       Long o = (Long) object;
-//      Timber.w("getColorRealValue() Long, %d ; 0X%s", o, data2hex(object));
+      //      Timber.w("getColorRealValue() Long, %d ; 0X%s", o, data2hex(object));
       return o.intValue();
     }
     String s = object.toString();
