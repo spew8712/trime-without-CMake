@@ -7,7 +7,8 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.5.20'
+    ext.kotlin_version = '1.6.10'
+    ext.kotlin_coroutines_version = '1.6.0'
 
     /**
      * The repositories block configures the repositories Gradle uses to
@@ -29,7 +30,7 @@ buildscript {
      */
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.1'
+        classpath 'com.android.tools.build:gradle:7.0.4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -44,7 +45,7 @@ buildscript {
  */
 
 plugins {
-    id "com.diffplug.spotless" version "5.15.0"
+    id "com.diffplug.spotless" version "6.3.0"
 }
 
 allprojects {
@@ -59,11 +60,11 @@ spotless {
         importOrder()
         removeUnusedImports()
         target 'app/src/main/java/com/osfans/trime/**/*.java'
-        googleJavaFormat('1.11.0')
+        googleJavaFormat('1.15.0')
     }
     kotlin {
         target 'app/src/main/java/com/osfans/trime/**/*.kt'
-        ktlint("0.42.1")
+        ktlint("0.44.0")
         trimTrailingWhitespace()
         indentWithSpaces()
         endWithNewline()

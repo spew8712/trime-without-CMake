@@ -29,7 +29,7 @@ class InputFeedbackManager(
         try {
             vibrator = ims.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
             audioManager = ims.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
-            tts = TextToSpeech(ims) { }
+            tts = TextToSpeech(ims.applicationContext) { }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -91,7 +91,7 @@ class InputFeedbackManager(
     fun keyPressSound(keyCode: Int? = null) {
         if (prefs.keyboard.soundEnabled) {
             val soundVolume = prefs.keyboard.soundVolume
-            if (Sound.get().isEnable)
+            if (Sound.isEnable())
                 Sound.get().play(keyCode, soundVolume)
             else {
                 if (soundVolume > 0) {

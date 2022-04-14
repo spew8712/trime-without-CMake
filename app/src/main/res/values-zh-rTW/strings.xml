@@ -152,7 +152,7 @@
     <string name="about__app_info">應用資訊</string>
     <string name="about__open_source_license">開源許可</string>
     <string name="about__support">支援</string>
-    <string name="about__used_libraries">我們使用的庫</string>
+    <string name="about__used_libraries">第三方開源軟體庫</string>
     <string name="about__used_library_dialog_title">同文輸入法 | 開源軟體庫</string>
     <string name="other__selection_sense_title">使用 Ctrl+Left / Ctrl+Right 快速移動遊標</string>
     <string name="pref__system_default">系統預設</string>
@@ -166,4 +166,21 @@
     <string name="alert_window_access_required">同文輸入法需要允許顯示在其他應用上方以能顯示應用外懸浮窗或對話方塊，點選“確定”以授權。</string>
     <string name="keyboard__key_sound_package_title">按鍵音效包</string>
     <string name="sound_progress">正在應用音效...</string>
+    <string name="other__draft_manager_title">草稿箱管理器</string>
+    <string name="other__draft_output_title">草稿箱過濾規則\n每行爲一條正則表達式，與規則匹配的內容不會被緩存</string>
+    <string name="setup__next">下一步</string>
+    <string name="setup__done">完成</string>
+    <string name="setup__enable_ime_hint">在語言和輸入設定中啟用<b>同文輸入法</b></string>
+    <string name="setup__select_ime_hint">選擇<b>同文輸入法</b>作為預設輸入法</string>
+    <string name="setup__enable_ime">啟用輸入法</string>
+    <string name="setup__select_ime">選擇輸入法</string>
+    <string name="setup__prev">上一步</string>
+    <string name="setup__channel_hint">同文輸入法設定嚮導</string>
+    <string name="setup__notify_hint">請完成鍵盤設定</string>
+    <string name="setup__step_one">第 1 步</string>
+    <string name="setup__step_two">第 2 步</string>
+    <string name="setup__skip">跳過</string>
+    <string name="setup__skip_hint">您確定要跳過嚮導嗎？</string>
+    <string name="setup__skip_hint_yes">好的，謝謝</string>
+    <string name="setup__skip_hint_no">不，我想留在這兒</string>
 </resources>

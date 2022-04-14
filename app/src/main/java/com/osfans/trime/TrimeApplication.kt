@@ -11,8 +11,15 @@ import timber.log.Timber
  * classes everywhere.
  */
 class TrimeApplication : Application() {
+    companion object {
+        private var instance: TrimeApplication? = null
+        fun getInstance() =
+            instance ?: throw IllegalStateException("Trime application is not created!")
+    }
+
     override fun onCreate() {
         super.onCreate()
+        instance = this
         try {
             if (BuildConfig.DEBUG) {
                 Timber.plant(Timber.DebugTree())

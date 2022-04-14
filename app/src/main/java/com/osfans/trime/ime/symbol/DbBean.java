@@ -1,8 +1,6 @@
-package com.osfans.trime.clipboard;
+package com.osfans.trime.ime.symbol;
 
-import com.osfans.trime.ime.symbol.SimpleKeyBean;
-
-public class ClipboardBean extends SimpleKeyBean {
+public class DbBean extends SimpleKeyBean {
   private long time;
   private String text;
   private final String html;
@@ -36,7 +34,7 @@ public class ClipboardBean extends SimpleKeyBean {
     this.type = type;
   }
 
-  public ClipboardBean(String text) {
+  public DbBean(String text) {
     this.text = text;
     this.time = System.currentTimeMillis();
     this.type = 0;
@@ -44,7 +42,7 @@ public class ClipboardBean extends SimpleKeyBean {
   }
 
   @SuppressWarnings("unused")
-  public ClipboardBean(String text, String html) {
+  public DbBean(String text, String html) {
     this.text = text;
     this.time = System.currentTimeMillis();
     this.type = 1;
@@ -52,7 +50,7 @@ public class ClipboardBean extends SimpleKeyBean {
   }
 
   @SuppressWarnings("unused")
-  public ClipboardBean(String text, String html, int type, long time) {
+  public DbBean(String text, String html, int type, long time) {
     this.text = text;
     this.time = time;
     this.type = type;

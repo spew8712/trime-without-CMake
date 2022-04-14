@@ -1,5 +1,6 @@
 package com.osfans.trime.ime.keyboard;
 
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.view.KeyEvent;
@@ -17,8 +18,11 @@ public class Sound {
   private int lastKeycode; // 上次按键的键盘码
   private int[] sound; // 音频文件列表
   private final List<Key> keyset;
+  private List<String> files;
   private static Sound self;
   private final boolean enable;
+  private int progress;
+  private int[] melody;
 
   public static Sound get() {
     return self;
@@ -30,21 +34,32 @@ public class Sound {
     return self;
   }
 
-  public boolean isEnable() {
-    return enable;
+  public static boolean isEnable() {
+    if (self == null) return false;
+    return self.enable;
   }
 
-  @SuppressWarnings("unchecked")
+  public static void resetProgress() {
+    if (self != null) {
+      if (self.progress > 0) self.progress = 0;
+    }
+  }
+
   public Sound(String soundPackageName) {
-    sp = new SoundPool(3, AudioManager.STREAM_MUSIC, 0);
+    AudioAttributes audioAttributes =
+        new AudioAttributes.Builder().setLegacyStreamType(AudioManager.STREAM_SYSTEM).build();
+    sp = new SoundPool.Builder().setAudioAttributes(audioAttributes).setMaxStreams(3).build();
     keyset = new ArrayList<>();
+    melody = new int[1];
+    progress = -1;
+
     Map<String, ?> m = YamlUtils.INSTANCE.loadMap(soundPackageName + ".sound", "");
     if (m != null) {
       String path = DataUtils.getUserDataDir() + File.separator + "sound" + File.separator;
       if (m.containsKey("folder")) path = path + m.get("folder") + File.separator;
 
       if (m.containsKey("sound")) {
-        List<String> files = (List<String>) m.get("sound");
+        files = (List<String>) m.get("sound");
         sound = new int[files.size()];
         int i = 0;
         for (String file : files) {
@@ -52,7 +67,16 @@ public class Sound {
           i++;
         }
 
-        if (m.containsKey("keyset")) {
+        if (m.containsKey("melody")) {
+          progress = 0;
+          List<String> n = (List<String>) m.get("melody");
+          melody = new int[n.size()];
+          for (int j = 0; j < n.size(); j++) {
+            melody[j] = getSoundIndex(n.get(j));
+          }
+          enable = true;
+          return;
+        } else if (m.containsKey("keyset")) {
           List<Map<String, ?>> n = (List<Map<String, ?>>) m.get("keyset");
           for (Map<String, ?> o : n) {
             int max = -1, min = -1;
@@ -69,12 +93,7 @@ public class Sound {
               assert s != null;
               if (s.size() > 1) sounds = new int[s.size()];
               for (int j = 0; j < s.size(); j++) {
-                String t = (String) s.get(j);
-                if (t.matches("\\d+")) sounds[j] = Integer.parseInt(t);
-                else {
-                  int k = files.indexOf(t);
-                  sounds[j] = Math.max(k, 0);
-                }
+                sounds[j] = getSoundIndex(s.get(j));
               }
             }
             if (o.containsKey("keys")) {
@@ -98,7 +117,11 @@ public class Sound {
     if (volume > 0) {
       if (sound.length > 0) {
         float soundVolume = volume / 100f;
-        if (lastKeycode != keycode) {
+        if (progress >= 0) {
+          if (progress >= melody.length) progress = 0;
+          currStreamId = melody[progress];
+          progress++;
+        } else if (lastKeycode != keycode) {
           lastKeycode = keycode;
           for (Key key : keyset) {
             currStreamId = key.getSound(keycode);
@@ -118,6 +141,16 @@ public class Sound {
     String keyName = ((String) string).toUpperCase(Locale.ROOT);
     if (keyName.startsWith("KEYCODE_")) return KeyEvent.keyCodeFromString(keyName);
     else return KeyEvent.keyCodeFromString("KEYCODE_" + keyName);
+  }
+
+  public int getSoundIndex(Object obj) {
+    String t = (String) obj;
+    int k;
+    if (t.matches("\\d+")) {
+      k = Integer.parseInt(t);
+      if (k >= sound.length) return 0;
+    } else k = files.indexOf(t);
+    return Math.max(k, 0);
   }
 
   private static class Key {

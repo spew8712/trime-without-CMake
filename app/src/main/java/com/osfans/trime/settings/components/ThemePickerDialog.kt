@@ -1,7 +1,6 @@
 package com.osfans.trime.settings.components
 
 import android.app.Dialog
-import android.app.ProgressDialog
 import android.content.Context
 import android.os.Build
 import android.view.WindowManager
@@ -9,10 +8,10 @@ import androidx.appcompat.app.AlertDialog
 import com.osfans.trime.R
 import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.setup.Config
+import com.osfans.trime.util.createLoadingDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -27,7 +26,7 @@ class ThemePickerDialog(
     private var checkedId: Int = 0
     val pickerDialog: AlertDialog
     @Suppress("DEPRECATION")
-    private val progressDialog: ProgressDialog
+    private val progressDialog: AlertDialog
 
     init {
         val themeFile = config.theme + ".yaml"
@@ -61,11 +60,7 @@ class ThemePickerDialog(
             ) { _, id -> checkedId = id }
         }.create()
         // Init progress dialog
-        @Suppress("DEPRECATION")
-        progressDialog = ProgressDialog(context).apply {
-            setMessage(context.getString(R.string.themes_progress))
-            setCancelable(false)
-        }
+        progressDialog = createLoadingDialog(context, R.string.themes_progress)
     }
 
     private fun appendDialogParams(dialog: Dialog) {
@@ -101,7 +96,7 @@ class ThemePickerDialog(
 
     private suspend fun doInBackground(): String = withContext(Dispatchers.IO) {
         setTheme()
-        delay(500) // Simulate async task
+//        delay(500) // Simulate async task
         return@withContext "OK"
     }
 

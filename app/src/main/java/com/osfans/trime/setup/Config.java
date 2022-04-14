@@ -81,9 +81,9 @@ public class Config {
   }
 
   private Map<?, ?> mStyle, mDefaultStyle;
-  private String themeName, soundPackageName;
+  private String themeName, soundPackageName, currentSound;
   private static final String defaultName = "trime";
-  private String schema_id;
+  private String schema_id, colorID;
 
   private Map<?, ?> fallbackColors;
   private Map<String, ?> presetColorSchemes, presetKeyboards;
@@ -91,7 +91,7 @@ public class Config {
 
   private static final Pattern pattern = Pattern.compile("\\s*\n\\s*");
 
-  private String[] clipBoardCompare, clipBoardOutput;
+  private String[] clipBoardCompare, clipBoardOutput, draftOutput;
 
   @NonNull
   private Preferences getPrefs() {
@@ -102,17 +102,14 @@ public class Config {
     self = this;
     assetManager = context.getAssets();
     themeName = getPrefs().getLooks().getSelectedTheme();
+    soundPackageName = getPrefs().getKeyboard().getSoundPackage();
     prepareRime(context);
     deployTheme();
-    init();
-    prepareCLipBoardRule();
-    soundPackageName = getPrefs().getKeyboard().getSoundPackage();
-    setSoundPackage(soundPackageName);
-  }
-
-  private void prepareCLipBoardRule() {
+    init(true);
+    setSoundFromColor();
     clipBoardCompare = getPrefs().getOther().getClipboardCompareRules().trim().split("\n");
     clipBoardOutput = getPrefs().getOther().getClipboardOutputRules().trim().split("\n");
+    draftOutput = getPrefs().getOther().getDraftOutputRules().trim().split("\n");
   }
 
   public String[] getClipBoardCompare() {
@@ -123,8 +120,16 @@ public class Config {
     return clipBoardOutput;
   }
 
-  public int getClipboardMaxSize() {
-    return Integer.parseInt(getPrefs().getOther().getClipboardManagerRules());
+  public String[] getDraftOutput() {
+    return draftOutput;
+  }
+
+  public int getClipboardLimit() {
+    return Integer.parseInt(getPrefs().getOther().getClipboardLimit());
+  }
+
+  public int getDraftLimit() {
+    return Integer.parseInt(getPrefs().getOther().getDraftLimit());
   }
 
   public void setClipBoardCompare(String str) {
@@ -139,6 +144,13 @@ public class Config {
     clipBoardOutput = s.split("\n");
 
     getPrefs().getOther().setClipboardOutputRules(s);
+  }
+
+  public void setDraftOutput(String str) {
+    String s = pattern.matcher(str).replaceAll("\n").trim();
+    draftOutput = s.split("\n");
+
+    getPrefs().getOther().setDraftOutputRules(s);
   }
 
   public String getTheme() {
@@ -272,9 +284,10 @@ public class Config {
   public void setTheme(String theme) {
     themeName = theme;
     getPrefs().getLooks().setSelectedTheme(themeName);
-    init();
+    init(false);
   }
 
+  // 设置音效包
   public void setSoundPackage(String name) {
     soundPackageName = name;
     String path =
@@ -286,42 +299,89 @@ public class Config {
             + ".sound.yaml";
     File file = new File(path);
     if (file.exists()) {
-      // copy soundpackage yaml file from sound folder to build folder
-      try {
-        InputStream in = new FileInputStream(file);
-        OutputStream out =
-            new FileOutputStream(
-                DataUtils.getUserDataDir()
-                    + File.separator
-                    + "build"
-                    + File.separator
-                    + name
-                    + ".sound.yaml");
-
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = in.read(buffer)) > 0) {
-          out.write(buffer, 0, len);
-        }
-
-        Timber.i("setSoundPackage = " + soundPackageName);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      applySoundPackage(file, name);
     }
     getPrefs().getKeyboard().setSoundPackage(soundPackageName);
-    Sound.get(soundPackageName);
   }
 
-  private void init() {
+  // 应用音效包
+  private void applySoundPackage(File file, String name) {
+    // copy soundpackage yaml file from sound folder to build folder
+    try {
+      InputStream in = new FileInputStream(file);
+      OutputStream out =
+          new FileOutputStream(
+              DataUtils.getUserDataDir()
+                  + File.separator
+                  + "build"
+                  + File.separator
+                  + name
+                  + ".sound.yaml");
+
+      byte[] buffer = new byte[1024];
+      int len;
+      while ((len = in.read(buffer)) > 0) {
+        out.write(buffer, 0, len);
+      }
+      in.close();
+      out.close();
+      Timber.i("applySoundPackage = " + name);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    Sound.get(name);
+    currentSound = name;
+  }
+
+  // 配色指定音效时自动切换音效效果（不会自动修改设置）。
+  public void setSoundFromColor() {
+    final Map<String, ?> m = (Map<String, ?>) presetColorSchemes.get(colorID);
+    assert m != null;
+    if (m.containsKey("sound")) {
+      String sound = (String) m.get("sound");
+      if (!Objects.equals(sound, currentSound)) {
+        String path =
+            DataUtils.getUserDataDir()
+                + File.separator
+                + "sound"
+                + File.separator
+                + sound
+                + ".sound.yaml";
+        File file = new File(path);
+        if (file.exists()) {
+          applySoundPackage(file, sound);
+          return;
+        }
+      }
+    }
+
+    if (!Objects.equals(currentSound, soundPackageName)) {
+      setSoundPackage(soundPackageName);
+    }
+  }
+
+  private void init(boolean skip_delopy) {
     Timber.d("init() themeName=%s schema_id=%s", themeName, schema_id);
     try {
-      Rime.deploy_config_file(themeName + ".yaml", "config_version");
+      String file_name = themeName + ".yaml";
+      if (skip_delopy) {
+        File f = new File(Rime.get_user_data_dir() + File.separator + "build", file_name);
+        if (f.exists()) {
+          Timber.d("init() deploy_config_file skip");
+        } else {
+          Rime.deploy_config_file(file_name, "config_version");
+        }
+      } else {
+        Rime.deploy_config_file(file_name, "config_version");
+      }
+      Timber.d("init() deploy_config_file done");
+
       Map<String, ?> m = YamlUtils.INSTANCE.loadMap(themeName, "");
       if (m == null) {
         themeName = defaultName;
         m = YamlUtils.INSTANCE.loadMap(themeName, "");
       }
+      Timber.d("init() load_map done");
       final Map<?, ?> mk = (Map<?, ?>) m.get("android_keys");
       mDefaultStyle = (Map<?, ?>) m.get("style");
       fallbackColors = (Map<?, ?>) m.get("fallback_colors");
@@ -335,9 +395,11 @@ public class Config {
       presetKeyboards = (Map<String, ?>) m.get("preset_keyboards");
       liquidKeyboard = (Map<String, ?>) m.get("liquid_keyboard");
       initLiquidKeyboard();
+      Timber.d("init() initLiquidKeyboard done");
       Rime.setShowSwitches(getPrefs().getKeyboard().getSwitchesEnabled());
       Rime.setShowSwitchArrow(getPrefs().getKeyboard().getSwitchArrowEnabled());
       reset();
+      Timber.d("init() reset done");
       initCurrentColors();
       Timber.d("init() finins");
     } catch (Exception e) {
@@ -347,6 +409,7 @@ public class Config {
   }
 
   public void reset() {
+    Timber.d("reset()");
     schema_id = Rime.getSchemaId();
     if (schema_id != null) mStyle = (Map<?, ?>) Rime.schema_get_value(schema_id, "style");
   }
@@ -450,6 +513,7 @@ public class Config {
   public void initLiquidKeyboard() {
     TabManager.clear();
     if (liquidKeyboard == null) return;
+    Timber.d("initLiquidKeyboard()");
     final List<?> names = (List<?>) liquidKeyboard.get("keyboards");
     if (names == null) return;
     for (Object s : names) {
@@ -566,30 +630,41 @@ public class Config {
     Integer color = null;
     if (m.containsKey(k)) {
       Object o = m.get(k);
-      assert o != null;
-      String s = o.toString();
-      color = parseColor(s);
-      if (color == null) color = get(context).getCurrentColor(s);
+      color = parseColor(o);
+      if (color == null) color = get(context).getCurrentColor(o.toString());
     }
     return color;
   }
+  /*
 
-  public Integer getColor(String key) {
-    Object o = getColorObject(key);
-    if (o == null) {
-      o =
-          ((Map<?, ?>) Objects.requireNonNull(presetColorSchemes.get(getColorSchemeName())))
-              .get(key);
+    public Integer getColor(String key) {
+      Object o = getColorObject(key);
+      if (o == null) {
+        o = ((Map<?, ?>) Objects.requireNonNull(presetColorSchemes.get(colorID))).get(key);
+      }
+      return parseColor(o);
     }
-    if (o == null) return null;
-    return parseColor(o.toString());
+  */
+
+  // API 2.0
+  public Integer getColor(String key) {
+    Object o;
+    if (curcentColors.containsKey(key)) {
+      o = curcentColors.get(key);
+      if (o instanceof Integer) return (Integer) o;
+    }
+    o = getColorObject(key);
+    if (o == null) {
+      o = ((Map<?, ?>) Objects.requireNonNull(presetColorSchemes.get(colorID))).get(key);
+    }
+    return parseColor(o);
   }
 
   // API 2.0
   public Drawable getDrawable(@NonNull Map<?, ?> m, String k) {
     if (m.containsKey(k)) {
       final Object o = m.get(k);
-      Timber.d("getColorDrawable()" + k + " " + o);
+      //      Timber.d("getColorDrawable()" + k + " " + o);
       return drawableObject(o);
     }
     return null;
@@ -629,6 +704,15 @@ public class Config {
     return Float.parseFloat(o.toString());
   }
 
+  public float getLiquidFloat(String key) {
+    if (liquidKeyboard != null) {
+      if (liquidKeyboard.containsKey(key)) {
+        return YamlUtils.INSTANCE.getFloat(liquidKeyboard, key, 0);
+      }
+    }
+    return getFloat(key);
+  }
+
   public float getFloat(String key, float defaultValue) {
     final Object o = getValue(key, defaultValue);
     if (o == null) return defaultValue;
@@ -650,10 +734,9 @@ public class Config {
   //  获取当前配色方案的key的value，或者从fallback获取值。
   @Nullable
   private Object getColorObject(String key) {
-    String scheme = getColorSchemeName();
-    final Map<?, ?> map = (Map<?, ?>) presetColorSchemes.get(scheme);
+    final Map<?, ?> map = (Map<?, ?>) presetColorSchemes.get(colorID);
     if (map == null) return null;
-    getPrefs().getLooks().setSelectedColor(scheme);
+    getPrefs().getLooks().setSelectedColor(colorID);
     Object o = map.get(key);
     String fallbackKey = key;
     while (o == null && fallbackColors.containsKey(fallbackKey)) {
@@ -677,6 +760,20 @@ public class Config {
     return scheme;
   }
 
+  // API 2.0
+  private static Integer parseColor(Object object) {
+    if (object == null) return null;
+    if (object instanceof Integer) {
+      return (Integer) object;
+    }
+    if (object instanceof Long) {
+      Long o = (Long) object;
+      // 这个方法可以把超出Integer.MAX_VALUE的值处理为负数int
+      return o.intValue();
+    }
+    return parseColor(object.toString());
+  }
+
   private static Integer parseColor(String s) {
     Integer color = null;
     if (s.contains(".")) return color; // picture name
@@ -697,8 +794,7 @@ public class Config {
 
   public Integer getCurrentColor(String key) {
     Object o = getColorObject(key);
-    if (o == null) return null;
-    return parseColor(o.toString());
+    return parseColor(o);
   }
 
   public String[] getColorKeys() {
@@ -734,11 +830,11 @@ public class Config {
   private Drawable drawableObject(Object o) {
     if (o == null) return null;
     String name = o.toString();
-    Integer color = parseColor(name);
+    Integer color = parseColor(o);
     if (color == null) {
       if (curcentColors.containsKey(name)) {
         o = curcentColors.get(name);
-        if (o instanceof Integer) color = (Integer) o;
+        color = parseColor(o);
       }
     }
     if (color != null) {
@@ -818,7 +914,7 @@ public class Config {
   public Integer getLiquidColor(String key) {
     if (liquidKeyboard != null) {
       if (liquidKeyboard.containsKey(key)) {
-        Integer value = parseColor((String) Objects.requireNonNull(liquidKeyboard.get(key)));
+        Integer value = parseColor(liquidKeyboard.get(key));
         if (value != null) return value;
       }
     }
@@ -922,16 +1018,16 @@ public class Config {
   // 初始化当前配色 Config 2.0
   public void initCurrentColors() {
     curcentColors.clear();
-    String scheme = getColorSchemeName();
+    colorID = getColorSchemeName();
     backgroundFolder = getString("background_folder");
     Timber.d(
-        "initCurrentColors() scheme=%s themeName=%s schema_id=%s", scheme, themeName, schema_id);
-    final Map<?, ?> map = (Map<?, ?>) presetColorSchemes.get(scheme);
+        "initCurrentColors() colorID=%s themeName=%s schema_id=%s", colorID, themeName, schema_id);
+    final Map<?, ?> map = (Map<?, ?>) presetColorSchemes.get(colorID);
     if (map == null) {
-      Timber.i("no scheme %s", scheme);
+      Timber.i("no colorID %s", colorID);
       return;
     }
-    getPrefs().getLooks().setSelectedColor(scheme);
+    getPrefs().getLooks().setSelectedColor(colorID);
 
     for (Map.Entry<?, ?> entry : map.entrySet()) {
       Object value = getColorRealValue(entry.getValue());
@@ -943,15 +1039,21 @@ public class Config {
       if (!curcentColors.containsKey(key)) {
         Object o = map.get(key);
         String fallbackKey = key;
+        List<String> fallbackKeys = new ArrayList<>();
         while (o == null && fallbackColors.containsKey(fallbackKey)) {
           fallbackKey = (String) fallbackColors.get(fallbackKey);
           o = map.get(fallbackKey);
+          fallbackKeys.add(fallbackKey);
+          // 避免死循环
+          if (fallbackKeys.size() > 40) break;
         }
         if (o != null) {
           Object value = getColorRealValue(o);
           if (value != null) {
             curcentColors.put(key, value);
-            curcentColors.put(fallbackKey, value);
+            for (String k : fallbackKeys) {
+              curcentColors.put(k, value);
+            }
           }
         }
       }
@@ -964,6 +1066,11 @@ public class Config {
     if (object == null) return null;
     if (object instanceof Integer) {
       return object;
+    }
+    if (object instanceof Long) {
+      Long o = (Long) object;
+      //      Timber.w("getColorRealValue() Long, %d ; 0X%s", o, data2hex(object));
+      return o.intValue();
     }
     String s = object.toString();
     if (!s.matches(".*[.\\\\/].*")) {
@@ -993,5 +1100,22 @@ public class Config {
 
     if (f.exists()) return f.getPath();
     return null;
+  }
+
+  //  把int和long打印为hex，对color做debug使用
+  public static String data2hex(Object data) {
+    Long a;
+    if (data instanceof Integer) a = (long) (int) data;
+    else a = (Long) data;
+    int len = (int) Math.ceil(Math.log(a) / Math.log(16));
+    char[] result = new char[len];
+    String s = "0123456789ABCDEF";
+
+    for (int i = len - 1; i >= 0; i--) {
+      int b = (int) (15 & a);
+      result[i] = s.charAt(b);
+      a = a >> 4;
+    }
+    return new String(result);
   }
 }

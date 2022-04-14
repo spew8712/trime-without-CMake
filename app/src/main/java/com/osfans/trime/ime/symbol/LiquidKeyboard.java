@@ -11,8 +11,9 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.osfans.trime.R;
 import com.osfans.trime.clipboard.ClipboardAdapter;
-import com.osfans.trime.clipboard.ClipboardBean;
 import com.osfans.trime.clipboard.ClipboardDao;
+import com.osfans.trime.draft.DraftAdapter;
+import com.osfans.trime.draft.DraftDao;
 import com.osfans.trime.ime.core.Trime;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
 import com.osfans.trime.setup.Config;
@@ -29,11 +30,12 @@ public class LiquidKeyboard {
   private RecyclerView keyboardView;
   private LinearLayout parentView;
   private ClipboardAdapter mClipboardAdapter;
+  private DraftAdapter mDraftAdapter;
   private SimpleAdapter simpleAdapter;
-  private List<SimpleKeyBean> clipboardBeanList;
+  private List<SimpleKeyBean> clipboardBeanList, draftBeanList;
   private final List<SimpleKeyBean> simpleKeyBeans;
   private List<SimpleKeyBean> historyBeans;
-  private int margin_x, margin_top, single_width, parent_width, clipboard_max_size;
+  private int margin_x, margin_top, single_width, parent_width, clipboard_max_size, draft_max_size;
 
   private int keyHeight;
   private boolean isLand;
@@ -48,12 +50,16 @@ public class LiquidKeyboard {
     isLand = land;
   }
 
-  public LiquidKeyboard(Context context, int clipboard_max_size) {
+  public LiquidKeyboard(Context context, int clipboard_max_size, int draft_max_size) {
     this.context = context;
 
     this.clipboard_max_size = clipboard_max_size;
+    this.draft_max_size = draft_max_size;
     clipboardBeanList = ClipboardDao.get().getAllSimpleBean(clipboard_max_size);
     Timber.d("clipboardBeanList.size=%s", clipboardBeanList.size());
+
+    draftBeanList = DraftDao.get().getAllSimpleBean(draft_max_size);
+    Timber.d("draftBeanList.size=%s", draftBeanList.size());
 
     simpleKeyBeans = new ArrayList<>();
     historySavePath =
@@ -61,10 +67,17 @@ public class LiquidKeyboard {
   }
 
   public void addClipboardData(String text) {
-    ClipboardBean bean = new ClipboardBean(text);
+    DbBean bean = new DbBean(text);
     ClipboardDao.get().add(bean);
     clipboardBeanList.add(0, bean);
     if (mClipboardAdapter != null) mClipboardAdapter.notifyItemInserted(0);
+  }
+
+  public void addDraftData(String text) {
+    DbBean bean = new DbBean(text);
+    DraftDao.get().add(bean);
+    draftBeanList.add(0, bean);
+    if (mDraftAdapter != null) mDraftAdapter.notifyItemInserted(0);
   }
 
   public void select(int i) {
@@ -75,6 +88,10 @@ public class LiquidKeyboard {
       case CLIPBOARD:
         TabManager.get().select(i);
         initClipboardData();
+        break;
+      case DRAFT:
+        TabManager.get().select(i);
+        initDraftData();
         break;
       case HISTORY:
         TabManager.get().select(i);
@@ -112,10 +129,28 @@ public class LiquidKeyboard {
         config.getDrawable("liquid_keyboard_background", null, null, null, null);
     if (keyboardBackground != null) parentView.setBackground(keyboardBackground);
 
-    keyHeight = config.getLiquidPixel("key_height_land");
-    if (!isLand || keyHeight <= 0) keyHeight = config.getLiquidPixel("key_height");
-    margin_top = config.getLiquidPixel("vertical_gap");
+    int keyboardHeight = config.getPixel("keyboard_height");
+    if (isLand) {
+      int keyBoardHeightLand = config.getPixel("keyboard_height_land");
+      if (keyBoardHeightLand > 0) keyboardHeight = keyBoardHeightLand;
+    }
 
+    int row = (int) config.getLiquidFloat("row");
+    if (row > 0) {
+      if (isLand) {
+        float r = config.getLiquidFloat("row_land");
+        if (r > 0) row = (int) r;
+      }
+      float rawHeight = config.getLiquidFloat("key_height");
+      float rawVGap = config.getLiquidFloat("vertical_gap");
+      float scale = (float) keyboardHeight / ((rawHeight + rawVGap) * row);
+      margin_top = (int) Math.ceil(rawVGap * scale);
+      keyHeight = keyboardHeight / row - margin_top;
+    } else {
+      keyHeight = config.getLiquidPixel("key_height_land");
+      if (!isLand || keyHeight <= 0) keyHeight = config.getLiquidPixel("key_height");
+      margin_top = config.getLiquidPixel("vertical_gap");
+    }
     Timber.i("config keyHeight=" + keyHeight + " marginTop=" + margin_top);
 
     if (isLand) single_width = config.getLiquidPixel("single_width_land");
@@ -123,7 +158,7 @@ public class LiquidKeyboard {
     if (single_width <= 0)
       single_width = context.getResources().getDimensionPixelSize(R.dimen.simple_key_single_width);
 
-    clipboard_max_size = config.getClipboardMaxSize();
+    clipboard_max_size = config.getClipboardLimit();
   }
 
   // 每次点击tab都需要刷新的参数
@@ -146,6 +181,7 @@ public class LiquidKeyboard {
   public void initFixData(int i) {
     keyboardView.removeAllViews();
     mClipboardAdapter = null;
+    mDraftAdapter = null;
     // 设置布局管理器
     FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(context);
     // flexDirection 属性决定主轴的方向（即项目的排列方向）。类似 LinearLayout 的 vertical 和 horizontal。
@@ -210,7 +246,8 @@ public class LiquidKeyboard {
     //            flexboxLayoutManager.setAlignItems(AlignItems.BASELINE);
     keyboardView.setLayoutManager(flexboxLayoutManager);
 
-    clipboard_max_size = Config.get(context).getClipboardMaxSize();
+    clipboard_max_size = Config.get(context).getClipboardLimit();
+
     clipboardBeanList = ClipboardDao.get().getAllSimpleBean(clipboard_max_size);
     mClipboardAdapter = new ClipboardAdapter(context, clipboardBeanList);
 
@@ -225,6 +262,41 @@ public class LiquidKeyboard {
           InputConnection ic = Trime.getService().getCurrentInputConnection();
           if (ic != null) {
             ic.commitText(clipboardBeanList.get(position).getText(), 1);
+          }
+        });
+  }
+
+  public void initDraftData() {
+    keyboardView.removeAllViews();
+    simpleAdapter = null;
+
+    // 设置布局管理器
+    FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(context);
+    // flexDirection 属性决定主轴的方向（即项目的排列方向）。类似 LinearLayout 的 vertical 和 horizontal。
+    flexboxLayoutManager.setFlexDirection(FlexDirection.ROW); // 主轴为水平方向，起点在左端。
+    // flexWrap 默认情况下 Flex 跟 LinearLayout 一样，都是不带换行排列的，但是flexWrap属性可以支持换行排列。
+    flexboxLayoutManager.setFlexWrap(FlexWrap.WRAP); // 按正常方向换行
+    // justifyContent 属性定义了项目在主轴上的对齐方式。
+    flexboxLayoutManager.setJustifyContent(JustifyContent.FLEX_START); // 交叉轴的起点对齐。
+    //            flexboxLayoutManager.setAlignItems(AlignItems.BASELINE);
+    keyboardView.setLayoutManager(flexboxLayoutManager);
+
+    draft_max_size = Config.get(context).getDraftLimit();
+
+    draftBeanList = DraftDao.get().getAllSimpleBean(draft_max_size);
+    mDraftAdapter = new DraftAdapter(context, draftBeanList);
+
+    mDraftAdapter.configStyle(margin_x, margin_top);
+
+    keyboardView.setAdapter(mDraftAdapter);
+    // 调用ListView的setSelected(!ListView.isSelected())方法，这样就能及时刷新布局
+    keyboardView.setSelected(true);
+
+    mDraftAdapter.setOnItemClickListener(
+        (view, position) -> {
+          InputConnection ic = Trime.getService().getCurrentInputConnection();
+          if (ic != null) {
+            ic.commitText(draftBeanList.get(position).getText(), 1);
           }
         });
   }
