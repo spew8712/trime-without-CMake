@@ -36,6 +36,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
+      - name: Soptless code style check
+        run: ./gradlew spotlessCheck
+
       - name: Spotless code style check
         run: make spotless
 
