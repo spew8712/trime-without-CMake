@@ -128,7 +128,7 @@ public class Trime extends LifecycleInputMethodService {
   public CopyOnWriteArrayList<EventListener> eventListeners = new CopyOnWriteArrayList<>();
   public InputMethodManager imeManager = null;
   public InputFeedbackManager inputFeedbackManager = null; // 效果管理器
-  private IntentReceiver mIntentReceiver = null;
+  //  private IntentReceiver mIntentReceiver = null;
 
   private boolean isWindowShown = false; // 键盘窗口是否已显示
 
@@ -633,8 +633,8 @@ public class Trime extends LifecycleInputMethodService {
 
   @Override
   public void onDestroy() {
-    if (mIntentReceiver != null) mIntentReceiver.unregisterReceiver(this);
-    mIntentReceiver = null;
+    //    if (mIntentReceiver != null) mIntentReceiver.unregisterReceiver(this);
+    //    mIntentReceiver = null;
     if (inputFeedbackManager != null) inputFeedbackManager.destroy();
     inputFeedbackManager = null;
     inputRootBinding = null;
