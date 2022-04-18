@@ -864,14 +864,14 @@ public class Trime extends LifecycleInputMethodService {
 
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
-    Timber.i("\t<TrimeInput>\tonKeyDown()\tkeycode=%d, event=%s", keyCode, event);
+    Timber.i("\t<TrimeInput>\tonKeyDown()\tkeycode=%d, event=%s", keyCode, event.toString());
     if (composeEvent(event) && onKeyEvent(event)) return true;
     return super.onKeyDown(keyCode, event);
   }
 
   @Override
   public boolean onKeyUp(int keyCode, KeyEvent event) {
-    Timber.i("\t<TrimeInput>\tonKeyUp()\tkeycode=%d, event=%s", keyCode, event);
+    Timber.i("\t<TrimeInput>\tonKeyUp()\tkeycode=%d, event=%s", keyCode, event.toString());
     if (composeEvent(event) && textInputManager.getNeedSendUpRimeKey()) {
       textInputManager.onRelease(keyCode);
       return true;
@@ -887,7 +887,7 @@ public class Trime extends LifecycleInputMethodService {
    */
   // KeyEvent 处理实体键盘事件
   private boolean onKeyEvent(@NonNull KeyEvent event) {
-    Timber.i("\t<TrimeInput>\tonKeyEvent()\tRealKeyboard event=%s", event);
+    Timber.i("\t<TrimeInput>\tonKeyEvent()\tRealKeyboard event=%s", event.toString());
     int keyCode = event.getKeyCode();
     textInputManager.setNeedSendUpRimeKey(Rime.isComposing());
     if (!isComposing()) {
@@ -965,7 +965,6 @@ public class Trime extends LifecycleInputMethodService {
           "\t<TrimeInput>\thandleKey()\trimeProcess, keycode=%d, metaState=%d",
           keyEventCode, metaState);
     } else if (performEnter(keyEventCode) || handleBack(keyEventCode)) {
-      Timber.i("Trime onKey");
       // 处理返回键（隐藏软键盘）和回车键（换行）
       // todo 确认是否有必要单独处理回车键？是否需要把back和escape全部占用？
       Timber.d("\t<TrimeInput>\thandleKey()\tEnterOrHide, keycode=%d", keyEventCode);
