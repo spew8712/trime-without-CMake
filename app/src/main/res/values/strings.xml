@@ -185,4 +185,5 @@
     <string name="setup__skip_hint_no">No, please leave me here</string>
     <string name="setup__setting_up">Setting up…</string>
     <string name="busy_progress">Busy...</string>
+    <string name="keyboard__auto_dark_title">Auto change dark/light color scheme</string>
 </resources>
