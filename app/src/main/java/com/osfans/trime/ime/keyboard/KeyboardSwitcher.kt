@@ -1,8 +1,8 @@
 package com.osfans.trime.ime.keyboard
 
 import android.content.res.Configuration
+import com.osfans.trime.data.Config
 import com.osfans.trime.ime.core.Trime
-import com.osfans.trime.setup.Config
 import timber.log.Timber
 
 /** Manages [Keyboard]s and their status. **/
@@ -87,6 +87,10 @@ class KeyboardSwitcher {
             lastLockId = lastId
         }
         currentId = if (id.isValidId()) id else 0
+    }
+
+    public fun getCurrentKeyboardName(): String {
+        return keyboardNames.get(currentId)
     }
 
     private fun Int.isValidId() = this in keyboards.indices

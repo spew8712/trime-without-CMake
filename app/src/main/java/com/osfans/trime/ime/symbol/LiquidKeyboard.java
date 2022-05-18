@@ -10,14 +10,13 @@ import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.osfans.trime.R;
-import com.osfans.trime.clipboard.ClipboardAdapter;
-import com.osfans.trime.clipboard.ClipboardDao;
-import com.osfans.trime.draft.DraftAdapter;
-import com.osfans.trime.draft.DraftDao;
+import com.osfans.trime.data.Config;
+import com.osfans.trime.data.db.DbBean;
+import com.osfans.trime.data.db.clipboard.ClipboardDao;
+import com.osfans.trime.data.db.draft.DraftDao;
 import com.osfans.trime.ime.core.Trime;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
-import com.osfans.trime.setup.Config;
-import com.osfans.trime.util.YamlUtils;
+import com.osfans.trime.util.ConfigGetter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +110,7 @@ public class LiquidKeyboard {
     // liquid_keyboard/margin_x定义了每个键左右两边的间隙，也就是说相邻两个键间隙是x2，而horizontal_gap定义的是spacer，使用时需要/2
     if (liquid_config != null) {
       if (liquid_config.containsKey("margin_x")) {
-        Object o = YamlUtils.INSTANCE.getPixel(liquid_config, "margin_x", 0);
+        Object o = ConfigGetter.getPixel(liquid_config, "margin_x", 0);
         margin_x = (int) o;
       }
     }

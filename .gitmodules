@@ -13,9 +13,6 @@
 [submodule "app/src/main/jni/miniglog"]
 	path = app/src/main/jni/miniglog
 	url = https://github.com/osfans/miniglog.git
-[submodule "app/src/main/jni/librime"]
-	path = app/src/main/jni/librime
-	url = https://github.com/rime/librime.git
 [submodule "app/src/main/jni/libiconv"]
 	path = app/src/main/jni/libiconv
 	url = https://github.com/osfans/libiconv-gnu.git

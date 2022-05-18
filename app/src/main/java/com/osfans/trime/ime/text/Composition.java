@@ -42,12 +42,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
-import com.osfans.trime.Rime;
-import com.osfans.trime.common.ViewUtils;
+import com.osfans.trime.core.Rime;
+import com.osfans.trime.data.Config;
 import com.osfans.trime.ime.core.Trime;
 import com.osfans.trime.ime.keyboard.Event;
-import com.osfans.trime.setup.Config;
-import com.osfans.trime.util.YamlUtils;
+import com.osfans.trime.util.ConfigGetter;
 import java.util.List;
 import java.util.Map;
 import timber.log.Timber;
@@ -192,9 +191,7 @@ public class Composition extends AppCompatTextView {
         if (action == MotionEvent.ACTION_DOWN) {
           if (first_move || movable.contentEquals("once")) {
             first_move = false;
-            int[] location = ViewUtils.getLocationOnScreen(this);
-            mCurrentX = location[0];
-            mCurrentY = location[1];
+            this.getLocationOnScreen(new int[] {mCurrentX, mCurrentY});
           }
           mDx = mCurrentX - event.getRawX();
           mDy = mCurrentY - event.getRawY();
@@ -315,7 +312,7 @@ public class Composition extends AppCompatTextView {
     ss.setSpan(new CompositionSpan(), start, end, span);
     ss.setSpan(new AbsoluteSizeSpan(text_size), start, end, span);
     if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP && m.containsKey("letter_spacing")) {
-      final float size = YamlUtils.INSTANCE.getFloat(m, "letter_spacing", 0);
+      final float size = ConfigGetter.getFloat(m, "letter_spacing", 0);
       if (size != 0f) ss.setSpan(new LetterSpacingSpan(size), start, end, span);
     }
     start = composition_pos[0] + r.getStart();

@@ -15,9 +15,10 @@ import android.util.SparseArray
 import android.view.KeyEvent
 import com.blankj.utilcode.util.ActivityUtils
 import com.blankj.utilcode.util.IntentUtils
-import com.osfans.trime.Rime
-import com.osfans.trime.ime.core.Preferences
+import com.osfans.trime.core.Rime
+import com.osfans.trime.data.AppPrefs
 import com.osfans.trime.ime.core.Trime
+import timber.log.Timber
 import java.text.FieldPosition
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -33,6 +34,7 @@ object ShortcutUtils {
             "clipboard" -> return pasteFromClipboard(context)
             "date" -> return getDate(option)
             "run" -> startIntent(option)
+            "share_text" -> Trime.getService().shareText()
             "liquid_keyboard" -> Trime.getService().selectLiquidKeyboard(option)
             else -> startIntent(command, option)
         }
@@ -111,7 +113,7 @@ object ShortcutUtils {
         }
     }
 
-    private fun pasteFromClipboard(context: Context): CharSequence? {
+    fun pasteFromClipboard(context: Context): CharSequence? {
         val systemClipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val systemPrimaryClip = systemClipboardManager.getPrimaryClip()
         val clipItem = systemPrimaryClip?.getItemAt(0)
@@ -119,14 +121,15 @@ object ShortcutUtils {
     }
 
     fun syncInBackground(context: Context) {
-        val prefs = Preferences.defaultInstance()
-        prefs.conf.lastSyncTime = Date().time
+        val prefs = AppPrefs.defaultInstance()
+        prefs.conf.lastBackgroundSync = Date().time
         prefs.conf.lastSyncStatus = Rime.syncUserData(context)
     }
 
     fun openCategory(keyCode: Int): Boolean {
         val category = applicationLaunchKeyCategories[keyCode]
         return if (category != null) {
+            Timber.d("\t<TrimeInput>\topenCategory()\tkeycode=%d, app=%s", keyCode, category)
             val intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, category)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY
             ActivityUtils.startActivity(intent)

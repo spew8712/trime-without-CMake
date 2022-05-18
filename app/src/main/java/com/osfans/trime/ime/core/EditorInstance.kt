@@ -8,14 +8,15 @@ import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
-import com.osfans.trime.Rime
+import com.osfans.trime.core.Rime
+import com.osfans.trime.data.AppPrefs
 import com.osfans.trime.ime.enums.InlineModeType
 import com.osfans.trime.ime.text.TextInputManager
 import timber.log.Timber
 
 class EditorInstance(private val ims: InputMethodService) {
 
-    val prefs get() = Preferences.defaultInstance()
+    val prefs get() = AppPrefs.defaultInstance()
     val inputConnection: InputConnection?
         get() = ims.currentInputConnection
     val editorInfo: EditorInfo?
@@ -41,6 +42,13 @@ class EditorInstance(private val ims: InputMethodService) {
         // Fix pressing Delete key will clear the input box issue on BlackBerry
         ic.clearMetaKeyStates(KeyEvent.getModifierMetaStateMask())
         cacheDraft()
+        return true
+    }
+
+    // 直接commit不做任何处理
+    fun commitText(text: CharSequence): Boolean {
+        val ic = inputConnection ?: return false
+        ic.commitText(text, 1)
         return true
     }
 
@@ -131,7 +139,9 @@ class EditorInstance(private val ims: InputMethodService) {
     fun meta(
         ctrl: Boolean = false,
         alt: Boolean = false,
-        shift: Boolean = false
+        shift: Boolean = false,
+        meta: Boolean = false,
+        sym: Boolean = false,
     ): Int {
         var metaState = 0
         if (ctrl) {
@@ -143,6 +153,13 @@ class EditorInstance(private val ims: InputMethodService) {
         if (shift) {
             metaState = metaState or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
         }
+        if (meta) {
+            metaState = metaState or KeyEvent.META_META_ON or KeyEvent.META_META_LEFT_ON
+        }
+        if (sym) {
+            metaState = metaState or KeyEvent.META_SYM_ON
+        }
+
         return metaState
     }
 
@@ -214,16 +231,14 @@ class EditorInstance(private val ims: InputMethodService) {
         if (metaState and KeyEvent.META_SHIFT_ON != 0) {
             sendDownKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT, 0)
         }
-        /*
-        var sendKeyDownUp = true
-        if (metaState == 0 && mAsciiMode) {
-            // 使用ASCII键盘输入英文字符时，直接上屏，跳过复杂的调用，从表面上解决issue #301 知乎输入英语后输入法失去焦点的问题
-            val keyText = toCharString(keyEventCode)
-            if (keyText.isNotEmpty()) {
-                ic.commitText(keyText, 1)
-                sendKeyDownUp = false
-            }
-        } */
+        if (metaState and KeyEvent.META_META_ON != 0) {
+            sendDownKeyEvent(eventTime, KeyEvent.KEYCODE_META_LEFT, 0)
+        }
+
+        if (metaState and KeyEvent.META_SYM_ON != 0) {
+            sendDownKeyEvent(eventTime, KeyEvent.KEYCODE_SYM, 0)
+        }
+
         for (n in 0 until count) {
             sendDownKeyEvent(eventTime, keyEventCode, metaState)
             sendUpKeyEvent(eventTime, keyEventCode, metaState)
@@ -237,6 +252,15 @@ class EditorInstance(private val ims: InputMethodService) {
         if (metaState and KeyEvent.META_CTRL_ON != 0) {
             sendUpKeyEvent(eventTime, KeyEvent.KEYCODE_CTRL_LEFT, 0)
         }
+
+        if (metaState and KeyEvent.META_META_ON != 0) {
+            sendUpKeyEvent(eventTime, KeyEvent.KEYCODE_META_LEFT, 0)
+        }
+
+        if (metaState and KeyEvent.META_SYM_ON != 0) {
+            sendUpKeyEvent(eventTime, KeyEvent.KEYCODE_SYM, 0)
+        }
+
         ic.endBatchEdit()
         return true
     }

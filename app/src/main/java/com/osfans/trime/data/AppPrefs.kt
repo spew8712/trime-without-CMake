@@ -1,20 +1,20 @@
-package com.osfans.trime.ime.core
+package com.osfans.trime.data
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.core.os.UserManagerCompat
 import androidx.preference.PreferenceManager
-import com.blankj.utilcode.util.PathUtils
 import com.osfans.trime.R
 import com.osfans.trime.ime.enums.InlineModeType
 import com.osfans.trime.ime.landscapeinput.LandscapeInputUIMode
+import com.osfans.trime.util.appContext
 import java.lang.ref.WeakReference
 
 /**
  * Helper class for an organized access to the shared preferences.
  */
-class Preferences(
+class AppPrefs(
     context: Context
 ) {
     var shared: SharedPreferences = if (!UserManagerCompat.isUserUnlocked(context) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
@@ -102,16 +102,17 @@ class Preferences(
     }
 
     companion object {
-        private var defaultInstance: Preferences? = null
+        private var defaultInstance: AppPrefs? = null
 
         @Synchronized
-        fun initDefault(context: Context): Preferences {
-            val instance = Preferences(context.applicationContext)
+        fun initDefault(context: Context): AppPrefs {
+            val instance = AppPrefs(context.applicationContext)
             defaultInstance = instance
             return instance
         }
 
-        fun defaultInstance(): Preferences {
+        @JvmStatic
+        fun defaultInstance(): AppPrefs {
             return defaultInstance
                 ?: throw UninitializedPropertyAccessException(
                     """
@@ -148,7 +149,7 @@ class Preferences(
         cacheString.clear()
     }
 
-    class General(private val prefs: Preferences) {
+    class General(private val prefs: AppPrefs) {
         companion object {
             const val LAST_VERSION_NAME = "general__last_version_name"
         }
@@ -160,7 +161,7 @@ class Preferences(
     /**
      *  Wrapper class of keyboard preferences.
      */
-    class Keyboard(private val prefs: Preferences) {
+    class Keyboard(private val prefs: AppPrefs) {
         companion object {
             const val INLINE_PREEDIT_MODE = "keyboard__inline_preedit"
             const val SOFT_CURSOR_ENABLED = "keyboard__soft_cursor"
@@ -169,6 +170,12 @@ class Preferences(
             const val SWITCHES_ENABLED = "keyboard__show_switches"
             const val SWITCH_ARROW_ENABLED = "keyboard__show_switch_arrow"
             const val FULLSCREEN_MODE = "keyboard__fullscreen_mode"
+
+            const val HOOK_CANDIDATE = "keyboard__hook_candidate"
+            const val HOOK_CTRL_A = "keyboard__hook_ctrl_a"
+            const val HOOK_CTRL_CV = "keyboard__hook_ctrl_cv"
+            const val HOOK_CTRL_LR = "keyboard__hook_ctrl_lr"
+            const val HOOK_CTRL_ZY = "keyboard__hook_ctrl_zy"
 
             const val SOUND_ENABLED = "keyboard__key_sound"
             const val SOUND_VOLUME = "keyboard__key_sound_volume"
@@ -206,6 +213,23 @@ class Preferences(
         var switchArrowEnabled: Boolean = false
             get() = prefs.getPref(SWITCH_ARROW_ENABLED, true)
             private set
+
+        var hockCandidate: Boolean = false
+            get() = prefs.getPref(HOOK_CANDIDATE, false)
+            private set
+        var hockCtrlA: Boolean = false
+            get() = prefs.getPref(HOOK_CTRL_A, false)
+            private set
+        var hockCtrlCV: Boolean = false
+            get() = prefs.getPref(HOOK_CTRL_CV, false)
+            private set
+        var hockCtrlLR: Boolean = false
+            get() = prefs.getPref(HOOK_CTRL_LR, false)
+            private set
+        var hockCtrlZY: Boolean = false
+            get() = prefs.getPref(HOOK_CTRL_ZY, false)
+            private set
+
         var soundEnabled: Boolean = false
             get() = prefs.getPref(SOUND_ENABLED, false)
             private set
@@ -244,10 +268,11 @@ class Preferences(
     /**
      *  Wrapper class of keyboard appearance preferences.
      */
-    class Looks(private val prefs: Preferences) {
+    class Looks(private val prefs: AppPrefs) {
         companion object {
             const val SELECTED_THEME = "looks__selected_theme"
             const val SELECTED_COLOR = "looks__selected_color_scheme"
+            const val AUTO_DARK = "looks__auto_dark"
         }
         var selectedTheme: String
             get() = prefs.getPref(SELECTED_THEME, "trime")
@@ -255,25 +280,28 @@ class Preferences(
         var selectedColor: String
             get() = prefs.getPref(SELECTED_COLOR, "default")
             set(v) = prefs.setPref(SELECTED_COLOR, v)
+        var autoDark: Boolean = false
+            get() = prefs.getPref(AUTO_DARK, false)
+            private set
     }
 
     /**
      *  Wrapper class of configuration settings.
      */
-    class Configuration(private val prefs: Preferences) {
+    class Configuration(private val prefs: AppPrefs) {
         companion object {
             const val SHARED_DATA_DIR = "conf__shared_data_dir"
             const val USER_DATA_DIR = "conf__user_data_dir"
             const val SYNC_BACKGROUND_ENABLED = "conf__sync_background"
             const val LAST_SYNC_STATUS = "conf__last_sync_status"
-            const val LAST_SYNC_TIME = "conf__last_sync_time"
-            val SDCARD_PATH_PREFIX: String = PathUtils.getExternalStoragePath()
+            const val LAST_BACKGROUND_SYNC = "conf__last_background_sync"
+            val EXTERNAL_PATH_PREFIX: String = appContext.getExternalFilesDir(null)!!.absolutePath
         }
         var sharedDataDir: String
-            get() = prefs.getPref(SHARED_DATA_DIR, "$SDCARD_PATH_PREFIX/rime")
+            get() = prefs.getPref(SHARED_DATA_DIR, "$EXTERNAL_PATH_PREFIX/rime")
             set(v) = prefs.setPref(SHARED_DATA_DIR, v)
         var userDataDir: String
-            get() = prefs.getPref(USER_DATA_DIR, "$SDCARD_PATH_PREFIX/rime")
+            get() = prefs.getPref(USER_DATA_DIR, "$EXTERNAL_PATH_PREFIX/rime")
             set(v) = prefs.setPref(USER_DATA_DIR, v)
         var syncBackgroundEnabled: Boolean
             get() = prefs.getPref(SYNC_BACKGROUND_ENABLED, false)
@@ -281,22 +309,20 @@ class Preferences(
         var lastSyncStatus: Boolean
             get() = prefs.getPref(LAST_SYNC_STATUS, false)
             set(v) = prefs.setPref(LAST_SYNC_STATUS, v)
-        var lastSyncTime: Long
-            get() = prefs.getPref(LAST_SYNC_TIME, 0).toLong()
-            set(v) = prefs.setPref(LAST_SYNC_TIME, v)
+        var lastBackgroundSync: Long
+            get() = prefs.getPref(LAST_BACKGROUND_SYNC, 0L)
+            set(v) = prefs.setPref(LAST_BACKGROUND_SYNC, v)
     }
 
     /**
      *  Wrapper class of configuration settings.
      */
-    class Other(private val prefs: Preferences) {
+    class Other(private val prefs: AppPrefs) {
         companion object {
             const val UI_MODE = "other__ui_mode"
             const val SHOW_APP_ICON = "other__show_app_icon"
             const val SHOW_STATUS_BAR_ICON = "other__show_status_bar_icon"
             const val DESTROY_ON_QUIT = "other__destroy_on_quit"
-            const val SELECTION_SENSE = "other__selection_sense"
-            const val CLICK_CANDIDATE_AND_COMMIT = "other__click_candidate_and_commit"
             const val CLIPBOARD_COMPARE_RULES = "other__clipboard_compare"
             const val CLIPBOARD_OUTPUT_RULES = "other__clipboard_output"
             const val DRAFT_OUTPUT_RULES = "other__draft_output"
@@ -309,12 +335,6 @@ class Preferences(
         var showAppIcon: Boolean
             get() = prefs.getPref(SHOW_APP_ICON, true)
             set(v) = prefs.setPref(SHOW_APP_ICON, v)
-        var selectionSense: Boolean
-            get() = prefs.getPref(SELECTION_SENSE, true)
-            set(v) = prefs.setPref(SELECTION_SENSE, v)
-        var clickCandidateAndCommit: Boolean
-            get() = prefs.getPref(CLICK_CANDIDATE_AND_COMMIT, true)
-            set(v) = prefs.setPref(CLICK_CANDIDATE_AND_COMMIT, v)
         var showStatusBarIcon: Boolean = false
             get() = prefs.getPref(SHOW_STATUS_BAR_ICON, false)
             private set

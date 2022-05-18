@@ -22,12 +22,11 @@ import androidx.preference.PreferenceFragmentCompat
 import com.blankj.utilcode.util.BarUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.osfans.trime.R
+import com.osfans.trime.data.AppPrefs
 import com.osfans.trime.databinding.PrefActivityBinding
-import com.osfans.trime.ime.core.Preferences
 import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.settings.components.SchemaPickerDialog
 import com.osfans.trime.setup.SetupActivity
-import com.osfans.trime.util.AndroidVersion
 import com.osfans.trime.util.RimeUtils
 import com.osfans.trime.util.createLoadingDialog
 import kotlinx.coroutines.CoroutineScope
@@ -44,7 +43,7 @@ class PrefMainActivity :
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback,
     ActivityCompat.OnRequestPermissionsResultCallback,
     CoroutineScope by MainScope() {
-    private val prefs get() = Preferences.defaultInstance()
+    private val prefs get() = AppPrefs.defaultInstance()
 
     lateinit var binding: PrefActivityBinding
     lateinit var imeManager: InputMethodManager
@@ -200,7 +199,7 @@ class PrefMainActivity :
     }
 
     private fun requestExternalStoragePermission() {
-        if (AndroidVersion.ATLEAST_M) {
+        if (VERSION.SDK_INT >= VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
@@ -240,7 +239,7 @@ class PrefMainActivity :
     }
 
     private fun requestAlertWindowPermission() {
-        if (AndroidVersion.ATLEAST_P) { // 僅Android P需要此權限在最上層顯示懸浮窗、對話框
+        if (VERSION.SDK_INT >= VERSION_CODES.P) { // 僅Android P需要此權限在最上層顯示懸浮窗、對話框
             if (!Settings.canDrawOverlays(this)) { // 事先说明需要权限的理由
                 AlertDialog.Builder(this)
                     .setCancelable(true)

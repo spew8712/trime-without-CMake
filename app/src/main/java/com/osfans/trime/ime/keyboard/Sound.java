@@ -4,8 +4,8 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.view.KeyEvent;
-import com.osfans.trime.util.DataUtils;
-import com.osfans.trime.util.YamlUtils;
+import com.osfans.trime.data.AppPrefs;
+import com.osfans.trime.util.ConfigGetter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +23,8 @@ public class Sound {
   private final boolean enable;
   private int progress;
   private int[] melody;
+
+  private static final AppPrefs appPrefs = AppPrefs.defaultInstance();
 
   public static Sound get() {
     return self;
@@ -53,9 +55,9 @@ public class Sound {
     melody = new int[1];
     progress = -1;
 
-    Map<String, ?> m = YamlUtils.INSTANCE.loadMap(soundPackageName + ".sound", "");
+    Map<String, ?> m = ConfigGetter.loadMap(soundPackageName + ".sound", "");
     if (m != null) {
-      String path = DataUtils.getUserDataDir() + File.separator + "sound" + File.separator;
+      String path = appPrefs.getConf().getUserDataDir() + File.separator + "sound" + File.separator;
       if (m.containsKey("folder")) path = path + m.get("folder") + File.separator;
 
       if (m.containsKey("sound")) {

@@ -24,8 +24,8 @@ import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import androidx.annotation.NonNull;
-import com.osfans.trime.setup.Config;
-import com.osfans.trime.util.YamlUtils;
+import com.osfans.trime.data.Config;
+import com.osfans.trime.util.ConfigGetter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class Keyboard {
   /** 鍵盤的Shift鍵是否按住 * */
   // private boolean mShifted;
   /** 鍵盤的Shift鍵 */
-  private Key mShiftKey;
+  private Key mShiftKey, mCtrlKey, mAltKey, mMetaKey, mSymKey;
   /** Total height of the keyboard, including the padding and keys */
   private int mTotalHeight;
   /**
@@ -70,11 +70,13 @@ public class Keyboard {
   private final List<Key> mKeys;
 
   private final List<Key> mComposingKeys;
-  private int mMetaState;
+  private int mModifierState;
   /** Width of the screen available to fit the keyboard */
   private int mDisplayWidth;
   /** Keyboard mode, or zero, if none. */
   private int mAsciiMode;
+
+  private boolean resetAsciiMode;
 
   // Variables for pre-computing nearest keys.
   private String mLabelTransform;
@@ -135,6 +137,8 @@ public class Keyboard {
     mKeys = new ArrayList<>();
     mComposingKeys = new ArrayList<>();
   }
+
+  // todo 把按下按键弹出的内容改为单独设计的view，而不是keyboard
   /**
    * Creates a blank keyboard from the given resource file and populates it with the specified
    * characters in left-to-right, top-to-bottom fashion, using the specified number of columns.
@@ -191,33 +195,32 @@ public class Keyboard {
             == Configuration.ORIENTATION_LANDSCAPE);
     Config config = Config.get(context);
     final Map<String, ?> keyboardConfig = config.getKeyboard(name);
-    mLabelTransform = YamlUtils.INSTANCE.getString(keyboardConfig, "label_transform", "none");
-    mAsciiMode = YamlUtils.INSTANCE.getInt(keyboardConfig, "ascii_mode", 1);
+    mLabelTransform = ConfigGetter.getString(keyboardConfig, "label_transform", "none");
+    mAsciiMode = ConfigGetter.getInt(keyboardConfig, "ascii_mode", 1);
     if (mAsciiMode == 0)
-      mAsciiKeyboard = YamlUtils.INSTANCE.getString(keyboardConfig, "ascii_keyboard", "");
-    mLock = YamlUtils.INSTANCE.getBoolean(keyboardConfig, "lock", false);
-    int columns = YamlUtils.INSTANCE.getInt(keyboardConfig, "columns", 30);
+      mAsciiKeyboard = ConfigGetter.getString(keyboardConfig, "ascii_keyboard", "");
+    resetAsciiMode = ConfigGetter.getBoolean(keyboardConfig, "reset_ascii_mode", false);
+    mLock = ConfigGetter.getBoolean(keyboardConfig, "lock", false);
+    int columns = ConfigGetter.getInt(keyboardConfig, "columns", 30);
     int defaultWidth =
-        (int) (YamlUtils.INSTANCE.getDouble(keyboardConfig, "width", 0d) * mDisplayWidth / 100);
+        (int) (ConfigGetter.getDouble(keyboardConfig, "width", 0d) * mDisplayWidth / 100);
     if (defaultWidth == 0) defaultWidth = mDefaultWidth;
 
     // 按键高度取值顺序： keys > keyboard/height > style/key_height
     // 考虑到key设置height_land需要对皮肤做大量修改，而当部分key设置height而部分没有设时会造成按键高度异常，故取消普通按键的height_land参数
-    int height = YamlUtils.INSTANCE.getPixel(keyboardConfig, "height", 0);
+    int height = ConfigGetter.getPixel(keyboardConfig, "height", 0);
     int defaultHeight = (height > 0) ? height : mDefaultHeight;
     int rowHeight = defaultHeight;
-    autoHeightIndex = YamlUtils.INSTANCE.getInt(keyboardConfig, "auto_height_index", -1);
+    autoHeightIndex = ConfigGetter.getInt(keyboardConfig, "auto_height_index", -1);
     List<Map<String, Object>> lm = (List<Map<String, Object>>) keyboardConfig.get("keys");
 
     mDefaultHorizontalGap =
-        YamlUtils.INSTANCE.getPixel(
+        ConfigGetter.getPixel(
             keyboardConfig, "horizontal_gap", config.getFloat("horizontal_gap", 3));
     mDefaultVerticalGap =
-        YamlUtils.INSTANCE.getPixel(
-            keyboardConfig, "vertical_gap", config.getFloat("vertical_gap", 5));
+        ConfigGetter.getPixel(keyboardConfig, "vertical_gap", config.getFloat("vertical_gap", 5));
     mRoundCorner =
-        YamlUtils.INSTANCE.getFloat(
-            keyboardConfig, "round_corner", config.getFloat("round_corner", 5));
+        ConfigGetter.getFloat(keyboardConfig, "round_corner", config.getFloat("round_corner", 5));
 
     Drawable background = config.getDrawable(keyboardConfig, "keyboard_back_color");
     if (background != null) mBackground = background;
@@ -233,11 +236,19 @@ public class Keyboard {
     int[] newHeight = new int[0];
 
     if (keyboardHeight > 0) {
+      int mkeyboardHeight = ConfigGetter.getPixel(keyboardConfig, "keyboard_height", 0);
+      if (land) {
+        int mkeyBoardHeightLand = ConfigGetter.getPixel(keyboardConfig, "keyboard_height_land", 0);
+        if (mkeyBoardHeightLand > 0) mkeyboardHeight = mkeyBoardHeightLand;
+      }
+
+      if (mkeyboardHeight > 0) keyboardHeight = mkeyboardHeight;
+
       int rawSumHeight = 0;
       List<Integer> rawHeight = new ArrayList<>();
       for (Map<String, Object> mk : lm) {
         int gap = mDefaultHorizontalGap;
-        int w = (int) (YamlUtils.INSTANCE.getDouble(mk, "width", 0) * mDisplayWidth / 100);
+        int w = (int) (ConfigGetter.getDouble(mk, "width", 0) * mDisplayWidth / 100);
         if (w == 0 && mk.containsKey("click")) w = defaultWidth;
         w -= gap;
         if (column >= maxColumns || x + w > mDisplayWidth) {
@@ -249,7 +260,7 @@ public class Keyboard {
           rawHeight.add(rowHeight);
         }
         if (column == 0) {
-          int heightK = YamlUtils.INSTANCE.getPixel(mk, "height", 0);
+          int heightK = ConfigGetter.getPixel(mk, "height", 0);
           rowHeight = (heightK > 0) ? heightK : defaultHeight;
         }
         if (!mk.containsKey("click")) { // 無按鍵事件
@@ -320,7 +331,7 @@ public class Keyboard {
 
     for (Map<String, Object> mk : lm) {
       int gap = mDefaultHorizontalGap;
-      int w = (int) (YamlUtils.INSTANCE.getDouble(mk, "width", 0) * mDisplayWidth / 100);
+      int w = (int) (ConfigGetter.getDouble(mk, "width", 0) * mDisplayWidth / 100);
       if (w == 0 && mk.containsKey("click")) w = defaultWidth;
       w -= gap;
       if (column >= maxColumns || x + w > mDisplayWidth) {
@@ -334,7 +345,7 @@ public class Keyboard {
         if (keyboardHeight > 0) {
           rowHeight = newHeight[row];
         } else {
-          int heightK = YamlUtils.INSTANCE.getPixel(mk, "height", 0);
+          int heightK = ConfigGetter.getPixel(mk, "height", 0);
           rowHeight = (heightK > 0) ? heightK : defaultHeight;
         }
       }
@@ -344,47 +355,47 @@ public class Keyboard {
       }
 
       final int defaultKeyTextOffsetX =
-          YamlUtils.INSTANCE.getPixel(
+          ConfigGetter.getPixel(
               keyboardConfig, "key_text_offset_x", config.getFloat("key_text_offset_x"));
       final int defaultKeyTextOffsetY =
-          YamlUtils.INSTANCE.getPixel(
+          ConfigGetter.getPixel(
               keyboardConfig, "key_text_offset_y", config.getFloat("key_text_offset_y"));
       final int defaultKeySymbolOffsetX =
-          YamlUtils.INSTANCE.getPixel(
+          ConfigGetter.getPixel(
               keyboardConfig, "key_symbol_offset_x", config.getFloat("key_symbol_offset_x"));
       final int defaultKeySymbolOffsetY =
-          YamlUtils.INSTANCE.getPixel(
+          ConfigGetter.getPixel(
               keyboardConfig, "key_symbol_offset_y", config.getFloat("key_symbol_offset_y"));
       final int defaultKeyHintOffsetX =
-          YamlUtils.INSTANCE.getPixel(
+          ConfigGetter.getPixel(
               keyboardConfig, "key_hint_offset_x", config.getFloat("key_hint_offset_x"));
       final int defaultKeyHintOffsetY =
-          YamlUtils.INSTANCE.getPixel(
+          ConfigGetter.getPixel(
               keyboardConfig, "key_hint_offset_y", config.getFloat("key_hint_offset_y"));
       final int defaultKeyPressOffsetX =
-          YamlUtils.INSTANCE.getInt(
+          ConfigGetter.getInt(
               keyboardConfig, "key_press_offset_x", config.getInt("key_press_offset_x"));
       final int defaultKeyPressOffsetY =
-          YamlUtils.INSTANCE.getInt(
+          ConfigGetter.getInt(
               keyboardConfig, "key_press_offset_y", config.getInt("key_press_offset_y"));
 
       final Key key = new Key(context, this, mk);
       key.setKey_text_offset_x(
-          YamlUtils.INSTANCE.getPixel(mk, "key_text_offset_x", defaultKeyTextOffsetX));
+          ConfigGetter.getPixel(mk, "key_text_offset_x", defaultKeyTextOffsetX));
       key.setKey_text_offset_y(
-          YamlUtils.INSTANCE.getPixel(mk, "key_text_offset_y", defaultKeyTextOffsetY));
+          ConfigGetter.getPixel(mk, "key_text_offset_y", defaultKeyTextOffsetY));
       key.setKey_symbol_offset_x(
-          YamlUtils.INSTANCE.getPixel(mk, "key_symbol_offset_x", defaultKeySymbolOffsetX));
+          ConfigGetter.getPixel(mk, "key_symbol_offset_x", defaultKeySymbolOffsetX));
       key.setKey_symbol_offset_y(
-          YamlUtils.INSTANCE.getPixel(mk, "key_symbol_offset_y", defaultKeySymbolOffsetY));
+          ConfigGetter.getPixel(mk, "key_symbol_offset_y", defaultKeySymbolOffsetY));
       key.setKey_hint_offset_x(
-          YamlUtils.INSTANCE.getPixel(mk, "key_hint_offset_x", defaultKeyHintOffsetX));
+          ConfigGetter.getPixel(mk, "key_hint_offset_x", defaultKeyHintOffsetX));
       key.setKey_hint_offset_y(
-          YamlUtils.INSTANCE.getPixel(mk, "key_hint_offset_y", defaultKeyHintOffsetY));
+          ConfigGetter.getPixel(mk, "key_hint_offset_y", defaultKeyHintOffsetY));
       key.setKey_press_offset_x(
-          YamlUtils.INSTANCE.getInt(mk, "key_press_offset_x", defaultKeyPressOffsetX));
+          ConfigGetter.getInt(mk, "key_press_offset_x", defaultKeyPressOffsetX));
       key.setKey_press_offset_y(
-          YamlUtils.INSTANCE.getInt(mk, "key_press_offset_y", defaultKeyPressOffsetY));
+          ConfigGetter.getInt(mk, "key_press_offset_y", defaultKeyPressOffsetY));
 
       key.setX(x);
       key.setY(y);
@@ -415,8 +426,30 @@ public class Keyboard {
     return mShiftKey;
   }
 
-  public void setmShiftKey(Key mShiftKey) {
-    this.mShiftKey = mShiftKey;
+  public Key getmAltKey() {
+    return mAltKey;
+  }
+
+  public Key getmMetaKey() {
+    return mMetaKey;
+  }
+
+  public Key getmSymKey() {
+    return mSymKey;
+  }
+
+  public Key getmCtrlKey() {
+    return mCtrlKey;
+  }
+
+  public void setModiferKey(int c, Key key) {
+    if (c == KeyEvent.KEYCODE_SHIFT_LEFT || c == KeyEvent.KEYCODE_SHIFT_RIGHT) this.mShiftKey = key;
+    else if (c == KeyEvent.KEYCODE_CTRL_LEFT || c == KeyEvent.KEYCODE_CTRL_RIGHT)
+      this.mCtrlKey = key;
+    else if (c == KeyEvent.KEYCODE_META_LEFT || c == KeyEvent.KEYCODE_META_RIGHT)
+      this.mMetaKey = key;
+    else if (c == KeyEvent.KEYCODE_ALT_LEFT || c == KeyEvent.KEYCODE_ALT_RIGHT) this.mAltKey = key;
+    else if (c == KeyEvent.KEYCODE_SYM) this.mSymKey = key;
   }
 
   public List<Key> getmComposingKeys() {
@@ -476,31 +509,54 @@ public class Keyboard {
     return mTotalWidth;
   }
 
-  private boolean hasModifier(int modifiers) {
-    return (mMetaState & modifiers) != 0;
+  public boolean hasModifier(int modifierMask) {
+    return (mModifierState & modifierMask) != 0;
+  }
+
+  public static boolean hasModifier(int modifierMask, int mModifierState) {
+    return (mModifierState & modifierMask) != 0;
   }
 
   public boolean hasModifier() {
-    return mMetaState != 0;
-  }
-
-  public boolean toggleModifier(int mask) {
-    boolean value = !hasModifier(mask);
-    if (value) mMetaState |= mask;
-    else mMetaState &= ~mask;
-    return value;
+    return mModifierState != 0;
   }
 
   public int getModifer() {
-    return mMetaState;
+    return mModifierState;
   }
 
   private boolean setModifier(int mask, boolean value) {
     boolean b = hasModifier(mask);
     if (b == value) return false;
-    if (value) mMetaState |= mask;
-    else mMetaState &= ~mask;
+    printModifierKeyState("");
+    if (value) mModifierState |= mask;
+    else mModifierState &= ~mask;
+
+    printModifierKeyState("->");
     return true;
+  }
+
+  public void printModifierKeyState(String tag) {
+    Timber.d(
+        "\t<TrimeInput>\tkeyState() ctrl=%s, alt=%s, shift=%s, sym=%s, meta=%s\t%s",
+        hasModifier(KeyEvent.META_CTRL_ON),
+        hasModifier(KeyEvent.META_ALT_ON),
+        hasModifier(KeyEvent.META_SHIFT_ON),
+        hasModifier(KeyEvent.META_SYM_ON),
+        hasModifier(KeyEvent.META_META_ON),
+        tag);
+  }
+
+  public static void printModifierKeyState(int state, String tag) {
+    Timber.d(
+        "\t<TrimeInput>\tkeyState() ctrl=%s, alt=%s, shift=%s, sym=%s, meta=%s, state=%d\t%s",
+        hasModifier(KeyEvent.META_CTRL_ON, state),
+        hasModifier(KeyEvent.META_ALT_ON, state),
+        hasModifier(KeyEvent.META_SHIFT_ON, state),
+        hasModifier(KeyEvent.META_SYM_ON, state),
+        hasModifier(KeyEvent.META_META_ON, state),
+        state,
+        tag);
   }
 
   public boolean isAlted() {
@@ -511,14 +567,16 @@ public class Keyboard {
     return hasModifier(KeyEvent.META_SHIFT_ON);
   }
 
-  public boolean isCtrled() {
-    return hasModifier(KeyEvent.META_CTRL_ON);
+  // 需要优化
+  public boolean needUpCase() {
+    if (mShiftKey != null) if (mShiftKey.isOn()) return true;
+    return hasModifier(KeyEvent.META_SHIFT_ON);
   }
 
   /**
    * 設定鍵盤的Shift鍵狀態
    *
-   * @param on 是否保持Shift按下狀態
+   * @param on 是否保持Shift按下狀態(锁定)
    * @param shifted 是否按下Shift
    * @return Shift鍵狀態是否改變
    */
@@ -528,9 +586,88 @@ public class Keyboard {
     return setModifier(KeyEvent.META_SHIFT_ON, on || shifted);
   }
 
+  /**
+   * 设定修饰键的状态
+   *
+   * @param on 是否锁定修饰键
+   * @param keycode 修饰键on的keyevent mask code
+   * @return
+   */
+  public boolean clikModifierKey(boolean on, int keycode) {
+    boolean keyDown = !hasModifier(keycode);
+    on = on & keyDown;
+    if (mShiftKey != null) mShiftKey.setOn(on);
+
+    if (keycode == KeyEvent.META_SHIFT_ON) {
+      mShiftKey.setOn(on);
+    } else if (keycode == KeyEvent.META_ALT_ON) {
+      mAltKey.setOn(on);
+    } else if (keycode == KeyEvent.META_CTRL_ON) {
+      mCtrlKey.setOn(on);
+    } else if (keycode == KeyEvent.META_META_ON) {
+      mMetaKey.setOn(on);
+    } else if (keycode == KeyEvent.KEYCODE_SYM) {
+      mSymKey.setOn(on);
+    }
+    return setModifier(keycode, on || keyDown);
+  }
+
+  public boolean setAltOn(boolean on, boolean keyDown) {
+    on = on & keyDown;
+    if (mAltKey != null) mAltKey.setOn(on);
+    return setModifier(KeyEvent.META_ALT_ON, on || keyDown);
+  }
+
+  public boolean setCtrlOn(boolean on, boolean keyDown) {
+    on = on & keyDown;
+    if (mCtrlKey != null) mCtrlKey.setOn(on);
+    return setModifier(KeyEvent.META_CTRL_ON, on || keyDown);
+  }
+
+  public boolean setSymOn(boolean on, boolean keyDown) {
+    on = on & keyDown;
+    if (mSymKey != null) mSymKey.setOn(on);
+    return setModifier(KeyEvent.META_SYM_ON, on || keyDown);
+  }
+
+  public boolean setMetaOn(boolean on, boolean keyDown) {
+    on = on & keyDown;
+    if (mMetaKey != null) mMetaKey.setOn(on);
+    return setModifier(KeyEvent.META_META_ON, on || keyDown);
+  }
+
+  //  public boolean setFunctionOn(boolean on, boolean keyDown) {
+  //    on = on & keyDown;
+  //    if (mFunctionKey != null) mFunctionKey.setOn(on);
+  //    return setModifier(KeyEvent.META_FUNCTION_ON, on || keyDown);
+  //  }
+
   public boolean resetShifted() {
     if (mShiftKey != null && !mShiftKey.isOn()) return setModifier(KeyEvent.META_SHIFT_ON, false);
     return false;
+  }
+
+  public boolean resetModifer() {
+    // 这里改为了一次性重置全部修饰键状态并返回TRUE刷新UI，可能有bug
+    mModifierState = 0;
+    return true;
+  }
+
+  public boolean refreshModifier() {
+    // 这里改为了一次性重置全部修饰键状态并返回TRUE刷新UI，可能有bug
+    boolean result = false;
+
+    if (mShiftKey != null && !mShiftKey.isOn())
+      result = result || setModifier(KeyEvent.META_SHIFT_ON, false);
+    if (mAltKey != null && !mAltKey.isOn())
+      result = result || setModifier(KeyEvent.META_ALT_ON, false);
+    if (mCtrlKey != null && !mCtrlKey.isOn())
+      result = result || setModifier(KeyEvent.META_CTRL_ON, false);
+    if (mMetaKey != null && !mMetaKey.isOn())
+      result = result || setModifier(KeyEvent.META_META_ON, false);
+    if (mSymKey != null && !mSymKey.isOn())
+      result = result || setModifier(KeyEvent.KEYCODE_SYM, false);
+    return result;
   }
 
   private void computeNearestNeighbors() {
@@ -586,6 +723,10 @@ public class Keyboard {
 
   public boolean getAsciiMode() {
     return mAsciiMode != 0;
+  }
+
+  public boolean isResetAsciiMode() {
+    return resetAsciiMode;
   }
 
   public String getAsciiKeyboard() {

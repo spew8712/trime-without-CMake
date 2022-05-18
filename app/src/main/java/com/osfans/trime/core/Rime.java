@@ -16,14 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.osfans.trime;
+package com.osfans.trime.core;
 
 import android.content.Context;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.osfans.trime.data.AppPrefs;
+import com.osfans.trime.data.DataManager;
+import com.osfans.trime.data.opencc.OpenCCDictManager;
 import com.osfans.trime.ime.core.Trime;
-import com.osfans.trime.setup.Config;
-import com.osfans.trime.util.DataUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -224,9 +226,17 @@ public class Rime {
     System.loadLibrary("rime_jni");
   }
 
+  /*
+  Android SDK包含了如下6个修饰键的状态，其中function键会被trime消费掉，因此只处理5个键
+  Android和librime对按键命名并不一致。读取可能有误。librime按键命名见如下链接，
+  https://github.com/rime/librime/blob/master/src/rime/key_table.cc
+   */
   public static int META_SHIFT_ON = get_modifier_by_name("Shift");
   public static int META_CTRL_ON = get_modifier_by_name("Control");
   public static int META_ALT_ON = get_modifier_by_name("Alt");
+  public static int META_SYM_ON = get_modifier_by_name("Super");
+  public static int META_META_ON = get_modifier_by_name("Meta");
+
   public static int META_RELEASE_ON = get_modifier_by_name("Release");
   private static boolean showSwitches = true;
   private static boolean showSwitchArrow = false;
@@ -301,9 +311,9 @@ public class Rime {
         "\t<TrimeInit>\t" + Thread.currentThread().getStackTrace()[2].getMethodName() + "\t";
     Timber.d(methodName);
     mOnMessage = false;
-
-    final String sharedDataDir = DataUtils.getSharedDataDir();
-    final String userDataDir = DataUtils.getUserDataDir();
+    final AppPrefs appPrefs = AppPrefs.defaultInstance();
+    final String sharedDataDir = appPrefs.getConf().getSharedDataDir();
+    final String userDataDir = appPrefs.getConf().getUserDataDir();
 
     Timber.d(methodName + "setup");
     // Initialize librime APIs
@@ -353,15 +363,18 @@ public class Rime {
     return keycode <= 0 || keycode == XK_VoidSymbol;
   }
 
+  // KeyProcess 调用JNI方法发送keycode和mask
   private static boolean onKey(int keycode, int mask) {
-    Timber.i("onkey(), keycode=%s, mask=%s", keycode, mask);
+    Timber.i("\t<TrimeInput>\tonkey()\tkeycode=%s, mask=%s", keycode, mask);
     if (isVoidKeycode(keycode)) return false;
     final boolean b = process_key(keycode, mask);
-    Timber.i("onkey(), keycode=%s, mask=%s, process_key result=%s", keycode, mask, b);
+    Timber.i(
+        "\t<TrimeInput>\tonkey()\tkeycode=%s, mask=%s, process_key result=%s", keycode, mask, b);
     getContexts();
     return b;
   }
 
+  // KeyProcess 调用JNI方法发送keycode和mask
   public static boolean onKey(int[] event) {
     if (event != null && event.length == 2) return onKey(event[0], event[1]);
     return false;
@@ -504,7 +517,9 @@ public class Rime {
 
   public static Rime get(Context context, boolean full_check) {
     if (self == null) {
-      if (full_check) Config.deployOpencc();
+      if (full_check) {
+        OpenCCDictManager.internalDeploy();
+      }
       self = new Rime(context, full_check);
     }
     return self;
@@ -528,29 +543,28 @@ public class Rime {
     getContexts();
   }
 
-  public static void onMessage(String message_type, String message_value) {
+  public static void handleRimeNotification(String message_type, String message_value) {
     mOnMessage = true;
-    Timber.i("message: [%s] %s", message_type, message_value);
+    final RimeEvent event = RimeEvent.create(message_type, message_value);
+    // Timber.i("message: [%s] %s", message_type, message_value);
+    Timber.i("Notification: %s", event);
     final Trime trime = Trime.getService();
-    switch (message_type) {
-      case "schema":
-        initSchema();
-        trime.initKeyboard();
-        break;
-      case "option":
-        getStatus();
-        getContexts(); // 切換中英文、簡繁體時更新候選
-        final boolean value = !message_value.startsWith("!");
-        final String option = message_value.substring(value ? 0 : 1);
-        trime.textInputManager.onOptionChanged(option, value);
-        break;
+    if (event instanceof RimeEvent.SchemaEvent) {
+      initSchema();
+      trime.initKeyboard();
+    } else if (event instanceof RimeEvent.OptionEvent) {
+      getStatus();
+      getContexts(); // 切換中英文、簡繁體時更新候選
+      final boolean value = !message_value.startsWith("!");
+      final String option = message_value.substring(value ? 0 : 1);
+      trime.textInputManager.onOptionChanged(option, value);
     }
     mOnMessage = false;
   }
 
   public static String openccConvert(String line, String name) {
     if (!TextUtils.isEmpty(name)) {
-      final File f = new File(DataUtils.getAssetsDir("opencc"), name);
+      final File f = new File(DataManager.getDataDir("opencc"), name);
       if (f.exists()) return opencc_convert(line, f.getAbsolutePath());
     }
     return line;
@@ -682,7 +696,8 @@ public class Rime {
 
   public static native List config_get_list(String name, String key);
 
-  public static native Map<String, Object> config_get_map(String name, String key);
+  @Nullable
+  public static native Map<String, Map<String, ?>> config_get_map(String name, String key);
 
   public static native Object config_get_value(String name, String key);
 

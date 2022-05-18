@@ -21,14 +21,15 @@ package com.osfans.trime.ime.keyboard;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import androidx.annotation.NonNull;
-import com.osfans.trime.Rime;
-import com.osfans.trime.setup.Config;
-import com.osfans.trime.util.YamlUtils;
+import com.osfans.trime.core.Rime;
+import com.osfans.trime.data.Config;
+import com.osfans.trime.util.ConfigGetter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
+import timber.log.Timber;
 
 /** {@link Key 按鍵}的各種事件（單擊、長按、滑動等） */
 public class Event {
@@ -63,32 +64,34 @@ public class Event {
       code = sends[0];
       mask = sends[1];
       if (code >= 0) return;
+      if (parseAction(label)) return;
       s = label; // key
       label = null;
     }
     if (Key.presetKeys.containsKey(s)) {
-      Map<String, ?> m = Key.presetKeys.get(s);
-      command = YamlUtils.INSTANCE.getString(m, "command", "");
-      option = YamlUtils.INSTANCE.getString(m, "option", "");
-      select = YamlUtils.INSTANCE.getString(m, "select", "");
-      toggle = YamlUtils.INSTANCE.getString(m, "toggle", "");
-      label = YamlUtils.INSTANCE.getString(m, "label", "");
-      preview = YamlUtils.INSTANCE.getString(m, "preview", "");
-      shiftLock = YamlUtils.INSTANCE.getString(m, "shift_lock", "");
-      commit = YamlUtils.INSTANCE.getString(m, "commit", "");
-      String send = YamlUtils.INSTANCE.getString(m, "send", "");
+      // todo 把presetKeys缓存为presetKeyEvents，减少重新载入
+      Map<String, ?> presetKey = Key.presetKeys.get(s);
+      command = ConfigGetter.getString(presetKey, "command", "");
+      option = ConfigGetter.getString(presetKey, "option", "");
+      select = ConfigGetter.getString(presetKey, "select", "");
+      toggle = ConfigGetter.getString(presetKey, "toggle", "");
+      label = ConfigGetter.getString(presetKey, "label", "");
+      preview = ConfigGetter.getString(presetKey, "preview", "");
+      shiftLock = ConfigGetter.getString(presetKey, "shift_lock", "");
+      commit = ConfigGetter.getString(presetKey, "commit", "");
+      String send = ConfigGetter.getString(presetKey, "send", "");
       if (TextUtils.isEmpty(send) && !TextUtils.isEmpty(command))
         send = "function"; // command默認發function
       int[] sends = parseSend(send);
       code = sends[0];
       mask = sends[1];
       parseLabel();
-      text = Config.getString(m, "text");
+      text = Config.getString(presetKey, "text");
       if (code < 0 && TextUtils.isEmpty(text)) text = s;
-      if (m.containsKey("states")) states = (List<?>) m.get("states");
-      sticky = YamlUtils.INSTANCE.getBoolean(m, "sticky", false);
-      repeatable = YamlUtils.INSTANCE.getBoolean(m, "repeatable", false);
-      functional = YamlUtils.INSTANCE.getBoolean(m, "functional", true);
+      if (presetKey.containsKey("states")) states = (List<?>) presetKey.get("states");
+      sticky = ConfigGetter.getBoolean(presetKey, "sticky", false);
+      repeatable = ConfigGetter.getBoolean(presetKey, "repeatable", false);
+      functional = ConfigGetter.getBoolean(presetKey, "functional", true);
     } else if ((code = getClickCode(s)) >= 0) {
       parseLabel();
     } else {
@@ -154,10 +157,32 @@ public class Event {
     return sends;
   }
 
+  // 快速把字符串解析为event, 暂时只处理了comment类型 不能完全正确处理=，
+  private boolean parseAction(String s) {
+    boolean result = false;
+    String[] strs = s.split(",");
+    for (String str : strs) {
+      String[] set = str.split("=", 2);
+      if (set.length != 2) continue;
+      if (set[0].equals("commit")) {
+        commit = set[1];
+        result = true;
+      } else if (set[0].equals("label")) {
+        label = set[1];
+        result = true;
+      } else if (set[0].equals("text")) {
+        text = set[1];
+        result = true;
+      }
+    }
+    Timber.d("<Event> text=" + text + ", commit=" + commit + ", label=" + label + ", s=" + s);
+    return result;
+  }
+
   @NonNull
   private String adjustCase(String s) {
     if (TextUtils.isEmpty(s)) return "";
-    if (s.length() == 1 && mKeyboard != null && mKeyboard.isShifted())
+    if (s.length() == 1 && mKeyboard != null && mKeyboard.needUpCase())
       s = s.toUpperCase(Locale.getDefault());
     else if (s.length() == 1
         && mKeyboard != null
@@ -175,7 +200,7 @@ public class Event {
     String s = "";
     if (!TextUtils.isEmpty(text)) s = text;
     else if (mKeyboard != null
-        && mKeyboard.isShifted()
+        && mKeyboard.needUpCase()
         && mask == 0
         && code >= KeyEvent.KEYCODE_A
         && code <= KeyEvent.KEYCODE_Z) s = label;
@@ -237,6 +262,8 @@ public class Event {
     return keyCode;
   }
 
+  // TODO 把软键盘预设android_keys的keycode(index)->keyname(string)—>rimeKeycode的过程改为直接返回int
+  // https://github.com/rime/librime/blob/99e269c8eb251deddbad9b0d2c4d965b228f8006/src/rime/key_table.cc
   private static int getRimeCode(int code) {
     int i = 0;
     if (code >= 0 && code < Key.androidKeys.size()) {
@@ -250,14 +277,27 @@ public class Event {
     return (mask & modifier) > 0;
   }
 
+  // KeyboardEvent 从软键盘的按键keycode（可能含有mask）和mask，分离出rimekeycode和mask构成的数组
   public static int[] getRimeEvent(int code, int mask) {
     int i = getRimeCode(code);
     int m = 0;
     if (hasModifier(mask, KeyEvent.META_SHIFT_ON)) m |= Rime.META_SHIFT_ON;
     if (hasModifier(mask, KeyEvent.META_CTRL_ON)) m |= Rime.META_CTRL_ON;
     if (hasModifier(mask, KeyEvent.META_ALT_ON)) m |= Rime.META_ALT_ON;
+    if (hasModifier(mask, KeyEvent.META_SYM_ON)) m |= Rime.META_SYM_ON;
+    if (hasModifier(mask, KeyEvent.META_META_ON)) m |= Rime.META_META_ON;
     if (mask == Rime.META_RELEASE_ON) m |= Rime.META_RELEASE_ON;
     return new int[] {i, m};
+  }
+
+  public boolean isMeta() {
+    int c = getCode();
+    return (c == KeyEvent.KEYCODE_META_LEFT || c == KeyEvent.KEYCODE_META_RIGHT);
+  }
+
+  public boolean isAlt() {
+    int c = getCode();
+    return (c == KeyEvent.KEYCODE_ALT_LEFT || c == KeyEvent.KEYCODE_ALT_RIGHT);
   }
 
   private static final Map<String, Integer> masks =
@@ -266,6 +306,8 @@ public class Event {
           put("Shift", KeyEvent.META_SHIFT_ON);
           put("Control", KeyEvent.META_CTRL_ON);
           put("Alt", KeyEvent.META_ALT_ON);
+          put("Meta", KeyEvent.META_META_ON);
+          put("SYM", KeyEvent.META_SYM_ON);
         }
       };
 

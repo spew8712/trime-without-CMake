@@ -44,11 +44,11 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import com.osfans.trime.R;
+import com.osfans.trime.data.AppPrefs;
+import com.osfans.trime.data.Config;
 import com.osfans.trime.databinding.KeyboardKeyPreviewBinding;
-import com.osfans.trime.ime.core.Preferences;
 import com.osfans.trime.ime.enums.KeyEventType;
 import com.osfans.trime.ime.lifecycle.CoroutineScopeJava;
-import com.osfans.trime.setup.Config;
 import com.osfans.trime.util.LeakGuardHandlerWrapper;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -232,14 +232,14 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
    */
   private boolean mHeadsetRequiredToHearPasswordsAnnounced;
 
-  private boolean mShowHint = true;
+  private boolean mShowHint = true, mShowSymbol = true;
 
   private Method findStateDrawableIndex;
   private Method getStateDrawable;
 
   @NonNull
-  private Preferences getPrefs() {
-    return Preferences.Companion.defaultInstance();
+  private AppPrefs getPrefs() {
+    return AppPrefs.Companion.defaultInstance();
   }
 
   private final MyHandler mHandler = new MyHandler(this);
@@ -276,6 +276,10 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
 
   public void setShowHint(final boolean value) {
     mShowHint = value;
+  }
+
+  public void setShowSymbol(final boolean value) {
+    mShowSymbol = value;
   }
 
   public void reset(final Context context) {
@@ -450,6 +454,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
                 }
 
                 if (sendDownKey) {
+                  Timber.d("\t<TrimeInput>\tinitGestureDetector()\tsendDownKey");
                   showPreview(NOT_A_KEY);
                   showPreview(mDownKey, type);
                   detectAndSendKey(mDownKey, mStartX, mStartY, me1.getEventTime(), type);
@@ -527,6 +532,22 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
   }
 
   /**
+   * 设置键盘修饰键的状态
+   *
+   * @param key 按下的修饰键
+   * @return
+   */
+  public boolean setModifier(Key key) {
+    if (mKeyboard != null) {
+      if (mKeyboard.clikModifierKey(key.isShiftLock(), key.getModifierKeyOnMask())) {
+        invalidateAllKeys();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * 設定鍵盤的Shift鍵狀態
    *
    * @param on 是否保持Shift按下狀態
@@ -536,6 +557,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
    */
   public boolean setShifted(boolean on, boolean shifted) {
     if (mKeyboard != null) {
+      // todo 扩展为设置全部修饰键的状态
       if (mKeyboard.setShifted(on, shifted)) {
         // The whole keyboard probably needs to be redrawn
         invalidateAllKeys();
@@ -552,6 +574,34 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         invalidateAllKeys();
         return true;
       }
+    }
+    return false;
+  }
+
+  // 重置全部修饰键的状态
+  private boolean resetModifer() {
+    if (mKeyboard != null) {
+      if (mKeyboard.resetModifer()) {
+        // The whole keyboard probably needs to be redrawn
+        invalidateAllKeys();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 重置全部修饰键的状态(如果有锁定则不重置）
+  private void refreshModifier() {
+    if (mKeyboard != null) {
+      if (mKeyboard.refreshModifier()) {
+        invalidateAllKeys();
+      }
+    }
+  }
+
+  public boolean hasModifier() {
+    if (mKeyboard != null) {
+      return mKeyboard.hasModifier();
     }
     return false;
   }
@@ -578,6 +628,32 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
   public boolean isCapsOn() {
     if (mKeyboard != null && mKeyboard.getmShiftKey() != null)
       return mKeyboard.getmShiftKey().isOn();
+    return false;
+  }
+
+  public boolean isShiftOn() {
+    if (mKeyboard != null && mKeyboard.getmShiftKey() != null)
+      return mKeyboard.getmShiftKey().isOn();
+    return false;
+  }
+
+  public boolean isAltOn() {
+    if (mKeyboard != null && mKeyboard.getmAltKey() != null) return mKeyboard.getmAltKey().isOn();
+    return false;
+  }
+
+  public boolean isSysOn() {
+    if (mKeyboard != null && mKeyboard.getmSymKey() != null) return mKeyboard.getmSymKey().isOn();
+    return false;
+  }
+
+  public boolean isCtrlOn() {
+    if (mKeyboard != null && mKeyboard.getmCtrlKey() != null) return mKeyboard.getmCtrlKey().isOn();
+    return false;
+  }
+
+  public boolean isMetaOn() {
+    if (mKeyboard != null && mKeyboard.getmMetaKey() != null) return mKeyboard.getmMetaKey().isOn();
     return false;
   }
 
@@ -700,13 +776,6 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
 
   private void onBufferDraw() {
     if (mBuffer == null || mKeyboardChanged) {
-      Timber.i(
-          "onBufferDraw() mKeyboardChanged="
-              + mKeyboardChanged
-              + " mBuffer_is_null="
-              + (mBuffer == null)
-              + " getHeight()="
-              + getHeight());
 
       if (mBuffer == null
           || mKeyboardChanged
@@ -750,6 +819,11 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
     final int keyCount = keys.length;
     final float symbolBase = padding.top - mPaintSymbol.getFontMetrics().top;
     final float hintBase = -padding.bottom - mPaintSymbol.getFontMetrics().bottom;
+
+    Timber.i(
+        "onBufferDraw() keyCount=%d, drawSingleKey=%s, invalidKeyIsNull=%s",
+        keyCount, drawSingleKey, invalidKey == null);
+    mKeyboard.printModifierKeyState("onBufferDraw, drawSingleKey=" + drawSingleKey);
     for (final Key key : keys) {
       if (drawSingleKey && invalidKey != key) {
         continue;
@@ -808,20 +882,22 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
                 + top
                 + key.getKey_text_offset_y(),
             paint);
-        if (mShowHint) {
-          if (key.getLongClick() != null) {
+        if (mShowSymbol) {
+          String labelSymbol = key.getSymbolLabel();
+          if (!TextUtils.isEmpty(labelSymbol)) {
             mPaintSymbol.setTextSize(
                 key.getSymbol_text_size() != null && key.getSymbol_text_size() > 0
                     ? key.getSymbol_text_size()
                     : mSymbolSize);
             mPaintSymbol.setShadowLayer(mShadowRadius, 0, 0, mShadowColor);
             canvas.drawText(
-                key.getSymbolLabel(),
+                labelSymbol,
                 left + key.getKey_symbol_offset_x(),
                 symbolBase + key.getKey_symbol_offset_y(),
                 mPaintSymbol);
           }
-
+        }
+        if (mShowHint) {
           if (!TextUtils.isEmpty(hint)) {
             mPaintSymbol.setShadowLayer(mShadowRadius, 0, 0, mShadowColor);
             canvas.drawText(
@@ -905,6 +981,9 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
   }
 
   private void releaseKey(int code) {
+    Timber.d(
+        "\t<TrimeInput>\treleaseKey() key=%d, mComboCount=%d, mComboMode=%s",
+        code, mComboCount, mComboMode);
     if (mComboMode) {
       if (mComboCount > 9) mComboCount = 9;
       mComboCodes[mComboCount++] = code;
@@ -917,13 +996,17 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         mComboCount = 0;
       }
     }
+    Timber.d("\t<TrimeInput>\treleaseKey() finish");
   }
 
   private void detectAndSendKey(int index, int x, int y, long eventTime, int type) {
     if (index != NOT_A_KEY && index < mKeys.length) {
       final Key key = mKeys[index];
-      if (key.isShift() && !key.sendBindings(type)) {
-        setShifted(key.isShiftLock(), !isShifted());
+      if (Key.isTrimeModifierKey(key.getCode()) && !key.sendBindings(type)) {
+        Timber.d(
+            "\t<TrimeInput>\tdetectAndSendKey()\tModifierKey, type=%d, key.getEvent, KeyLabel=%s",
+            type, key.getLabel());
+        setModifier(key);
       } else {
         if (key.getClick().isRepeatable()) {
           if (type > 0) mAbortKey = true;
@@ -934,12 +1017,18 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         final int[] codes = new int[MAX_NEARBY_KEYS];
         Arrays.fill(codes, NOT_A_KEY);
         getKeyIndices(x, y, codes);
+        Timber.d(
+            "\t<TrimeInput>\tdetectAndSendKey()\tonEvent, type=%d, code=%d, key.getEvent",
+            type, code);
+        // 可以在这里把 mKeyboard.getModifer() 获取的修饰键状态写入event里
         mKeyboardActionListener.onEvent(key.getEvent(type));
         releaseKey(code);
-        resetShifted();
+        Timber.d("\t<TrimeInput>\tdetectAndSendKey()\trefreshModifier");
+        refreshModifier();
       }
       mLastSentIndex = index;
       mLastTapTime = eventTime;
+      Timber.d("\t<TrimeInput>\tdetectAndSendKey()\tfinish");
     }
   }
 
@@ -1065,6 +1154,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
    * @see #invalidateKey(int)
    */
   public void invalidateAllKeys() {
+    Timber.d("\t<TrimeInput>\tinvalidateAllKeys()");
     mDirtyRect.union(0, 0, getWidth(), getHeight());
     mDrawPending = true;
     invalidate();
@@ -1079,6 +1169,8 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
    * @see #invalidateAllKeys
    */
   private void invalidateKey(int keyIndex) {
+    Timber.d(
+        "\t<TrimeInput>\tinvalidateKey()\tkeyIndex=%d, mKeysExist=%s", keyIndex, mKeys != null);
     if (mKeys == null) return;
     if (keyIndex < 0 || keyIndex >= mKeys.length) {
       return;
@@ -1091,11 +1183,13 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         key.getX() + key.getWidth() + getPaddingLeft(),
         key.getY() + key.getHeight() + getPaddingTop());
     onBufferDraw();
+    Timber.d("\t<TrimeInput>\tinvalidateKey()\tinvalidate");
     invalidate(
         key.getX() + getPaddingLeft(),
         key.getY() + getPaddingTop(),
         key.getX() + key.getWidth() + getPaddingLeft(),
         key.getY() + key.getHeight() + getPaddingTop());
+    Timber.d("\t<TrimeInput>\tinvalidateKey()\tfinish");
   }
 
   private void invalidateKeys(final List<Key> keys) {
@@ -1179,6 +1273,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
 
               @Override
               public void onPress(final int primaryCode) {
+                Timber.d("\t<TrimeInput>\tonLongPress() onPress key=" + primaryCode);
                 mKeyboardActionListener.onPress(primaryCode);
               }
 
@@ -1217,6 +1312,9 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
       final int x = mPopupX + mMiniKeyboardContainer.getPaddingRight() + mCoordinates[0];
       final int y = mPopupY + mMiniKeyboardContainer.getPaddingBottom() + mCoordinates[1];
       mMiniKeyboard.setPopupOffset(Math.max(x, 0), y);
+
+      // todo 只处理了shift
+      Timber.w("only set isShifted, no others modifierkey");
       mMiniKeyboard.setShifted(false, isShifted());
       mPopupKeyboard.setContentView(mMiniKeyboardContainer);
       mPopupKeyboard.setWidth(mMiniKeyboardContainer.getMeasuredWidth());
@@ -1233,10 +1331,13 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         final Event e = popupKey.getLongClick();
         mKeyboardActionListener.onEvent(e);
         releaseKey(e.getCode());
-        resetShifted();
+        resetModifer();
         return true;
       }
+
+      Timber.w("only set isShifted, no others modifierkey");
       if (popupKey.isShift() && !popupKey.sendBindings(KeyEventType.LONG_CLICK.ordinal())) {
+        // todo 其他修饰键
         setShifted(!popupKey.isOn(), !popupKey.isOn());
         return true;
       }
@@ -1307,6 +1408,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
               me.getMetaState());
       result = onModifiedTouchEvent(ev, false);
       ev.recycle();
+      Timber.d("\t<TrimeInput>\tonTouchEvent()\tactionUp done");
     }
 
     if (action == MotionEvent.ACTION_POINTER_DOWN) {
@@ -1316,8 +1418,11 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
               now, now, MotionEvent.ACTION_DOWN, me.getX(index), me.getY(index), me.getMetaState());
       result = onModifiedTouchEvent(ev, false);
       ev.recycle();
+      Timber.d("\t<TrimeInput>\tonModifiedTouchEvent()\tactionDown done");
     } else {
+      Timber.d("\t<TrimeInput>\tonModifiedTouchEvent()\tonModifiedTouchEvent");
       result = onModifiedTouchEvent(me, false);
+      Timber.d("\t<TrimeInput>\tonModifiedTouchEvent()\tnot actionDown done");
     }
 
     if (action != MotionEvent.ACTION_MOVE) mOldPointerCount = pointerCount;
@@ -1460,6 +1565,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         int travel = getPrefs().getKeyboard().getSwipeTravel();
 
         if (Math.max(absY, absX) > travel && touchOnePoint) {
+          Timber.d("\t<TrimeInput>\tonModifiedTouchEvent()\ttouch");
           int type;
           if (absX < absY) {
             Timber.d("swipeDebug.ext y, dX=%d, dY=%d", dx, dy);
@@ -1490,6 +1596,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
         // If we're not on a repeating key (which sends on a DOWN event)
         if (mRepeatKeyIndex != NOT_A_KEY && !mAbortKey) repeatKey();
         if (mRepeatKeyIndex == NOT_A_KEY && !mMiniKeyboardOnScreen && !mAbortKey) {
+          Timber.d("\t<TrimeInput>\tonModifiedTouchEvent()\tdetectAndSendKey");
           detectAndSendKey(
               mCurrentKey,
               touchX,
@@ -1497,6 +1604,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
               eventTime,
               (mOldPointerCount > 1 || mComboMode) ? KeyEventType.COMBO.ordinal() : 0);
         }
+        Timber.d("\t<TrimeInput>\tonModifiedTouchEvent()\tdetectAndSendKey finish");
         invalidateKey(keyIndex);
         mRepeatKeyIndex = NOT_A_KEY;
         break;
@@ -1514,6 +1622,7 @@ public class KeyboardView extends View implements View.OnClickListener, Coroutin
   }
 
   private boolean repeatKey() {
+    Timber.d("\t<TrimeInput>\trepeatKey()");
     final Key key = mKeys[mRepeatKeyIndex];
     detectAndSendKey(mCurrentKey, key.getX(), key.getY(), mLastTapTime);
     return true;
