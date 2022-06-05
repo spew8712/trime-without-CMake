@@ -5,6 +5,8 @@ on: [push]
 #    branches:
 #      - pr*
 #      - dev*
+env:
+  CI_NAME: Commit CI
 jobs:
   build:
     runs-on: ubuntu-latest
