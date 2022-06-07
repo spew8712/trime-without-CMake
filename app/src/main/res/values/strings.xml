@@ -202,4 +202,5 @@
     <string name="pref_trime_custom_qq">Custom QQ Group</string>
     <string name="pref_trime_custom_qq_summary" translatable="false"> </string>
     <string name="pref_trime_custom_qq_data" translatable="false"> </string>
+    <string name="keyboard__use_mini_keyboard_title">Show mini keyboard when real keyboard linked</string>
 </resources>
