@@ -19,7 +19,6 @@
 package com.osfans.trime.ime.text;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -64,7 +63,7 @@ public class Composition extends AppCompatTextView {
   private int max_entries = Candidate.getMaxCandidateCount();
   private boolean candidate_use_cursor, show_comment;
   private int highlightIndex;
-  private List<Map<String, Object>> components;
+  private List<Map<String, Object>> windows_comps;
   private SpannableStringBuilder ss;
   private final int span = 0;
   private String movable;
@@ -146,7 +145,6 @@ public class Composition extends AppCompatTextView {
     }
   }
 
-  @TargetApi(21)
   public static class LetterSpacingSpan extends UnderlineSpan {
     private final float letterSpacing;
 
@@ -212,7 +210,7 @@ public class Composition extends AppCompatTextView {
 
   public void reset(Context context) {
     final Config config = Config.get(context);
-    components = (List<Map<String, Object>>) config.getValue("window");
+    windows_comps = (List<Map<String, Object>>) config.getValue("window");
     if (config.hasKey("layout/max_entries")) max_entries = config.getInt("layout/max_entries");
     candidate_use_cursor = config.getBoolean("candidate_use_cursor");
     text_size = config.getPixel("text_size");
@@ -331,9 +329,11 @@ public class Composition extends AppCompatTextView {
    * @return j
    */
   private int calcStartNum(int min_length, int min_check) {
+    Timber.d("setWindow calcStartNum() getCandidates");
     final Rime.RimeCandidate[] candidates = Rime.getCandidates();
     if (candidates == null) return 0;
 
+    Timber.d("setWindow calcStartNum() getCandidates finish, size=" + candidates.length);
     int j = min_check > max_entries ? (max_entries - 1) : (min_check - 1);
     if (j >= candidates.length) j = candidates.length - 1;
     for (; j >= 0; j--) {
@@ -510,8 +510,36 @@ public class Composition extends AppCompatTextView {
     if (!TextUtils.isEmpty(sep)) ss.append(sep);
   }
 
-  public int setWindow(int length, int min_check) {
+  /**
+   * 设置悬浮窗文本
+   *
+   * @param charLength 候选词长度大于设定，才会显示到悬浮窗中
+   * @param minCheck 检查至少多少个候选词。当首选词长度不足时，继续检查后方候选词
+   * @param maxPopup 最多在悬浮窗显示多少个候选词
+   * @return 悬浮窗显示的候选词数量
+   */
+  public int setWindow(int charLength, int minCheck, int maxPopup) {
+    return setWindow(charLength, minCheck);
+  }
+
+  /**
+   * 设置悬浮窗文本
+   *
+   * @param stringMinLength 候选词长度大于设定，才会显示到悬浮窗中
+   * @param candidateMinCheck 检查至少多少个候选词。当首选词长度不足时，继续检查后方候选词
+   * @return 悬浮窗显示的候选词数量
+   */
+  public int setWindow(int stringMinLength, int candidateMinCheck) {
     if (getVisibility() != View.VISIBLE) return 0;
+    StackTraceElement[] stacks = new Throwable().getStackTrace();
+    Timber.d(
+        "setWindow Rime.getComposition()"
+            + ", [1]"
+            + stacks[1].toString()
+            + ", [2]"
+            + stacks[2].toString()
+            + ", [3]"
+            + stacks[3].toString());
     Rime.RimeComposition r = Rime.getComposition();
     if (r == null) return 0;
     String s = r.getText();
@@ -519,12 +547,15 @@ public class Composition extends AppCompatTextView {
     setSingleLine(true); // 設置單行
     ss = new SpannableStringBuilder();
     int start_num = 0;
-    for (Map<String, ?> m : components) {
+
+    for (Map<String, ?> m : windows_comps) {
       if (m.containsKey("composition")) appendComposition(m);
       else if (m.containsKey("candidate")) {
-        start_num = calcStartNum(length, min_check);
-        Timber.d("start_num = %s, min_length = %s, min_check = %s", start_num, length, min_check);
-        appendCandidates(m, length, start_num);
+        start_num = calcStartNum(stringMinLength, candidateMinCheck);
+        Timber.d(
+            "start_num = %s, min_length = %s, min_check = %s",
+            start_num, stringMinLength, candidateMinCheck);
+        appendCandidates(m, stringMinLength, start_num);
       } else if (m.containsKey("click")) appendButton(m);
       else if (m.containsKey("move")) appendMove(m);
     }

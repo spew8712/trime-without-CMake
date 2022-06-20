@@ -37,7 +37,7 @@
     <string name="about__opencc_version">OpenCC Version</string>
     <string name="about__changelog">Change Log</string>
     <string name="about__licensing_title">License</string>
-    <string name="pref_credits">Credits</string>
+    <string name="pref_credits">Contribute</string>
     <string name="about__product_prime">Win10 PRIME Platform</string>
     <string name="about__privacy_policy">Privacy Policy</string>
     <string name="settings__configuration_title">Configurations</string>
@@ -106,7 +106,6 @@
     <string name="pref_sync_bg_failure">Last background synchronized failed at %s</string>
     <string name="pref_sync_bg_never">Never synchronized background</string>
     <string name="conf__synchronize_background_summary">Click to enable</string>
-    <string name="pref_help__general_channel">General Channel</string>
     <string name="pref_help__marketplace">Marketplace</string>
     <string name="pref_help__user_community">User Community</string>
     <string name="pref_keyboard__function">View</string>
@@ -131,7 +130,7 @@
         <item name="1000">1000</item>
         <item name="-1">All</item>
     </string-array>
-    <string name="keyboard__show_switche_arrow_title">Show arrow for candidate switch</string>
+    <string name="keyboard__show_switche_arrow_title">Show arrow for switch (→)</string>
     <string name="keyboard__fullscreen_mode_title">Landscape fullscreen input</string>
     <string name="deploy_finish">Deploy finish</string>
     <string-array name="keyboard__fullscreen_mode_entries">
@@ -154,10 +153,10 @@
     <string name="about__support">Support</string>
     <string name="about__used_libraries">Third Party Open Source Libraries</string>
     <string name="about__used_library_dialog_title">Trime | Open Source Libraries</string>
-    <string name="other__selection_sense_title">Use Ctrl+Left/Right to move the cursor</string>
     <string name="pref__system_default">System Default</string>
     <string name="keyboard__key_swipe_travel_title">Min travel for gesture</string>
     <string name="keyboard__hook_candidate">Click candidate</string>
+    <string name="keyboard__hook_candidate_commit">Send Space when click candidate (coming soon)</string>
     <string name="trime_app_slogan">Trimes with Your Keystrokes</string>
     <string name="external_storage_access_required">Trime needs to access external storage to deploy or read schemas and config, tap OK to grant the permission.</string>
     <string name="external_storage_permission_not_available">External storage permission is not available</string>
@@ -192,4 +191,40 @@
     <string name="pref_keyboard__hook_summary">Not handled by the App being edited or librime</string>
     <string name="keyboard__hook_candidate_on">Commit directly</string>
     <string name="keyboard__hook_candidate_off">Send number key to librime</string>
+<string name="keyboard__key_swipe_travel_hi_title">The distance to trigger the swipe gesture</string>
+     <string name="keyboard__key_swipe_time_hi_title">Determine the time interval for consecutive keystrokes</string>
+     <string name="keyboard__hook_fast_input">Time interval as fast input </string>
+     <string name="keyboard__hook_fast_input_summary">Merge multiple key inputs into one, thereby reducing the time for candidates, but the interactive feedback will become worse (It will be comming soon)</string>
+     <string name="keyboard__swipe_enabled">Allow swipe gestures to trigger keys</string>
+     <string name="keyboard__key_swipe_velocity">The speed of triggering the button swipe gesture (the distance/velocity is sufficient)</string>
+     <string name="keyboard__key_swipe_velocity_hi">The velocity of the swipe gesture on consecutive keystrokes</string>
+    <string name="about__buildinfo">Build info</string>
+    <string name="pref_trime_custom_qq">Custom QQ Group</string>
+    <string name="pref_trime_custom_qq_summary" translatable="false"> </string>
+    <string name="pref_trime_custom_qq_data" translatable="false"> </string>
+    <string name="keyboard__use_mini_keyboard_title">Show mini keyboard when real keyboard linked</string>
+    <string name="pref_keyboard__candidate">Candidate</string>
+    <string name="keyboard__candidate_page_size">Candidate item count for each page</string>
+    <string-array name="keyboard__candidate_page_size_entries" >
+        <item name="10000">Less than candidate</item>
+        <item name="10001">close to candidate</item>
+        <item name="10002">More than candidate</item>
+        <item name="10005">1.5x candidate width</item>
+        <item name="10010">2x candidate width</item>
+        <item name="10020">3x candidate width</item>
+        <item name="0">Scheme define (Need delete scheme in build path and depoly)</item>
+        <item name="5">5</item>
+        <item name="6">6</item>
+        <item name="7">7</item>
+        <item name="8">8</item>
+        <item name="9">9</item>
+        <item name="10">10</item>
+        <item name="11">11</item>
+        <item name="12">12</item>
+        <item name="15">15</item>
+        <item name="20">20</item>
+        <item name="30">30</item>
+        <item name="50">50</item>
+        <item name="100">100</item>
+    </string-array>
 </resources>

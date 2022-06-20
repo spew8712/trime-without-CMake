@@ -31,13 +31,12 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.SystemClock;
-import android.text.TextUtils;
 import android.util.TypedValue;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.osfans.trime.core.Rime;
+import com.osfans.trime.ime.enums.PositionType;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
-import com.osfans.trime.ime.enums.WindowsPositionType;
 import com.osfans.trime.ime.keyboard.Key;
 import com.osfans.trime.ime.keyboard.Sound;
 import com.osfans.trime.ime.symbol.TabManager;
@@ -375,17 +374,11 @@ public class Config {
       Timber.d("init() load_map done");
       mDefaultStyle = (Map<?, ?>) globalThemeConfig.get("style");
       fallbackColors = (Map<?, ?>) globalThemeConfig.get("fallback_colors");
-      final Map<String, ?> androidKeySettings = globalThemeConfig.get("android_keys");
-      Key.androidKeys = (List<String>) androidKeySettings.get("name");
       Key.presetKeys = (Map<String, Map<String, String>>) globalThemeConfig.get("preset_keys");
-      Key.setSymbolStart(Key.androidKeys.contains("A") ? Key.androidKeys.indexOf("A") : 284);
-      Key.setSymbols((String) androidKeySettings.get("symbols"));
-      if (TextUtils.isEmpty(Key.getSymbols()))
-        Key.setSymbols("ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"$%&:<>?^_{|}~");
       presetColorSchemes =
           (Map<String, Map<String, String>>) globalThemeConfig.get("preset_color_schemes");
       presetKeyboards = (Map<String, Map<String, ?>>) globalThemeConfig.get("preset_keyboards");
-      liquidKeyboard = (Map<String, ?>) globalThemeConfig.get("liquid_keyboard");
+      liquidKeyboard = globalThemeConfig.get("liquid_keyboard");
       initLiquidKeyboard();
       Timber.d("init() initLiquidKeyboard done");
       Rime.setShowSwitches(appPrefs.getKeyboard().getSwitchesEnabled());
@@ -393,6 +386,7 @@ public class Config {
       reset();
       Timber.d("init() reset done");
       initCurrentColors();
+      initEnterLabels();
       Timber.d("init() finins");
     } catch (Exception e) {
       e.printStackTrace();
@@ -840,6 +834,30 @@ public class Config {
     return names;
   }
 
+  private Map<String, String> mEnterLabels;
+
+  public Map<String, String> getmEnterLabels() {
+    return mEnterLabels;
+  }
+
+  public void initEnterLabels() {
+    Object enter_labels = getValue("enter_labels");
+    if (enter_labels == null) mEnterLabels = new HashMap<>();
+    else mEnterLabels = (Map<String, String>) enter_labels;
+
+    String defaultEnterLabel = "Enter";
+    if (mEnterLabels.containsKey("default")) defaultEnterLabel = mEnterLabels.get("default");
+    else mEnterLabels.put("default", defaultEnterLabel);
+
+    if (!mEnterLabels.containsKey("done")) mEnterLabels.put("done", defaultEnterLabel);
+    if (!mEnterLabels.containsKey("go")) mEnterLabels.put("go", defaultEnterLabel);
+    if (!mEnterLabels.containsKey("next")) mEnterLabels.put("next", defaultEnterLabel);
+    if (!mEnterLabels.containsKey("none")) mEnterLabels.put("none", defaultEnterLabel);
+    if (!mEnterLabels.containsKey("pre")) mEnterLabels.put("pre", defaultEnterLabel);
+    if (!mEnterLabels.containsKey("search")) mEnterLabels.put("search", defaultEnterLabel);
+    if (!mEnterLabels.containsKey("send")) mEnterLabels.put("send", defaultEnterLabel);
+  }
+
   public Typeface getFont(String key) {
     final String name = getString(key);
     if (name != null) {
@@ -909,8 +927,8 @@ public class Config {
     return drawableObject(o);
   }
 
-  public WindowsPositionType getWinPos() {
-    return WindowsPositionType.Companion.fromString(getString("layout/position"));
+  public PositionType getWinPos() {
+    return PositionType.Companion.fromString(getString("layout/position"));
   }
 
   public int getLongTimeout() {

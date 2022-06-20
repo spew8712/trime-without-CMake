@@ -34,7 +34,9 @@ import android.view.ViewGroup.LayoutParams;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.osfans.trime.core.Rime;
+import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.data.Config;
+import com.osfans.trime.ime.core.Trime;
 import com.osfans.trime.util.GraphicUtils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -52,7 +54,8 @@ public class Candidate extends View {
   private static final int MAX_CANDIDATE_COUNT = 30;
   public static final String PAGE_UP_BUTTON = "◀";
   public static final String PAGE_DOWN_BUTTON = "▶";
-  // private static final int CANDIDATE_TOUCH_OFFSET = -12;
+  public static final String PAGE_EX_BUTTON = "▼";
+  private int expectWidth = 0;
 
   private WeakReference<EventListener> listener = new WeakReference<>(null);
   private final GraphicUtils graphicUtils;
@@ -154,6 +157,10 @@ public class Candidate extends View {
     if (updateCandidates() > 0) {
       invalidate();
     }
+  }
+
+  public void setExpectWidth(int expectWidth) {
+    this.expectWidth = expectWidth;
   }
 
   /**
@@ -269,22 +276,42 @@ public class Candidate extends View {
   }
 
   private void updateCandidateWidth() {
+    boolean hasExButton = false;
+    Integer pageEx =
+        Integer.parseInt(AppPrefs.defaultInstance().getKeyboard().getCandidatePageSize()) - 10000;
+    int pageBottonWidth =
+        (int)
+            (candidateSpacing
+                + graphicUtils.measureText(symbolPaint, PAGE_DOWN_BUTTON, symbolFont)
+                + 2 * candidatePadding);
+    int minWidth;
+    if (pageEx > 2) minWidth = (int) (expectWidth * (pageEx / 10f + 1) - pageBottonWidth);
+    else if (pageEx == 2) minWidth = (expectWidth - pageBottonWidth * 2);
+    else minWidth = expectWidth - pageBottonWidth;
+
     computedCandidates.clear();
     updateCandidates();
-    int x =
-        (!Rime.hasLeft())
-            ? 0
-            : (int)
-                (2 * candidatePadding
-                    + graphicUtils.measureText(symbolPaint, PAGE_UP_BUTTON, symbolFont)
-                    + candidateSpacing);
+    int x = (!Rime.hasLeft()) ? 0 : pageBottonWidth;
     for (int i = 0; i < numCandidates; i++) {
       int n = i + startNum;
+
+      if (pageEx >= 0) {
+        if (x >= minWidth) {
+          computedCandidates.add(
+              new ComputedCandidate.Symbol(
+                  PAGE_EX_BUTTON,
+                  new Rect(x, 0, ((int) x + pageBottonWidth), getMeasuredHeight())));
+          x += pageBottonWidth;
+          hasExButton = true;
+          break;
+        }
+      }
+      String comment = null, text = candidates[n].text;
       float candidateWidth =
-          graphicUtils.measureText(candidatePaint, candidates[n].text, candidateFont)
-              + 2 * candidatePadding;
+          graphicUtils.measureText(candidatePaint, text, candidateFont) + 2 * candidatePadding;
+
       if (shouldShowComment) {
-        String comment = candidates[n].comment;
+        comment = candidates[n].comment;
         if (!TextUtils.isEmpty(comment)) {
           float commentWidth = graphicUtils.measureText(commentPaint, comment, commentFont);
           candidateWidth =
@@ -293,32 +320,34 @@ public class Candidate extends View {
                   : candidateWidth + commentWidth;
         }
       }
+
+      // 自动填满候选栏，并保障展开候选按钮显示出来
+      if (pageEx == 0 && x + candidateWidth + candidateSpacing > minWidth) {
+        computedCandidates.add(
+            new ComputedCandidate.Symbol(
+                PAGE_EX_BUTTON, new Rect(x, 0, ((int) x + pageBottonWidth), getMeasuredHeight())));
+        x += pageBottonWidth;
+        hasExButton = true;
+        break;
+      }
+
       computedCandidates.add(
           new ComputedCandidate.Word(
-              candidates[n].text,
-              candidates[n].comment,
-              new Rect(x, 0, (int) (x + candidateWidth), getMeasuredHeight())));
+              text, comment, new Rect(x, 0, (int) (x + candidateWidth), getMeasuredHeight())));
       x += candidateWidth + candidateSpacing;
     }
     if (Rime.hasLeft()) {
-      float right =
-          candidateSpacing
-              + graphicUtils.measureText(symbolPaint, PAGE_UP_BUTTON, symbolFont)
-              + 2 * candidatePadding;
       computedCandidates.add(
           new ComputedCandidate.Symbol(
-              PAGE_UP_BUTTON, new Rect(0, 0, (int) right, getMeasuredHeight())));
+              PAGE_UP_BUTTON, new Rect(0, 0, pageBottonWidth, getMeasuredHeight())));
     }
     if (Rime.hasRight()) {
-      float right =
-          candidateSpacing
-              + graphicUtils.measureText(symbolPaint, PAGE_DOWN_BUTTON, symbolFont)
-              + 2 * candidatePadding;
       computedCandidates.add(
           new ComputedCandidate.Symbol(
-              PAGE_DOWN_BUTTON, new Rect(x, 0, (int) ((int) x + right), getMeasuredHeight())));
-      x += (int) right;
+              PAGE_DOWN_BUTTON, new Rect(x, 0, ((int) x + pageBottonWidth), getMeasuredHeight())));
+      x += pageBottonWidth;
     }
+
     LayoutParams params = getLayoutParams();
     params.width = x;
     params.height =
@@ -326,6 +355,8 @@ public class Candidate extends View {
             ? candidateViewHeight + commentHeight
             : candidateViewHeight;
     setLayoutParams(params);
+
+    Trime.getService().setCandidateExPage(hasExButton);
   }
 
   @Override

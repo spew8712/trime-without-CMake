@@ -22,7 +22,7 @@
     <!-- 輸入法平臺名稱  -->
     <string name="trime_app_name">同文輸入法・Trime</string>
     <!-- Preference settings -->
-    <string name="settings__help_title">求助</string>
+    <string name="settings__help_title">尋求幫助</string>
     <string name="pref_wiki">維基教程</string>
     <string name="pref_issues">問題反饋</string>
     <string name="pref_trime_qq">同文QQ羣</string>
@@ -37,7 +37,7 @@
     <string name="about__opencc_version">OpenCC版本</string>
     <string name="about__changelog">更新日誌</string>
     <string name="about__licensing_title">許可證</string>
-    <string name="pref_credits">鳴謝</string>
+    <string name="pref_credits">貢獻代碼</string>
     <string name="about__product_prime">Win10 PRIME輸入法平臺</string>
     <string name="about__privacy_policy">隱私權政策</string>
     <string name="settings__configuration_title">輸入配置</string>
@@ -66,7 +66,7 @@
     <string name="keyboard__key_repeat_interval_title">重複按鍵的重複間隔</string>
     <string name="keyboard__show_switches_title">在候選欄中顯示狀態</string>
     <string name="keyboard__show_key_popup_title">按鍵時彈出顯示字符</string>
-    <string name="keyboard__show_window_title">顯示懸浮窗口</string>
+    <string name="keyboard__show_window_title">顯示懸浮窗</string>
     <string name="keyboard__inline_preedit_title">嵌入式編輯模式</string>
     <string-array name="keyboard__inline_entries">
         <item>首選</item>
@@ -79,7 +79,7 @@
         <item name="light">亮色</item>
         <item name="dark">暗色</item>
     </string-array>
-    <string name="keyboard__soft_cursor_title">編碼區使用插入符號(^)</string>
+    <string name="keyboard__soft_cursor_title">懸浮窗編碼區使用插入符號(^)</string>
     <string name="pref_deploy">部署</string>
     <string name="pref_deploy_summary">修改設定後需要再次部署同文輸入法平臺</string>
     <string name="conf__synchronize_title">同步</string>
@@ -106,7 +106,6 @@
     <string name="pref_sync_bg_failure">上次同步於 %s，失敗</string>
     <string name="pref_sync_bg_never">後台同步未運行</string>
     <string name="conf__synchronize_background_summary">點擊以啟用後台同步</string>
-    <string name="pref_help__general_channel">常規渠道</string>
     <string name="pref_help__marketplace">應用市場</string>
     <string name="pref_help__user_community">使用者社群</string>
     <string name="pref_keyboard__function">檢視</string>
@@ -131,7 +130,7 @@
         <item name="1000">1000</item>
         <item name="-1">全部</item>
     </string-array>
-    <string name="keyboard__show_switche_arrow_title">在候選欄中顯示狀態時帶箭頭符號</string>
+    <string name="keyboard__show_switche_arrow_title">爲開關顯示箭頭符號(→)</string>
     <string name="keyboard__fullscreen_mode_title">橫屏時全屏編輯</string>
     <string name="deploy_finish">部署完成</string>
     <string-array name="keyboard__fullscreen_mode_entries">
@@ -157,6 +156,7 @@
     <string name="pref__system_default">系統預設</string>
     <string name="keyboard__key_swipe_travel_title">觸發滑動手勢的最短距離</string>
     <string name="keyboard__hook_candidate">點擊候選詞</string>
+    <string name="keyboard__hook_candidate_commit">點擊候選詞後，模擬空格鍵完成上屏(暫未實現)</string>
     <string name="trime_app_slogan">擊響中文之韻</string>
     <string name="external_storage_access_required">同文輸入法需要儲存許可權以部署或讀取方案和配置，點選“確定”前往授權。</string>
     <string name="external_storage_permission_not_available">儲存許可權不可用</string>
@@ -191,4 +191,38 @@
     <string name="pref_keyboard__hook_summary">事件不發送給被編輯的 App 及 librime</string>
     <string name="keyboard__hook_candidate_on">直接上屏候選詞</string>
     <string name="keyboard__hook_candidate_off">發送數字鍵模擬鍵盤錄入</string>
+<string name="keyboard__key_swipe_travel_hi_title">連續擊鍵時觸發滑動手勢的距離</string>
+    <string name="keyboard__key_swipe_time_hi_title">判定為連續擊鍵的時間間隔</string>
+    <string name="keyboard__hook_fast_input">攔截字母鍵的快速輸入</string>
+    <string name="keyboard__hook_fast_input_summary">合併多次按鍵輸入為一次，從而縮減出候選的時間，但交互的反饋感會變差(暫未實現此功能)</string>
+    <string name="keyboard__swipe_enabled">允許觸發按鍵的滑動手勢</string>
+    <string name="keyboard__key_swipe_velocity">觸發按鍵滑動手勢的速度（距離/速度滿足其一即可）</string>
+    <string name="keyboard__key_swipe_velocity_hi">連續擊鍵時觸發滑動手勢的速度</string>
+    <string name="about__buildinfo">編譯信息</string>
+    <string name="pref_trime_custom_qq">修改版QQ羣</string>
+    <string name="keyboard__use_mini_keyboard_title">連接實體鍵盤時，顯示迷你軟鍵盤</string>
+    <string name="pref_keyboard__candidate">候選欄</string>
+    <string name="keyboard__candidate_page_size">每頁顯示候選詞數量</string>
+    <string-array name="keyboard__candidate_page_size_entries" >
+        <item name="10000">不超出候選欄</item>
+        <item name="10001">接近於候選欄</item>
+        <item name="10002">略多於候選欄</item>
+        <item name="10005">1.5倍候選欄寬度</item>
+        <item name="10010">2倍候選欄寬度</item>
+        <item name="10020">3倍候選欄寬度</item>
+        <item name="0">由方案指定(需刪除build目錄中的方案並重新部署)</item>
+        <item name="5">5</item>
+        <item name="6">6</item>
+        <item name="7">7</item>
+        <item name="8">8</item>
+        <item name="9">9</item>
+        <item name="10">10</item>
+        <item name="11">11</item>
+        <item name="12">12</item>
+        <item name="15">15</item>
+        <item name="20">20</item>
+        <item name="30">30</item>
+        <item name="50">50</item>
+        <item name="100">100</item>
+    </string-array>
 </resources>

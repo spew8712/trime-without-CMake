@@ -21,7 +21,6 @@ package com.osfans.trime.ime.core;
 import static android.graphics.Color.parseColor;
 
 import android.app.Dialog;
-import android.app.UiModeManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -68,7 +67,9 @@ import com.osfans.trime.data.db.draft.DraftDao;
 import com.osfans.trime.databinding.CompositionRootBinding;
 import com.osfans.trime.databinding.InputRootBinding;
 import com.osfans.trime.ime.broadcast.IntentReceiver;
-import com.osfans.trime.ime.enums.WindowsPositionType;
+import com.osfans.trime.ime.enums.Keycode;
+import com.osfans.trime.ime.enums.PositionType;
+import com.osfans.trime.ime.enums.SymbolKeyboardType;
 import com.osfans.trime.ime.keyboard.Event;
 import com.osfans.trime.ime.keyboard.InputFeedbackManager;
 import com.osfans.trime.ime.keyboard.Key;
@@ -151,7 +152,7 @@ public class Trime extends LifecycleInputMethodService {
   private boolean isCursorUpdated = false; // 光標是否移動
   private int minPopupSize; // 上悬浮窗的候选词的最小词长
   private int minPopupCheckSize; // 第一屏候选词数量少于设定值，则候选词上悬浮窗。（也就是说，第一屏存在长词）此选项大于1时，min_length等参数失效
-  private WindowsPositionType popupWindowPos; // 悬浮窗口彈出位置
+  private PositionType popupWindowPos; // 悬浮窗口彈出位置
   private PopupWindow mPopupWindow;
   private RectF mPopupRectF = new RectF();
   private final Handler mPopupHandler = new Handler(Looper.getMainLooper());
@@ -314,14 +315,14 @@ public class Trime extends LifecycleInputMethodService {
 
   private boolean isWinFixed() {
     return VERSION.SDK_INT <= VERSION_CODES.LOLLIPOP
-        || (popupWindowPos != WindowsPositionType.LEFT
-            && popupWindowPos != WindowsPositionType.RIGHT
-            && popupWindowPos != WindowsPositionType.LEFT_UP
-            && popupWindowPos != WindowsPositionType.RIGHT_UP);
+        || (popupWindowPos != PositionType.LEFT
+            && popupWindowPos != PositionType.RIGHT
+            && popupWindowPos != PositionType.LEFT_UP
+            && popupWindowPos != PositionType.RIGHT_UP);
   }
 
   public void updatePopupWindow(final int offsetX, final int offsetY) {
-    popupWindowPos = WindowsPositionType.DRAG;
+    popupWindowPos = PositionType.DRAG;
     popupWindowX = offsetX;
     popupWindowY = offsetY;
     Timber.i("updatePopupWindow: winX = %s, winY = %s", popupWindowX, popupWindowY);
@@ -423,6 +424,8 @@ public class Trime extends LifecycleInputMethodService {
     return false;
   }
 
+  private SymbolKeyboardType symbolKeyboardType = SymbolKeyboardType.NO_KEY;
+
   public void selectLiquidKeyboard(final int tabIndex) {
     final LinearLayout symbolInputView =
         inputRootBinding != null ? inputRootBinding.symbol.symbolInput : null;
@@ -438,14 +441,17 @@ public class Trime extends LifecycleInputMethodService {
         final int orientation = getResources().getConfiguration().orientation;
         liquidKeyboard.setLand(orientation == Configuration.ORIENTATION_LANDSCAPE);
         liquidKeyboard.calcPadding(mainInputView.getWidth());
-        liquidKeyboard.select(tabIndex);
-
+        symbolKeyboardType = liquidKeyboard.select(tabIndex);
         tabView.updateTabWidth();
         if (inputRootBinding != null) {
           mTabRoot.setBackground(mCandidateRoot.getBackground());
           mTabRoot.move(tabView.getHightlightLeft(), tabView.getHightlightRight());
         }
-      } else symbolInputView.setVisibility(View.GONE);
+      } else {
+        symbolKeyboardType = SymbolKeyboardType.NO_KEY;
+        symbolInputView.setVisibility(View.GONE);
+      }
+      updateComposing();
     }
     if (mainInputView != null)
       mainInputView.setVisibility(tabIndex >= 0 ? View.GONE : View.VISIBLE);
@@ -454,7 +460,12 @@ public class Trime extends LifecycleInputMethodService {
   // 按键需要通过tab name来打开liquidKeyboard的指定tab
   public void selectLiquidKeyboard(@NonNull String name) {
     if (name.matches("\\d+")) selectLiquidKeyboard(Integer.parseInt(name));
+    else if (name.matches("[A-Z]+")) selectLiquidKeyboard(SymbolKeyboardType.valueOf(name));
     else selectLiquidKeyboard(TabManager.getTagIndex(name));
+  }
+
+  public void selectLiquidKeyboard(SymbolKeyboardType type) {
+    selectLiquidKeyboard(TabManager.getTagIndex(type));
   }
 
   public void pasteByChar() {
@@ -531,8 +542,8 @@ public class Trime extends LifecycleInputMethodService {
     int[] padding =
         mConfig.getKeyboardPadding(oneHandMode, orientation == Configuration.ORIENTATION_LANDSCAPE);
     Timber.i(
-        "update KeyboardPadding: Trime.loadBackground, padding= %s %s %s",
-        padding[0], padding[1], padding[2]);
+        "update KeyboardPadding: Trime.loadBackground, padding= %s %s %s, orientation=%s",
+        padding[0], padding[1], padding[2], orientation);
     mainKeyboardView.setPadding(padding[0], 0, padding[1], padding[2]);
 
     final Drawable inputRootBackground = mConfig.getDrawable_("root_background");
@@ -751,6 +762,9 @@ public class Trime extends LifecycleInputMethodService {
     getImeConfig().initCurrentColors();
     loadBackground();
 
+    if (keyboardSwitcher != null) keyboardSwitcher.newOrReset();
+    Timber.i("onCreateInputView() finish");
+
     return inputRootBinding.inputRoot;
   }
 
@@ -763,8 +777,9 @@ public class Trime extends LifecycleInputMethodService {
   public void onStartInputView(EditorInfo attribute, boolean restarting) {
     super.onStartInputView(attribute, restarting);
     if (getPrefs().getLooks().getAutoDark()) {
-      UiModeManager uiModeManager = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
-      if (setDarkMode(uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES)) {
+      int nightModeFlags =
+          getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+      if (setDarkMode(nightModeFlags == Configuration.UI_MODE_NIGHT_YES)) {
         Timber.i("dark mode changed");
         initKeyboardDarkMode(darkMode);
       } else Timber.i("dark mode not changed");
@@ -782,6 +797,14 @@ public class Trime extends LifecycleInputMethodService {
     bindKeyboardToInputView();
     if (!restarting) setNavBarColor();
     setCandidatesViewShown(!Rime.isEmpty()); // 軟鍵盤出現時顯示候選欄
+
+    if ((attribute.imeOptions & EditorInfo.IME_FLAG_NO_ENTER_ACTION)
+        == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
+      mainKeyboardView.resetEnterLabel();
+    } else {
+      mainKeyboardView.setEnterLabel(
+          attribute.imeOptions & EditorInfo.IME_MASK_ACTION, attribute.actionLabel);
+    }
 
     switch (attribute.inputType & InputType.TYPE_MASK_VARIATION) {
       case InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS:
@@ -881,8 +904,8 @@ public class Trime extends LifecycleInputMethodService {
   }
 
   public void commitTextByChar(String text) {
-    for (int i = 1; i < text.length(); i++) {
-      if (!activeEditorInstance.commitText(text.substring(i - 1, i))) break;
+    for (int i = 0; i < text.length(); i++) {
+      if (!activeEditorInstance.commitText(text.substring(i, i + 1))) break;
     }
   }
 
@@ -902,6 +925,7 @@ public class Trime extends LifecycleInputMethodService {
 
   public boolean onRimeKey(int[] event) {
     updateRimeOption();
+    // todo 改为异步处理按键事件、刷新UI
     final boolean ret = Rime.onKey(event);
     activeEditorInstance.commitRimeText();
     return ret;
@@ -910,7 +934,7 @@ public class Trime extends LifecycleInputMethodService {
   private boolean composeEvent(@NonNull KeyEvent event) {
     final int keyCode = event.getKeyCode();
     if (keyCode == KeyEvent.KEYCODE_MENU) return false; // 不處理 Menu 鍵
-    if (keyCode >= Key.getSymbolStart()) return false; // 只處理安卓標準按鍵
+    if (Keycode.Companion.hasSymbolLabel(keyCode)) return false; // 只處理安卓標準按鍵
     if (event.getRepeatCount() == 0 && Key.isTrimeModifierKey(keyCode)) {
       boolean ret =
           onRimeKey(
@@ -1066,7 +1090,7 @@ public class Trime extends LifecycleInputMethodService {
     if (Event.hasModifier(mask, KeyEvent.META_CTRL_ON)) {
 
       if (VERSION.SDK_INT >= VERSION_CODES.M) {
-        if (getPrefs().getKeyboard().getHockCtrlZY()) {
+        if (getPrefs().getKeyboard().getHookCtrlZY()) {
           switch (code) {
             case KeyEvent.KEYCODE_Y:
               return ic.performContextMenuAction(android.R.id.redo);
@@ -1077,11 +1101,11 @@ public class Trime extends LifecycleInputMethodService {
       }
       switch (code) {
         case KeyEvent.KEYCODE_A:
-          if (getPrefs().getKeyboard().getHockCtrlA())
+          if (getPrefs().getKeyboard().getHookCtrlA())
             return ic.performContextMenuAction(android.R.id.selectAll);
           return false;
         case KeyEvent.KEYCODE_X:
-          if (getPrefs().getKeyboard().getHockCtrlCV()) {
+          if (getPrefs().getKeyboard().getHookCtrlCV()) {
             ExtractedTextRequest etr = new ExtractedTextRequest();
             etr.token = 0;
             ExtractedText et = ic.getExtractedText(etr, 0);
@@ -1093,7 +1117,7 @@ public class Trime extends LifecycleInputMethodService {
           Timber.i("hookKeyboard cut fail");
           return false;
         case KeyEvent.KEYCODE_C:
-          if (getPrefs().getKeyboard().getHockCtrlCV()) {
+          if (getPrefs().getKeyboard().getHookCtrlCV()) {
             ExtractedTextRequest etr = new ExtractedTextRequest();
             etr.token = 0;
             ExtractedText et = ic.getExtractedText(etr, 0);
@@ -1105,7 +1129,7 @@ public class Trime extends LifecycleInputMethodService {
           Timber.i("hookKeyboard copy fail");
           return false;
         case KeyEvent.KEYCODE_V:
-          if (getPrefs().getKeyboard().getHockCtrlCV()) {
+          if (getPrefs().getKeyboard().getHookCtrlCV()) {
             ExtractedTextRequest etr = new ExtractedTextRequest();
             etr.token = 0;
             ExtractedText et = ic.getExtractedText(etr, 0);
@@ -1121,7 +1145,7 @@ public class Trime extends LifecycleInputMethodService {
           }
           return false;
         case KeyEvent.KEYCODE_DPAD_RIGHT:
-          if (getPrefs().getKeyboard().getHockCtrlLR()) {
+          if (getPrefs().getKeyboard().getHookCtrlLR()) {
             ExtractedTextRequest etr = new ExtractedTextRequest();
             etr.token = 0;
             ExtractedText et = ic.getExtractedText(etr, 0);
@@ -1134,7 +1158,7 @@ public class Trime extends LifecycleInputMethodService {
             break;
           }
         case KeyEvent.KEYCODE_DPAD_LEFT:
-          if (getPrefs().getKeyboard().getHockCtrlLR()) {
+          if (getPrefs().getKeyboard().getHookCtrlLR()) {
             ExtractedTextRequest etr = new ExtractedTextRequest();
             etr.token = 0;
             ExtractedText et = ic.getExtractedText(etr, 0);
@@ -1170,26 +1194,45 @@ public class Trime extends LifecycleInputMethodService {
   } */
 
   /** 更新Rime的中西文狀態、編輯區文本 */
-  public void updateComposing() {
+  public int updateComposing() {
     final @Nullable InputConnection ic = getCurrentInputConnection();
     activeEditorInstance.updateComposingText();
     if (ic != null && !isWinFixed()) isCursorUpdated = ic.requestCursorUpdates(1);
+    int startNum = 0;
     if (mCandidateRoot != null) {
       if (isPopupWindowEnabled) {
-        final int startNum = mComposition.setWindow(minPopupSize, minPopupCheckSize);
-        mCandidate.setText(startNum);
-        // if isCursorUpdated, showCompositionView will be called in onUpdateCursorAnchorInfo
-        // otherwise we need to call it here
-        if (!isCursorUpdated) showCompositionView();
+        Timber.d("updateComposing() SymbolKeyboardType=%s", symbolKeyboardType.toString());
+        if (symbolKeyboardType != SymbolKeyboardType.NO_KEY
+            && symbolKeyboardType != SymbolKeyboardType.CANDIDATE) {
+          mComposition.getRootView().setVisibility(View.GONE);
+        } else {
+          mComposition.getRootView().setVisibility(View.VISIBLE);
+          startNum = mComposition.setWindow(minPopupSize, minPopupCheckSize, Integer.MAX_VALUE);
+          mCandidate.setText(startNum);
+          // if isCursorUpdated, showCompositionView will be called in onUpdateCursorAnchorInfo
+          // otherwise we need to call it here
+          if (!isCursorUpdated) showCompositionView();
+        }
       } else {
         mCandidate.setText(0);
       }
+      mCandidate.setExpectWidth(mainKeyboardView.getWidth());
       // 刷新候选词后，如果候选词超出屏幕宽度，滚动候选栏
       mTabRoot.move(mCandidate.getHighlightLeft(), mCandidate.getHighlightRight());
     }
     if (mainKeyboardView != null) mainKeyboardView.invalidateComposingKeys();
     if (!onEvaluateInputViewShown())
       setCandidatesViewShown(textInputManager.isComposable()); // 實體鍵盤打字時顯示候選欄
+
+    if (symbolKeyboardType == SymbolKeyboardType.CANDIDATE) {
+      if (isComposing()) {
+        liquidKeyboard.updateCandidates();
+      } else {
+        selectLiquidKeyboard(-1);
+      }
+    }
+
+    return startNum;
   }
 
   private void showDialog(@NonNull Dialog dialog) {
@@ -1445,5 +1488,15 @@ public class Trime extends LifecycleInputMethodService {
         liquidKeyboard.addDraftData(draftCache);
       }
     }
+  }
+
+  private boolean candidateExPage = false;
+
+  public boolean hasCandidateExPage() {
+    return candidateExPage;
+  }
+
+  public void setCandidateExPage(boolean candidateExPage) {
+    this.candidateExPage = candidateExPage;
   }
 }

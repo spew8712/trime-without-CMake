@@ -4,6 +4,9 @@ import java.util.HashMap
 import java.util.Locale
 
 enum class SymbolKeyboardType {
+    // 不占据tab位，仅当在“更多”面板，即“TABS”中显示时，产生换行效果
+    NEW_ROW,
+
     // 只占据tab位，不含keys（如返回键
     NO_KEY,
 
@@ -16,6 +19,9 @@ enum class SymbolKeyboardType {
     //  文本框编辑历史，即“草稿箱”
     DRAFT,
 
+    // 候选词
+    CANDIDATE,
+
     //  近期上屏符号历史（需要区分来源并提示？）
     HISTORY,
 
@@ -27,7 +33,10 @@ enum class SymbolKeyboardType {
     //  按键使用固定宽度。如不设置宽度，则自动换行
     SHORT,
 
-    //  按键长度不固定
+    //  按键长度不固定，与展开候选的样式相同；与
+    VAR,
+
+    //  长度较长，与草稿箱、剪贴板的样式相同，使用小号字体多行展示
     LONG,
 
     //  需要展开显示的多行内容（不省略内容）
@@ -57,8 +66,14 @@ enum class SymbolKeyboardType {
             return type ?: SINGLE
         }
 
-        fun needKeys(type: SymbolKeyboardType): Boolean {
+        // 是否在liquidKeyboard键盘区域展示按键
+        fun hasKeys(type: SymbolKeyboardType): Boolean {
             return type > HISTORY
+        }
+
+        // 是否呈现在liquidKeyboard键盘区域的tabs列表中
+        fun hasKey(type: SymbolKeyboardType): Boolean {
+            return type >= CLIPBOARD
         }
     }
 }

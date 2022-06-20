@@ -97,6 +97,15 @@ style:
   text_size: 14 #编码区字号
   vertical_correction: -5
   vertical_gap: *sgap #键盘行距
+  enter_label_mode: 0  #是否使用App提供的ActionLabel内容作为Enter键的文本（由于多数App没有适配ActionLable，实际影响不大）。0不使用，1只使用actionlabel，2优先使用，3当其他方式没有获得label时才读取actionlabel
+  enter_labels:  # 定义Enter键的文本
+    go: 前往
+    done: 完成
+    next: 下个
+    pre:  上个
+    search: 搜索
+    send: 发送
+    default: Enter   # 定义默认Enter键的文本
 
 fallback_colors:
   candidate_text_color: text_color
@@ -1018,7 +1027,7 @@ preset_keyboards:
       - {click: space, long_click: Mode_switch, swipe_left: "Left", swipe_right: "Right", swipe_up: Schema_switchcn, width: 30, key_back_color: bkg, key_text_color: tkg}
       - {click: '.', label: '。', long_click: liquid_keyboard_clipboard, key_back_color: bh4, key_text_color: th4}
       - {click: '/', long_click: liquid_keyboard_switch , key_text_size: "18", key_back_color: bh4, key_text_color: th4}
-      - {click: Return, swipe_up: Escape, width: 15, key_back_color: benter, key_text_color: tenter}
+      - {click: Return, composing: Return1, swipe_up: Escape, width: 15, key_back_color: benter, key_text_color: tenter}
 
   letter:
     author: "暖暖"
@@ -1067,7 +1076,7 @@ preset_keyboards:
       - {label: '______', click: space, long_click: space_R2, swipe_left: "Left", swipe_right: "Right", swipe_up: Keyboard_fbj, width: 30, key_back_color: bkg, key_text_color: tkg}
       - {click: '.', label: '。', long_click: Keyboard_kao, key_back_color: bh4, key_text_color: th4}
       - {click: space_R2, long_click: liquid_keyboard_switch, key_text_size: "18", key_back_color: bh4, key_text_color: th4}
-      - {click: Return, swipe_up: Escape, width: 15, key_back_color: benter, key_text_color: tenter}
+      - {click: Return, composing: Return1, swipe_up: Escape, width: 15, key_back_color: benter, key_text_color: tenter}
 
   number:
     author: "暖暖"
@@ -3858,8 +3867,6 @@ preset_keyboards:
     - {label: '丶', click: space_R1, long_click: Zcj, composing: Keyboard_r, ascii: 'r', combo: r, width: 11.5, key_text_size: "18", key_back_color: bgn, key_text_color: tgn}
     - {label: 'Enter', long_click: Return, click: Return, swipe_up: Escape, composing: Keyboard_e0, width: 15.5, round_corner: *round3, key_back_color: benter, key_text_color: tenter}
 
-android_keys:
-  __include: trime:/android_keys
 
 preset_keys:
   # 安卓
@@ -3880,7 +3887,8 @@ preset_keys:
   VOLUME_MUTE: {label: 静音, send: VOLUME_MUTE}
   # 编辑
   Shift_L: {label: Shift, preview: '⇪', functional: false, send: Shift_L}
-  Return: {label: Enter, preview: '↩', functional: false, send: Return}
+  Return: { label: enter_labels, preview: '↩', functional: false, send: Return }
+  Return1: {label: Enter, preview: '↩', functional: false, send: Return}
   Hide: {label: 隐藏, send: BACK}
   BackSpace: {label: 退格, preview: '⇦', repeatable: true, functional: false, send: BackSpace}
   space: {repeatable: false, preview: ' ', functional: false, label: '_______', send: space}

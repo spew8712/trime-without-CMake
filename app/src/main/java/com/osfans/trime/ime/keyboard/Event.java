@@ -23,6 +23,7 @@ import android.view.KeyEvent;
 import androidx.annotation.NonNull;
 import com.osfans.trime.core.Rime;
 import com.osfans.trime.data.Config;
+import com.osfans.trime.ime.enums.Keycode;
 import com.osfans.trime.util.ConfigGetter;
 import java.util.HashMap;
 import java.util.List;
@@ -60,10 +61,10 @@ public class Event {
     mKeyboard = keyboard;
     if (sendPattern.matcher(s).matches()) {
       label = s.substring(1, s.length() - 1);
-      int[] sends = parseSend(label); // send
+      int[] sends = Keycode.parseSend(label); // send
       code = sends[0];
       mask = sends[1];
-      if (code >= 0) return;
+      if (code > 0 || mask > 0) return;
       if (parseAction(label)) return;
       s = label; // key
       label = null;
@@ -82,7 +83,7 @@ public class Event {
       String send = ConfigGetter.getString(presetKey, "send", "");
       if (TextUtils.isEmpty(send) && !TextUtils.isEmpty(command))
         send = "function"; // command默認發function
-      int[] sends = parseSend(send);
+      int[] sends = Keycode.parseSend(send);
       code = sends[0];
       mask = sends[1];
       parseLabel();
@@ -141,22 +142,6 @@ public class Event {
     return shiftLock;
   }
 
-  @NonNull
-  public static int[] parseSend(String s) {
-    int[] sends = new int[2];
-    if (TextUtils.isEmpty(s)) return sends;
-    String codes;
-    if (!s.contains("+")) codes = s;
-    else {
-      String[] ss = s.split("\\+");
-      int n = ss.length;
-      for (int i = 0; i < n - 1; i++) if (masks.containsKey(ss[i])) sends[1] |= masks.get(ss[i]);
-      codes = ss[n - 1];
-    }
-    sends[0] = Key.androidKeys.indexOf(codes);
-    return sends;
-  }
-
   // 快速把字符串解析为event, 暂时只处理了comment类型 不能完全正确处理=，
   private boolean parseAction(String s) {
     boolean result = false;
@@ -179,6 +164,7 @@ public class Event {
     return result;
   }
 
+  // TODO 进一步解耦，在Event中去除mKeyboard
   @NonNull
   private String adjustCase(String s) {
     if (TextUtils.isEmpty(s)) return "";
@@ -233,17 +219,16 @@ public class Event {
 
   public static String getDisplayLabel(int keyCode) {
     String s = "";
-    if (keyCode < Key.getSymbolStart()) { // 字母數字
+    if (Keycode.Companion.isStdKey(keyCode)) { // 字母數字
       if (Key.getKcm().isPrintingKey(keyCode)) {
         char c = Key.getKcm().getDisplayLabel(keyCode);
         if (Character.isUpperCase(c)) c = Character.toLowerCase(c);
         s = String.valueOf(c);
       } else {
-        s = Key.androidKeys.get(keyCode);
+        s = Keycode.keyNameOf(keyCode);
       }
-    } else if (keyCode < Key.androidKeys.size()) { // 可見符號
-      keyCode -= Key.getSymbolStart();
-      s = Key.getSymbols().substring(keyCode, keyCode + 1);
+    } else if (Keycode.Companion.hasSymbolLabel(keyCode)) { // 可見符號
+      s = Keycode.Companion.getSymbolLabell(Keycode.valueOf(keyCode));
     }
     return s;
   }
@@ -252,25 +237,12 @@ public class Event {
     int keyCode = -1;
     if (TextUtils.isEmpty(s)) { // 空鍵
       keyCode = 0;
-    } else if (Key.androidKeys.contains(s)) { // 字母數字
-      keyCode = Key.androidKeys.indexOf(s);
-    } else if (Key.getSymbols().contains(s)) { // 可見符號
-      keyCode = Key.getSymbolStart() + Key.getSymbols().indexOf(s);
+    } else if (Keycode.fromString(s) != Keycode.VoidSymbol) { // 字母數字
+      keyCode = Keycode.keyCodeOf(s);
     } else if (symbolAliases.containsKey(s)) {
       keyCode = symbolAliases.get(s);
     }
     return keyCode;
-  }
-
-  // TODO 把软键盘预设android_keys的keycode(index)->keyname(string)—>rimeKeycode的过程改为直接返回int
-  // https://github.com/rime/librime/blob/99e269c8eb251deddbad9b0d2c4d965b228f8006/src/rime/key_table.cc
-  private static int getRimeCode(int code) {
-    int i = 0;
-    if (code >= 0 && code < Key.androidKeys.size()) {
-      String s = Key.androidKeys.get(code);
-      i = Rime.get_keycode_by_name(s);
-    }
-    return i;
   }
 
   public static boolean hasModifier(int mask, int modifier) {
@@ -279,7 +251,7 @@ public class Event {
 
   // KeyboardEvent 从软键盘的按键keycode（可能含有mask）和mask，分离出rimekeycode和mask构成的数组
   public static int[] getRimeEvent(int code, int mask) {
-    int i = getRimeCode(code);
+    int i = RimeKeycode.get().getRimeCode(code);
     int m = 0;
     if (hasModifier(mask, KeyEvent.META_SHIFT_ON)) m |= Rime.META_SHIFT_ON;
     if (hasModifier(mask, KeyEvent.META_CTRL_ON)) m |= Rime.META_CTRL_ON;
@@ -287,6 +259,9 @@ public class Event {
     if (hasModifier(mask, KeyEvent.META_SYM_ON)) m |= Rime.META_SYM_ON;
     if (hasModifier(mask, KeyEvent.META_META_ON)) m |= Rime.META_META_ON;
     if (mask == Rime.META_RELEASE_ON) m |= Rime.META_RELEASE_ON;
+    Timber.d(
+        "<Event> getRimeEvent()\tcode=%d, mask=%d, name=%s\toutput key=%d, meta=%d",
+        code, mask, Keycode.keyNameOf(code), i, m);
     return new int[] {i, m};
   }
 

@@ -13,8 +13,9 @@ import com.osfans.trime.ime.broadcast.IntentReceiver
 import com.osfans.trime.ime.core.EditorInstance
 import com.osfans.trime.ime.core.Speech
 import com.osfans.trime.ime.core.Trime
+import com.osfans.trime.ime.enums.Keycode
+import com.osfans.trime.ime.enums.SymbolKeyboardType
 import com.osfans.trime.ime.keyboard.Event
-import com.osfans.trime.ime.keyboard.Key
 import com.osfans.trime.ime.keyboard.Keyboard.printModifierKeyState
 import com.osfans.trime.ime.keyboard.KeyboardSwitcher
 import com.osfans.trime.ime.keyboard.KeyboardView
@@ -145,7 +146,8 @@ class TextInputManager private constructor() :
         candidateRoot = uiBinding.main.candidateView.candidateRoot.also {
             it.setPageStr(
                 Runnable { trime.handleKey(KeyEvent.KEYCODE_PAGE_DOWN, 0) },
-                Runnable { trime.handleKey(KeyEvent.KEYCODE_PAGE_UP, 0) }
+                Runnable { trime.handleKey(KeyEvent.KEYCODE_PAGE_UP, 0) },
+                Runnable { trime.selectLiquidKeyboard(SymbolKeyboardType.CANDIDATE) }
             )
             it.visibility = if (Rime.getOption("_hide_candidate")) View.GONE else View.VISIBLE
         }
@@ -178,6 +180,7 @@ class TextInputManager private constructor() :
 
     override fun onStartInputView(instance: EditorInstance, restarting: Boolean) {
         super.onStartInputView(instance, restarting)
+        Trime.getService().selectLiquidKeyboard(-1)
         isComposable = false
         performEnterAsLineBreak = false
         var tempAsciiMode = if (shouldResetAsciiMode) false else null
@@ -390,9 +393,9 @@ class TextInputManager private constructor() :
     override fun onKey(keyEventCode: Int, metaState: Int) {
         printModifierKeyState(metaState, "keyEventCode=" + keyEventCode)
         if (trime.handleKey(keyEventCode, metaState)) return
-        if (keyEventCode >= Key.getSymbolStart()) {
+        if (Keycode.hasSymbolLabel(keyEventCode)) {
             needSendUpRimeKey = false
-            activeEditorInstance.commitText(Event.getDisplayLabel(keyEventCode))
+            activeEditorInstance.commitText(Keycode.getSymbolLabell(Keycode.valueOf(keyEventCode)))
             return
         }
         needSendUpRimeKey = false
@@ -443,9 +446,14 @@ class TextInputManager private constructor() :
                 Rime.toggleOption(index)
                 trime.updateComposing()
             }
-        } else if (prefs.keyboard.hockCandidate || index > 9) {
+        } else if (prefs.keyboard.hookCandidate || index > 9) {
             if (Rime.selectCandidate(index)) {
-                activeEditorInstance.commitRimeText()
+                if (prefs.keyboard.hookCandidateCommit) {
+                    // todo 找到切换高亮候选词的API，并把此处改为模拟移动候选后发送空格
+                    // 如果使用了lua处理候选上屏，模拟数字键、空格键是非常有必要的
+                    activeEditorInstance.commitRimeText()
+                } else
+                    activeEditorInstance.commitRimeText()
             }
         } else if (index == 9) {
             trime.handleKey(KeyEvent.KEYCODE_0, 0)
@@ -458,6 +466,7 @@ class TextInputManager private constructor() :
         when (arrow) {
             Candidate.PAGE_UP_BUTTON -> onKey(KeyEvent.KEYCODE_PAGE_UP, 0)
             Candidate.PAGE_DOWN_BUTTON -> onKey(KeyEvent.KEYCODE_PAGE_DOWN, 0)
+            Candidate.PAGE_EX_BUTTON -> Trime.getService().selectLiquidKeyboard(SymbolKeyboardType.CANDIDATE)
         }
     }
 }

@@ -1,10 +1,7 @@
 name: commit ci
 on: [push]
-#on:
-#  push:
-#    branches:
-#      - pr*
-#      - dev*
+env:
+  CI_NAME: Commit CI
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,5 +38,3 @@ jobs:
           path: app/build/outputs/apk/**/*.apk
           # keep 90 days
           retention-days: 90
-
-

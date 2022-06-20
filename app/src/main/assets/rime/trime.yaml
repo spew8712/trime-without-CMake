@@ -89,6 +89,15 @@ style:
   long_text_font: comment.ttf #剪贴板等可能包含大段文本使用的字体
   #background_folder: #背景图保存在background目录下的哪个子目录
   key_long_text_border: 1
+  enter_label_mode: 0  #是否使用App提供的ActionLabel内容作为Enter键的文本（由于多数App没有适配ActionLable，实际影响不大）。0不使用，1只使用actionlabel，2优先使用，3当其他方式没有获得label时才读取actionlabel
+  enter_labels:  # 定义Enter键的文本
+    go: 前往
+    done: 完成
+    next: 下个
+    pre:  上个
+    search: 搜索
+    send: 发送
+    default: Enter   # 定义默认Enter键的文本
 
 fallback_colors:
   candidate_text_color: text_color
@@ -684,7 +693,7 @@ liquid_keyboard:
   single_width: 60    #single类型的按键宽度
   vertical_gap: 1     #纵向按键间隙
   margin_x: 0.5         #左右按键间隙的1/2
-  keyboards: [emoji, math, ascii, cn, history, clipboard, draft, list, tabs, exit, ids , jp, table, symbol, pinyin, grease, rusa, korea, lation, yinbiao, unit,  exit]  #tab列表
+  keyboards: [emoji, math, ascii, cn, history, clipboard, draft, tabs, exit, candidate, list, ids , table, symbol, unit, new, jp, pinyin, grease, rusa, korea, lation, yinbiao,  exit]  #tab列表
   exit:
     name: 返回
     type: NO_KEY
@@ -692,6 +701,12 @@ liquid_keyboard:
   tabs:
     name: 更多
     type: TABS
+  new:
+    name: 新行 #此类型不显示在候选栏中，但是打开“更多”TAB时，下一个按键会换行
+    type: NEW_ROW
+  candidate:
+    name: 候选
+    type: CANDIDATE
   history:
     name: 常用
     type: HISTORY
@@ -723,8 +738,9 @@ liquid_keyboard:
       - ‘
       - ···
       - ……
-      - { click: "——" }
+      - { click: "-" }
       - { click: "——", label: "破折" }
+      - { click: "" } # 内容为空可以强制令键盘从此处新起一行
       - （
       - ）
       - 【
@@ -792,53 +808,7 @@ liquid_keyboard:
 
 
 android_keys:
-  name: [VoidSymbol, SOFT_LEFT, SOFT_RIGHT, HOME, BACK, CALL, ENDCALL,
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-    asterisk, numbersign, Up, Down, Left, Right, KP_Begin,
-    VOLUME_UP, VOLUME_DOWN, POWER, CAMERA, Clear,
-    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z,
-    comma, period, Alt_L, Alt_R, Shift_L, Shift_R, Tab, space,
-    SYM, EXPLORER, ENVELOPE, Return, BackSpace,
-    grave, minus, equal, bracketleft, bracketright, backslash, semicolon, apostrophe, slash, at,
-    NUM, HEADSETHOOK, FOCUS, plus, Menu, NOTIFICATION, Find,
-    MEDIA_PLAY_PAUSE, MEDIA_STOP, MEDIA_NEXT, MEDIA_PREVIOUS, MEDIA_REWIND, MEDIA_FAST_FORWARD, MUTE,
-    Page_Up, Page_Down, PICTSYMBOLS, Mode_switch,
-    BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_X, BUTTON_Y, BUTTON_Z,
-    BUTTON_L1, BUTTON_R1, BUTTON_L2, BUTTON_R2,
-    BUTTON_THUMBL, BUTTON_THUMBR, BUTTON_START, BUTTON_SELECT, BUTTON_MODE,
-    Escape, Delete, Control_L, Control_R, Caps_Lock, Scroll_Lock, Meta_L, Meta_R,
-    function, Sys_Req, Pause, Home, End, Insert, Next,
-    MEDIA_PLAY, MEDIA_PAUSE, MEDIA_CLOSE, MEDIA_EJECT, MEDIA_RECORD,
-    F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
-    Num_Lock, KP_0, KP_1, KP_2, KP_3, KP_4, KP_5, KP_6, KP_7, KP_8, KP_9,
-    KP_Divide, KP_Multiply, KP_Subtract, KP_Add, KP_Decimal, KP_Separator, KP_Enter, KP_Equal,
-    parenleft, parenright,
-    VOLUME_MUTE, INFO, CHANNEL_UP, CHANNEL_DOWN, ZOOM_IN, ZOOM_OUT,
-    TV, WINDOW, GUIDE, DVR, BOOKMARK, CAPTIONS, SETTINGS,
-    TV_POWER, TV_INPUT, STB_POWER, STB_INPUT, AVR_POWER, AVR_INPUT,
-    PROG_RED, PROG_GREEN, PROG_YELLOW, PROG_BLUE, APP_SWITCH,
-    BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4, BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8,
-    BUTTON_9, BUTTON_10, BUTTON_11, BUTTON_12, BUTTON_13, BUTTON_14, BUTTON_15, BUTTON_16,
-    LANGUAGE_SWITCH, MANNER_MODE, 3D_MODE, CONTACTS, CALENDAR, MUSIC, CALCULATOR,
-    Zenkaku_Hankaku, Eisu_toggle, Muhenkan, Henkan, Hiragana_Katakana, yen, RO, Kana_Lock,
-    ASSIST, BRIGHTNESS_DOWN, BRIGHTNESS_UP, MEDIA_AUDIO_TRACK,
-    SLEEP, WAKEUP, PAIRING, MEDIA_TOP_MENU, '11', '12', LAST_CHANNEL, TV_DATA_SERVICE, VOICE_ASSIST,
-    TV_RADIO_SERVICE, TV_TELETEXT, TV_NUMBER_ENTRY, TV_TERRESTRIAL_ANALOG, TV_TERRESTRIAL_DIGITAL,
-    TV_SATELLITE, TV_SATELLITE_BS, TV_SATELLITE_CS, TV_SATELLITE_SERVICE, TV_NETWORK, TV_ANTENNA_CABLE,
-    TV_INPUT_HDMI_1, TV_INPUT_HDMI_2, TV_INPUT_HDMI_3, TV_INPUT_HDMI_4,
-    TV_INPUT_COMPOSITE_1, TV_INPUT_COMPOSITE_2, TV_INPUT_COMPONENT_1, TV_INPUT_COMPONENT_2, TV_INPUT_VGA_1,
-    TV_AUDIO_DESCRIPTION, TV_AUDIO_DESCRIPTION_MIX_UP, TV_AUDIO_DESCRIPTION_MIX_DOWN,
-    TV_ZOOM_MODE, TV_CONTENTS_MENU, TV_MEDIA_CONTEXT_MENU, TV_TIMER_PROGRAMMING,
-    Help, NAVIGATE_PREVIOUS, NAVIGATE_NEXT, NAVIGATE_IN, NAVIGATE_OUT,
-    STEM_PRIMARY, STEM_1, STEM_2, STEM_3,
-    Pointer_UpLeft, Pointer_DownLeft, Pointer_UpRight, Pointer_DownRight,
-    MEDIA_SKIP_FORWARD, MEDIA_SKIP_BACKWARD, MEDIA_STEP_FORWARD, MEDIA_STEP_BACKWARD,
-    SOFT_SLEEP, CUT, COPY, PASTE,
-    SYSTEM_NAVIGATION_UP, SYSTEM_NAVIGATION_DOWN, SYSTEM_NAVIGATION_LEFT, SYSTEM_NAVIGATION_RIGHT,
-    ALL_APPS, REFRESH, THUMBS_UP, THUMBS_DOWN, PROFILE_SWITCH,
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
-    exclam, quotedbl, dollar, percent, ampersand, colon, less, greater, question, asciicircum, underscore, braceleft, bar, braceright, asciitilde]
-  symbols: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!"$%&:<>?^_{|}~'
+  # 仅供编辑键盘时参考，实际不产生任何效果
   when:
     ascii: 西文標籤
     paging: 翻頁標籤
@@ -893,7 +863,8 @@ preset_keys:
   VOLUME_MUTE: {label: 靜音, send: VOLUME_MUTE}
   # 編輯
   Shift_L: {label: Shift, send: Shift_L, shift_lock: ascii_long}
-  Return: {label: Enter, send: Return}
+  Return: {label: enter_labels, send: Return}
+  Return1: {label: Enter, send: Return }
   Hide: {label: 隱藏, send: BACK}
   BackSpace: {label: 退格, repeatable: true, send: BackSpace}
   space: {repeatable: false, functional: false, send: space}
@@ -1036,7 +1007,7 @@ preset_keyboards:
     - {click: space, width: 30}
     - {click: "'", long_click: '"'}
     - {click: BackSpace, width: 15}
-    - {click: Return, long_click: CommitComment, width: 15}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 15}
   letter:
     __include: /preset_keyboards/default
     ascii_mode: 1
@@ -1097,7 +1068,7 @@ preset_keyboards:
     - {click: space, width: 30}
     - {click: '.', long_click: '>'}
     - {click: '/', long_click: '?'}
-    - {click: Return, long_click: CommitComment, width: 15}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 15}
   qwerty_:
     name: 預設30鍵
     author: "osfans <waxaca@163.com>"
@@ -1141,7 +1112,7 @@ preset_keyboards:
     - {click: Mode_switch, long_click: Menu}
     - {click: space, width: 40}
     - {click: BackSpace, width: 15}
-    - {click: Return, long_click: CommitComment, width: 15}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 15}
   qwerty:
     name: 預設26鍵
     author: "osfans <waxaca@163.com>"
@@ -1195,7 +1166,7 @@ preset_keyboards:
     - {click: space, width: 30}
     - {click: '.', long_click: '>'}
     - {click: '/', long_click: '?'}
-    - {click: Return, long_click: CommitComment, width: 15}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 15}
   us_intl:
     name: 美式國際
     author: "Terry Tsang <archerindigo@gmail.com>"
@@ -1390,7 +1361,7 @@ preset_keyboards:
     - {label: 'ㄦ', long_click: '"', click: "-"}
     - {long_click: '。', click: '，'}
     - {click: BackSpace, long_click: Escape, width: 10}
-    - {click: Return, long_click: CommitComment, width: 10}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 10}
   cangjie5:
     name: 倉頡五代鍵盤
     author: "皛筱晓小笨鱼"
@@ -1434,7 +1405,7 @@ preset_keyboards:
     - {click: space, width: 40}
     - {click: Mode_switch, long_click: Menu}
     - {long_click: '>', click: '.'}
-    - {click: Return, long_click: CommitComment, width: 10}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 10}
   cangjie6:
     ascii_mode: 0
     name: 倉頡六代
@@ -1492,7 +1463,7 @@ preset_keyboards:
     - {click: ",", long_click: .}
     - {click: space, width: 25}
     - {click: "'", long_click: "?"}
-    - {click: Return, long_click: CommitComment, width: 25.5}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 25.5}
   scj6:
     __include: /preset_keyboards/cangjie5
   stroke:
@@ -1517,7 +1488,7 @@ preset_keyboards:
     - {click: Keyboard_symbols, long_click: Keyboard_number, width: 10}
     - {click: space, width: 40}
     - {click: Keyboard_letter, long_click: Menu, width: 10}
-    - {click: Return, long_click: CommitComment, width: 20}
+    - {click: Return, composing: Return1, long_click: CommitComment, width: 20}
   telegraph:
     name: 電碼
     author: 熊貓阿Bo
@@ -1546,7 +1517,7 @@ preset_keyboards:
     - {click: BackSpace}
     - {click: Keyboard_letter, long_click: Menu}
     - {click: space, width: 60}
-    - {click: Return}
+    - {click: Return, composing: Return1}
   terra_pinyin:
     name: 地球拼音鍵盤
     author: 默默ㄇㄛˋ
@@ -1590,7 +1561,7 @@ preset_keyboards:
     - {click: space, width: 40}
     - {click: ".", long_click: '"'}
     - {click: '\', long_click: '.', composing: 'ˋ', send_bindings: false}  #四聲
-    - {click: Return, long_click: CommitComment}
+    - {click: Return, composing: Return1, long_click: CommitComment}
   array30:
     name: 行列30配美式國際
     author: "Terry Tsang <archerindigo@gmail.com>"

@@ -10,12 +10,14 @@ import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.osfans.trime.R;
+import com.osfans.trime.core.Rime;
 import com.osfans.trime.data.Config;
 import com.osfans.trime.data.db.DbBean;
 import com.osfans.trime.data.db.clipboard.ClipboardDao;
 import com.osfans.trime.data.db.draft.DraftDao;
 import com.osfans.trime.ime.core.Trime;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
+import com.osfans.trime.ime.text.TextInputManager;
 import com.osfans.trime.util.ConfigGetter;
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class LiquidKeyboard {
   private ClipboardAdapter mClipboardAdapter;
   private DraftAdapter mDraftAdapter;
   private SimpleAdapter simpleAdapter;
+  private CandidateAdapter candidateAdapter;
   private List<SimpleKeyBean> clipboardBeanList, draftBeanList;
   private final List<SimpleKeyBean> simpleKeyBeans;
   private List<SimpleKeyBean> historyBeans;
@@ -79,7 +82,7 @@ public class LiquidKeyboard {
     if (mDraftAdapter != null) mDraftAdapter.notifyItemInserted(0);
   }
 
-  public void select(int i) {
+  public SymbolKeyboardType select(int i) {
     TabTag tag = TabManager.getTag(i);
     calcPadding(tag.type);
     keyboardType = tag.type;
@@ -92,12 +95,17 @@ public class LiquidKeyboard {
         TabManager.get().select(i);
         initDraftData();
         break;
+      case CANDIDATE:
+        TabManager.get().select(i);
+        initCandidate();
+        break;
       case HISTORY:
       case TABS:
         TabManager.get().select(i);
       default:
         initFixData(i);
     }
+    return keyboardType;
   }
 
   // 设置liquidKeyboard共用的布局参数
@@ -153,8 +161,10 @@ public class LiquidKeyboard {
     }
     Timber.i("config keyHeight=" + keyHeight + " marginTop=" + margin_top);
 
-    if (isLand) single_width = config.getLiquidPixel("single_width_land");
-    if (single_width <= 0) single_width = config.getLiquidPixel("single_width");
+    if (isLand) {
+      single_width = config.getLiquidPixel("single_width_land");
+      if (single_width <= 0) single_width = config.getLiquidPixel("single_width");
+    } else single_width = config.getLiquidPixel("single_width");
     if (single_width <= 0)
       single_width = context.getResources().getDimensionPixelSize(R.dimen.simple_key_single_width);
 
@@ -207,6 +217,9 @@ public class LiquidKeyboard {
     Timber.d("Tab.select(%s) beans.size=%s", i, simpleKeyBeans.size());
     simpleAdapter = new SimpleAdapter(context, simpleKeyBeans);
 
+    Timber.d(
+        "configStylet() single_width=%s, keyHeight=%s, margin_x=%s, margin_top=%s",
+        single_width, keyHeight, margin_x, margin_top);
     simpleAdapter.configStyle(single_width, keyHeight, margin_x, margin_top);
     //            simpleAdapter.configKey(single_width,height,margin_x,margin_top);
     keyboardView.setAdapter(simpleAdapter);
@@ -321,5 +334,47 @@ public class LiquidKeyboard {
             ic.commitText(draftBeanList.get(position).getText(), 1);
           }
         });
+  }
+
+  public void initCandidate() {
+    keyboardView.removeAllViews();
+    simpleAdapter = null;
+    mClipboardAdapter = null;
+    mDraftAdapter = null;
+
+    if (candidateAdapter == null) candidateAdapter = new CandidateAdapter(context);
+
+    // 设置布局管理器
+    FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(context);
+    // flexDirection 属性决定主轴的方向（即项目的排列方向）。类似 LinearLayout 的 vertical 和 horizontal。
+    flexboxLayoutManager.setFlexDirection(FlexDirection.ROW); // 主轴为水平方向，起点在左端。
+    // flexWrap 默认情况下 Flex 跟 LinearLayout 一样，都是不带换行排列的，但是flexWrap属性可以支持换行排列。
+    flexboxLayoutManager.setFlexWrap(FlexWrap.WRAP); // 按正常方向换行
+    // justifyContent 属性定义了项目在主轴上的对齐方式。
+    flexboxLayoutManager.setJustifyContent(JustifyContent.FLEX_START); // 交叉轴的起点对齐。
+    keyboardView.setLayoutManager(flexboxLayoutManager);
+
+    draft_max_size = Config.get(context).getDraftLimit();
+
+    draftBeanList = DraftDao.get().getAllSimpleBean(draft_max_size);
+    candidateAdapter.configStyle(margin_x, margin_top);
+
+    keyboardView.setAdapter(candidateAdapter);
+    keyboardView.setSelected(true);
+    candidateAdapter.updateCandidates();
+
+    candidateAdapter.setOnItemClickListener(
+        (view, position) -> {
+          TextInputManager.Companion.getInstance().onCandidatePressed(position);
+          if (Rime.isComposing()) {
+            updateCandidates();
+          } else Trime.getService().selectLiquidKeyboard(-1);
+        });
+  }
+
+  public void updateCandidates() {
+    candidateAdapter.updateCandidates();
+    candidateAdapter.notifyDataSetChanged();
+    keyboardView.scrollToPosition(0);
   }
 }
