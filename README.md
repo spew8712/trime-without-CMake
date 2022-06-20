@@ -34,18 +34,21 @@ Fork本仓库后，先根据需求修改`.github/workflows/build-my-trime.yml`�
 ![](ci_2.jpg)
 
 #### 支持的客製化參數
-| 项目                                                         | 参数                                                     |
-| ------------------------------------------------------------ | -------------------------------------------------------- |
+| 项目                                        | 参数                                                       |
+|-------------------------------------------|----------------------------------------------------------|
+| ”关于“界面中的编译信息                              | CI_NAME: Custom CI                                       |
+| ”关于“界面中的修改版QQ群                            | CUSTOM_QQ:                                               |
+| ”关于“界面中的修改版QQ群链接                         | CUSTOM_QQ_LINK:                                          |
 | 在点击`Run workflow`时如填入true,会使用此参数指定的仓库进行编译 | REPO_URL: https://github.com/tumuyan/trime-without-CMake |
-| 上个参数指定的分支                                           | REPO_BRANCH: develop                                     |
-| 仓库中的包名                                                 | PACKAGE_NAME: com.tumuyan.trime                          |
-| 修改后的包名                                                 | PACKAGE_NAME_NEW: com.tumuyan.trime.pro                  |
-| 仓库中的默认App名称                                          | APP_NAME: Trime·Trime                                    |
-| 仓库中的中文App名称                                          | APP_NAME_CN: 同文输入法・Trime                           |
-| 仓库中的台湾App名称                                          | APP_NAME_TW: 同文輸入法・Trime                           |
-| 修改后的默认App名称                                          | APP_NAME_NEW: TrimePro                                   |
-| 修改后的中文App名称                                          | APP_NAME_NEW_CN: 同文输入法Pro                           |
-| 修改后的台湾App名称                                          | APP_NAME_NEW_TW: 同文輸入法Pro                           |
+| 上个参数指定的分支                                 | REPO_BRANCH: develop                                     |
+| 仓库中的包名                                    | PACKAGE_NAME: com.tumuyan.trime                          |
+| 修改后的包名                                    | PACKAGE_NAME_NEW: com.tumuyan.trime.pro                  |
+| 仓库中的默认App名称                               | APP_NAME: Trime·Trime                                    |
+| 仓库中的简中App名称                               | APP_NAME_CN: 同文输入法・Trime                                 |
+| 仓库中的繁中App名称                               | APP_NAME_TW: 同文輸入法・Trime                                 |
+| 修改后的默认App名称                               | APP_NAME_NEW: TrimePro                                   |
+| 修改后的简中App名称                               | APP_NAME_NEW_CN: 同文输入法Pro                                |
+| 修改后的繁中App名称                               | APP_NAME_NEW_TW: 同文輸入法Pro                                |
 
 #### 更多客製化内容
 
@@ -55,8 +58,8 @@ Fork本仓库后，先根据需求修改`.github/workflows/build-my-trime.yml`�
 - [ ] 打包仓库中的方案
 - [ ] 打包指定仓库的主题和方案
 - [ ] 对图标进行替换
-- [ ] 对`关于`界面做客制化
-- [ ] 对`寻求帮助`界面做客制化
+- [x] 对`关于`界面做客制化
+- [x] 对`寻求帮助`界面做客制化
 - [ ] 对UI、弹出信息中多次出现的Trime、同文等文本内容进行替换
 
 ## 鳴謝/Credits

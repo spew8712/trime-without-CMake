@@ -8,8 +8,8 @@ on:
         description: 'Compile trime from env REPO_URL(not your repository)'
         required: false
         default: 'false'
-
 env:
+  CI_NAME: Custom CI
   REPO_URL: https://github.com/tumuyan/trime-without-CMake
   REPO_BRANCH: develop
   PACKAGE_NAME: com.tumuyan.trime
@@ -20,6 +20,8 @@ env:
   APP_NAME_NEW: TrimePro
   APP_NAME_NEW_CN: 同文输入法Pro
   APP_NAME_NEW_TW: 同文輸入法Pro
+  CUSTOM_QQ: "811142286"
+  CUSTOM_QQ_LINK: mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26k%3DzifdI0iaEYjATwYkvVzP1cjsUEWSa9Ha
 #  FEEDS_CONF: feeds.conf.default
 #  CONFIG_FILE: .config
 #  DIY_P1_SH: diy-part1.sh
@@ -56,6 +58,10 @@ jobs:
         sed -i s/$APP_NAME/$APP_NAME_NEW/g app/src/main/res/values/strings.xml
         sed -i s/$APP_NAME_TW/$APP_NAME_NEW_TW/g app/src/main/res/values-zh-rTW/strings.xml
         sed -i s/$APP_NAME_CN/$APP_NAME_NEW_CN/g app/src/main/res/values-zh-rCN/strings.xml
+        sed -i '/pref_trime_custom_qq_summary/s#> <#>CUSTOM_QQ_NUM<#' app/src/main/res/values/strings.xml
+        sed -i '/pref_trime_custom_qq_data/s#> <#>CUSTOM_QQ_LINK<#' app/src/main/res/values/strings.xml
+        sed -i s/CUSTOM_QQ_NUM/$CUSTOM_QQ/g app/src/main/res/values/strings.xml
+        sed -i s!CUSTOM_QQ_LINK!$CUSTOM_QQ_LINK!g app/src/main/res/values/strings.xml
 
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -76,7 +82,7 @@ jobs:
     - name: Upload Trime artifact
       uses: actions/upload-artifact@v3
       with:
-        name: trime.zip
+        name: my_trime.zip
         path: app/build/outputs/apk/**/*.apk
         # keep 90 days
         retention-days: 90
