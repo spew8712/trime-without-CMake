@@ -83,16 +83,30 @@ jobs:
 #    - name: Spotless code style check
 #      run: make spotless
 
-    - name: Install dependency
-      if: ${{ !steps.jni-cache.outputs.cache-hit }}
-      run: ./script/dependency.sh
+#    - name: Install dependency
+#      if: ${{ !steps.jni-cache.outputs.cache-hit }}
+#      run: ./script/dependency.sh
+
+    - name: make filelist
+      run: |
+        sudo apt-get install tree
+        cd app
+        tree -L 5 > filelist.txt
+
+    - name: Upload filelist
+      uses: actions/upload-artifact@v3
+      with:
+        name: filelist
+        path: app/filelist.txt
+        # keep 90 days
+        retention-days: 90
 
     - name: Build Trime
       run: make debug
 
-    - name: Add JNI cache
-      if: ${{ !steps.jni-cache.outputs.cache-hit }}
-      run: cp -R app/build/intermediates/stripped_native_libs/debug/out/lib app/prebuilt
+#    - name: Add JNI cache
+#      if: ${{ !steps.jni-cache.outputs.cache-hit }}
+#      run: cp -R app/build/intermediates/stripped_native_libs/debug/out/lib app/prebuilt
 
     - name: Upload Trime artifact
       uses: actions/upload-artifact@v3
@@ -104,6 +118,7 @@ jobs:
 
     - name: Upload Jni artifact
       uses: actions/upload-artifact@v3
+      if: always()
       with:
         name: jni
         path: app/build/intermediates/cmake/debug/obj/*
