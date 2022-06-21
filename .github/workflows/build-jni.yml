@@ -53,16 +53,16 @@ jobs:
         # keep 90 days
         retention-days: 90
 
-    - name: Calculate JNI cache hash
-      id: cache-hash
-      run: script/cache-hash.sh
-
-    - name: Fetch JNI cache
-      uses: actions/cache@v3
-      id: jni-cache
-      with:
-        path: "app/prebuilt"
-        key: jni-debug-${{ steps.cache-hash.outputs.hash }}
+#    - name: Calculate JNI cache hash
+#      id: cache-hash
+#      run: script/cache-hash.sh
+#
+#    - name: Fetch JNI cache
+#      uses: actions/cache@v3
+#      id: jni-cache
+#      with:
+#        path: "app/prebuilt"
+#        key: jni-debug-${{ steps.cache-hash.outputs.hash }}
 
     - name: Fetch submodules
       if: ${{ !steps.jni-cache.outputs.cache-hit }}
