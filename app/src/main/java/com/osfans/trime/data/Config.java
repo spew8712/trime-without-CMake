@@ -943,6 +943,14 @@ public class Config {
     return progress * 10 + 10;
   }
 
+  public static int getDeleteCandidateTimeout() {
+    return appPrefs.getKeyboard().getDeleteCandidateTimeout();
+  }
+
+  public static boolean getShouldLongClickDeleteCandidate() {
+    return appPrefs.getKeyboard().getShouldLongClickDeleteCandidate();
+  }
+
   public int getLiquidPixel(String key) {
     if (liquidKeyboard != null) {
       if (liquidKeyboard.containsKey(key)) {

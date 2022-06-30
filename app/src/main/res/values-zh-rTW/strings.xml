@@ -64,6 +64,8 @@
     <string name="keyboard__speak_key_commit_title">上屏時朗讀字符</string>
     <string name="keyboard__long_press_timeout_title">長按按鍵的延遲時間</string>
     <string name="keyboard__key_repeat_interval_title">重複按鍵的重複間隔</string>
+    <string name="keyboard__delete_candidate_timeout_title">長按刪除候選詞的延遲時間</string>
+    <string name="keyboard__long_click_delete_candidate_title">長按刪除候選詞</string>
     <string name="keyboard__show_switches_title">在候選欄中顯示狀態</string>
     <string name="keyboard__show_key_popup_title">按鍵時彈出顯示字符</string>
     <string name="keyboard__show_window_title">顯示懸浮窗</string>
@@ -199,10 +201,11 @@
     <string name="keyboard__key_swipe_velocity">觸發按鍵滑動手勢的速度（距離/速度滿足其一即可）</string>
     <string name="keyboard__key_swipe_velocity_hi">連續擊鍵時觸發滑動手勢的速度</string>
     <string name="about__buildinfo">編譯信息</string>
-    <string name="pref_trime_custom_qq">修改版QQ羣</string>
     <string name="keyboard__use_mini_keyboard_title">連接實體鍵盤時，顯示迷你軟鍵盤</string>
+    <string name="pref_trime_custom_qq">修改版QQ羣</string>
     <string name="pref_keyboard__candidate">候選欄</string>
     <string name="keyboard__candidate_page_size">每頁顯示候選詞數量</string>
+    <string name="copy_done">已複製</string>
     <string-array name="keyboard__candidate_page_size_entries" >
         <item name="10000">不超出候選欄</item>
         <item name="10001">接近於候選欄</item>
@@ -225,4 +228,13 @@
         <item name="50">50</item>
         <item name="100">100</item>
     </string-array>
+    <string name="export">匯出</string>
+    <string name="app_crash_message">抱歉，但我們為您帶來了一些紀錄檔以供調查。</string>
+    <string name="app_crash">應用程式當機</string>
+    <string name="crash_logs">當機紀錄檔</string>
+    <string name="real_time_logs">即時紀錄檔</string>
+    <string name="clear">清除</string>
+    <string name="system">系統</string>
+    <string name="settings__system_toolkit">工具箱</string>
+    <string name="exception_logcat_created">Logcat 行程已建立</string>
 </resources>

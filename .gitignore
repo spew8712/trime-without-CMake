@@ -214,3 +214,4 @@ Icon
 
 /app/release/output-metadata.json
 /.idea/
+/app/src/main/jni

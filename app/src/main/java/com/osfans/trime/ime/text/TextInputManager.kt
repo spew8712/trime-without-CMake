@@ -231,7 +231,7 @@ class TextInputManager private constructor() :
         keyboardSwitcher.let {
             it.resize(trime.maxWidth)
             // Select a keyboard based on the input type of the editing field.
-            it.switchToKeyboard(keyboardType)
+            it.startKeyboard(keyboardType)
         }
         Rime.get(trime)
 
@@ -468,5 +468,10 @@ class TextInputManager private constructor() :
             Candidate.PAGE_DOWN_BUTTON -> onKey(KeyEvent.KEYCODE_PAGE_DOWN, 0)
             Candidate.PAGE_EX_BUTTON -> Trime.getService().selectLiquidKeyboard(SymbolKeyboardType.CANDIDATE)
         }
+    }
+
+    override fun onCandidateLongClicked(index: Int) {
+        Rime.deleteCandidate(index)
+        trime.updateComposing()
     }
 }
