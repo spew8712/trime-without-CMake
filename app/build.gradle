@@ -99,7 +99,7 @@ def getCommitInfo(){
 }
 
 def getGitBranch(){
-    ' git symbolic-ref --short -q HEAD'.execute().text.trim()
+    'git branch --show-current'.execute().text.trim()
 }
 
 def getGitVersion() {
