@@ -22,6 +22,12 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
+      - name: Get branch name
+        id: vars
+        run: |
+          echo ${GITHUB_REF#refs/*/}
+          echo CI_BRANCH=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+
 #      - name: Soptless code style check
 #        run: ./gradlew spotlessCheck
 
