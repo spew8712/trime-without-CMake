@@ -431,9 +431,9 @@ class TextInputManager private constructor() :
 
         // 如果没有修饰键，或者只有shift修饰键，可以直接commit字符
         val shiftState = metaState or KeyEvent.META_SHIFT_ON
-        if (shiftState == KeyEvent.META_SHIFT_ON || shiftState == 0 ){
+        if (shiftState == KeyEvent.META_SHIFT_ON || shiftState == 0) {
             val text = Keycode.getDisplayLabel(keyEventCode, metaState)
-            if(text!!.length == 1) {
+            if (text!!.length == 1) {
                 needSendUpRimeKey = false
                 activeEditorInstance.commitText(text)
                 return
