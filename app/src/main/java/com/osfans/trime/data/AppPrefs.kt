@@ -10,6 +10,8 @@ import com.osfans.trime.ime.enums.InlineModeType
 import com.osfans.trime.ime.landscapeinput.LandscapeInputUIMode
 import com.osfans.trime.util.appContext
 import java.lang.ref.WeakReference
+import java.util.Locale
+import kotlin.collections.HashMap
 
 /**
  * Helper class for an organized access to the shared preferences.
@@ -316,6 +318,7 @@ class AppPrefs(
         companion object {
             const val SELECTED_THEME = "looks__selected_theme"
             const val SELECTED_COLOR = "looks__selected_color_scheme"
+            const val SELECTED_LOCALE = "looks__selected_locale"
             const val AUTO_DARK = "looks__auto_dark"
             const val USE_MINI_KEYBOARD = "looks__use_mini_keyboard"
         }
@@ -325,6 +328,9 @@ class AppPrefs(
         var selectedColor: String
             get() = prefs.getPref(SELECTED_COLOR, "default")
             set(v) = prefs.setPref(SELECTED_COLOR, v)
+        var selectedLocale: String
+            get() = prefs.getPref(SELECTED_LOCALE, Locale.getDefault().language)
+            set(v) = prefs.setPref(SELECTED_LOCALE, v)
         var autoDark: Boolean = false
             get() = prefs.getPref(AUTO_DARK, false)
             private set

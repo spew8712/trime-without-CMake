@@ -184,11 +184,12 @@ public class Event {
   private String adjustCase(String s) {
     if (TextUtils.isEmpty(s)) return "";
     if (s.length() == 1 && mKeyboard != null && mKeyboard.needUpCase())
-      s = s.toUpperCase(Locale.getDefault());
+      s = s.toUpperCase(new Locale(AppPrefs.defaultInstance().getLooks().getSelectedLocale()));
     else if (s.length() == 1
         && mKeyboard != null
         && !Rime.isAsciiMode()
-        && mKeyboard.isLabelUppercase()) s = s.toUpperCase(Locale.getDefault());
+        && mKeyboard.isLabelUppercase())
+      s = s.toUpperCase(new Locale(AppPrefs.defaultInstance().getLooks().getSelectedLocale()));
     return s;
   }
 

@@ -72,4 +72,22 @@
         <item>50</item>
         <item>100</item>
     </string-array>
+    <string-array name="looks__selected_locale_entries">
+        <item>English</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Italiano</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>中文</item>
+    </string-array>
+    <string-array name="looks__selected_locale_values">
+        <item>en</item>
+        <item>fr</item>
+        <item>de</item>
+        <item>it</item>
+        <item>ja</item>
+        <item>ko</item>
+        <item>zh</item>
+    </string-array>
 </resources>
