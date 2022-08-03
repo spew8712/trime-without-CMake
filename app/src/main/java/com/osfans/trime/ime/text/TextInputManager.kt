@@ -435,14 +435,14 @@ class TextInputManager private constructor() :
         if ((metaState == KeyEvent.META_SHIFT_ON || metaState == 0) && keyEventCode >= Keycode.A.ordinal) {
             val text = Keycode.getSymbolLabell(Keycode.valueOf(keyEventCode))
             if (text.length == 1) {
-                needSendUpRimeKey = false
                 activeEditorInstance.commitText(text)
                 return
             }
         }
         // 小键盘自动增加锁定
         if (keyEventCode >= KeyEvent.KEYCODE_NUMPAD_0 && keyEventCode <= KeyEvent.KEYCODE_NUMPAD_EQUALS) {
-            activeEditorInstance.sendDownUpKeyEvent(keyEventCode, KeyEvent.META_NUM_LOCK_ON)
+            activeEditorInstance.sendDownUpKeyEvent(keyEventCode, metaState or KeyEvent.META_NUM_LOCK_ON)
+            return
         }
         // 大写字母和部分符号转换为Shift+Android keyevent
         val event = toStdKeyEvent(keyEventCode, metaState)
