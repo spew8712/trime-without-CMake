@@ -231,4 +231,10 @@
         <item name="50">50</item>
         <item name="100">100</item>
     </string-array>
+    <string name="other__list_clipboard_title">Clipboard Data</string>
+    <string name="other__list_draft_title">Draft Data</string>
+    <string name="other__list_collection_title">Collection Data</string>
+    <string name="delete">Delete</string>
+    <string name="collect">Collect</string>
+    <string name="liquid_keyboard_search_hint">Search ( comming soon )</string>
 </resources>

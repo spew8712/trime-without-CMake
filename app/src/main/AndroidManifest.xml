@@ -19,7 +19,7 @@
  */
 -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" 
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="com.osfans.trime" >
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -79,5 +79,10 @@
         <activity
             android:name=".setup.SetupActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".settings.LiquidKeyboardActivity"
+            android:parentActivityName=".settings.PrefMainActivity"
+            />
     </application>
 </manifest>

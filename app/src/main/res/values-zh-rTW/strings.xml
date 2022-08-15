@@ -229,4 +229,10 @@
         <item name="50">50</item>
         <item name="100">100</item>
     </string-array>
+    <string name="other__list_clipboard_title">剪貼板內容</string>
+    <string name="other__list_draft_title">草稿箱內容</string>
+    <string name="other__list_collection_title">收藏夾內容</string>
+    <string name="delete">刪除</string>
+    <string name="collect">收藏</string>
+    <string name="liquid_keyboard_search_hint">搜索(暫未實現)</string>
 </resources>
