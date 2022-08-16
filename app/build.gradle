@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 31
     ndkVersion "24.0.8215888"
 
     defaultConfig {
         applicationId "com.tumuyan.trime"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 29
         versionCode 20220701
         versionName "3.2.7"
         setProperty("archivesBaseName", "trime-$versionName")
