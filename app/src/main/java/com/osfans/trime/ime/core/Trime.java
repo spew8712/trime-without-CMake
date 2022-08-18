@@ -58,6 +58,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import com.blankj.utilcode.util.BarUtils;
+import com.osfans.trime.BuildConfig;
 import com.osfans.trime.R;
 import com.osfans.trime.core.Rime;
 import com.osfans.trime.data.AppPrefs;
@@ -459,7 +460,7 @@ public class Trime extends LifecycleInputMethodService {
 
   // 按键需要通过tab name来打开liquidKeyboard的指定tab
   public void selectLiquidKeyboard(@NonNull String name) {
-    if (name.matches("\\d+")) selectLiquidKeyboard(Integer.parseInt(name));
+    if (name.matches("-?\\d+")) selectLiquidKeyboard(Integer.parseInt(name));
     else if (name.matches("[A-Z]+")) selectLiquidKeyboard(SymbolKeyboardType.valueOf(name));
     else selectLiquidKeyboard(TabManager.getTagIndex(name));
   }
@@ -497,8 +498,8 @@ public class Trime extends LifecycleInputMethodService {
     }
   }
 
-  private void showCompositionView() {
-    if (TextUtils.isEmpty(Rime.getCompositionText())) {
+  private void showCompositionView(boolean isCandidate) {
+    if (TextUtils.isEmpty(Rime.getCompositionText()) && isCandidate) {
       hideCompositionView();
       return;
     }
@@ -692,7 +693,7 @@ public class Trime extends LifecycleInputMethodService {
       cursorAnchorInfo.getMatrix().mapRect(mPopupRectF);
     }
     if (mCandidateRoot != null) {
-      showCompositionView();
+      showCompositionView(true);
     }
   }
 
@@ -769,7 +770,7 @@ public class Trime extends LifecycleInputMethodService {
   }
 
   public void setShowComment(boolean show_comment) {
-     if (mCandidateRoot != null) mCandidate.setShowComment(show_comment);
+    if (mCandidateRoot != null) mCandidate.setShowComment(show_comment);
     mComposition.setShowComment(show_comment);
   }
 
@@ -1216,14 +1217,16 @@ public class Trime extends LifecycleInputMethodService {
         Timber.d("updateComposing() SymbolKeyboardType=%s", symbolKeyboardType.toString());
         if (symbolKeyboardType != SymbolKeyboardType.NO_KEY
             && symbolKeyboardType != SymbolKeyboardType.CANDIDATE) {
-          mComposition.getRootView().setVisibility(View.GONE);
+          mComposition.setWindow();
+          showCompositionView(false);
+          return 0;
         } else {
-          mComposition.getRootView().setVisibility(View.VISIBLE);
+
           startNum = mComposition.setWindow(minPopupSize, minPopupCheckSize, Integer.MAX_VALUE);
           mCandidate.setText(startNum);
           // if isCursorUpdated, showCompositionView will be called in onUpdateCursorAnchorInfo
           // otherwise we need to call it here
-          if (!isCursorUpdated) showCompositionView();
+          if (!isCursorUpdated) showCompositionView(true);
         }
       } else {
         mCandidate.setText(0);
@@ -1239,8 +1242,6 @@ public class Trime extends LifecycleInputMethodService {
     if (symbolKeyboardType == SymbolKeyboardType.CANDIDATE) {
       if (isComposing()) {
         liquidKeyboard.updateCandidates();
-      } else {
-        selectLiquidKeyboard(-1);
       }
     }
 
