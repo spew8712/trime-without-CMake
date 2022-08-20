@@ -26,6 +26,7 @@ import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.data.DataManager;
 import com.osfans.trime.data.opencc.OpenCCDictManager;
 import com.osfans.trime.ime.core.Trime;
+import com.osfans.trime.ime.symbol.SimpleKeyBean;
 import com.osfans.trime.util.ConfigGetter;
 import java.io.BufferedReader;
 import java.io.CharArrayWriter;
@@ -49,6 +50,7 @@ import timber.log.Timber;
  */
 public class Rime {
   private static Map<String, String> mKeyboardLabels;
+  private static Map<String, Object> mSymbols;
 
   /** Rime編碼區 */
   public static class RimeComposition {
@@ -151,6 +153,7 @@ public class Rime {
     List<Map<String, Object>> switches = new ArrayList<Map<String, Object>>();
     Map<String, String> keyboardLabels = new HashMap<>();
     String keyboardLayout;
+    Map<String, Object> symbolMap = new HashMap<>();
 
     public RimeSchema(String schema_id) {
       Timber.d("RimeSchema() start");
@@ -194,6 +197,14 @@ public class Rime {
             }
           }
         }
+      }
+
+      // todo 取回的key正常，value为null，导致symbolMap无法正常使用
+      o = schema_get_value(schema_id, "punctuator/symbols");
+      if (o != null && o instanceof HashMap) {
+        symbolMap = (Map<String, Object>) o;
+      } else {
+        symbolMap = new HashMap<>();
       }
     }
 
@@ -363,6 +374,7 @@ public class Rime {
     getStatus();
     Timber.d("initSchema() done");
     mKeyboardLabels = mSchema.keyboardLabels;
+    mSymbols = mSchema.symbolMap;
   }
 
   public static String getKeyboardLayout() {
@@ -375,6 +387,25 @@ public class Rime {
       if (mKeyboardLabels.containsKey(ss)) return mKeyboardLabels.get(ss);
     }
     return ss;
+  }
+
+  public static boolean hasSymbols(String key) {
+    return (mSymbols.containsKey(key));
+  }
+
+  public static List<String> getSymbols(String key) {
+    if (mSymbols.containsKey(key)) {
+      return (List<String>) mSymbols.get(key);
+    }
+    return new ArrayList<String>();
+  }
+
+  public static List<SimpleKeyBean> getSymbolKeyBeans() {
+    List<SimpleKeyBean> list = new ArrayList<>();
+    for (Map.Entry m : mSymbols.entrySet()) {
+      list.add(new SimpleKeyBean(m.getKey().toString()));
+    }
+    return list;
   }
 
   @SuppressWarnings("UnusedReturnValue")
