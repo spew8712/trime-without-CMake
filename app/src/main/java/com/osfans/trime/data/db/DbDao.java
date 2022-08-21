@@ -114,6 +114,7 @@ public class DbDao {
         } else if (list.size() == pinned) {
           list.addAll(tmp);
           tmp.clear();
+          list.add(v);
         } else {
           list.add(v);
         }
