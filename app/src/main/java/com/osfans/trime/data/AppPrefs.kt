@@ -10,7 +10,6 @@ import com.osfans.trime.ime.enums.InlineModeType
 import com.osfans.trime.ime.landscapeinput.LandscapeInputUIMode
 import com.osfans.trime.util.appContext
 import java.lang.ref.WeakReference
-import kotlin.collections.HashMap
 
 /**
  * Helper class for an organized access to the shared preferences.
@@ -376,6 +375,7 @@ class AppPrefs(
             const val CLIPBOARD_OUTPUT_RULES = "other__clipboard_output"
             const val DRAFT_OUTPUT_RULES = "other__draft_output"
             const val DRAFT_EXCLUDE_APP = "other__draft_exclude_app"
+            const val DRAFT_PINNED = "other__draft_pinned"
             const val DRAFT_LIMIT = "other__draft_limit"
             const val CLIPBOARD_LIMIT = "other__clipboard_limit"
         }
@@ -406,6 +406,9 @@ class AppPrefs(
         var draftLimit: String
             get() = prefs.getPref(DRAFT_LIMIT, "20")
             set(v) = prefs.setPref(DRAFT_LIMIT, v)
+        var draftPinned: String
+            get() = prefs.getPref(DRAFT_PINNED, "3")
+            set(v) = prefs.setPref(DRAFT_PINNED, v)
         var draftExcludeApp: String
             get() = prefs.getPref(DRAFT_EXCLUDE_APP, "")
             set(v) = prefs.setPref(DRAFT_EXCLUDE_APP, v)
