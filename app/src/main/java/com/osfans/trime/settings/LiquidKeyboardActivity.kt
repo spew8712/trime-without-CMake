@@ -20,12 +20,8 @@ import com.osfans.trime.ime.symbol.SimpleKeyBean
 import timber.log.Timber
 
 class LiquidKeyboardActivity : AppCompatActivity() {
-    val CLIPBOARD = "clipboard"
-    val COLLECTION = "collection"
-    val DRAFT = "draft"
-    var dbName = "clipboard"
+    lateinit var dbName: String
     lateinit var binding: LiquidKeyboardActivityBinding
-    var type: String = CLIPBOARD
     var beans: List<SimpleKeyBean> = ArrayList()
     lateinit var mAdapter: CheckableAdatper
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,13 +44,15 @@ class LiquidKeyboardActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        type = intent.getStringExtra("type").toString()
-        if (type.equals(COLLECTION)) {
+        dbName = intent.getStringExtra("type").toString()
+        if (dbName.equals(DbDao.COLLECTION)) {
             setTitle(R.string.other__list_collection_title)
-        } else if (type.equals(DRAFT)) {
+        } else if (dbName.equals(DbDao.DRAFT)) {
             setTitle(R.string.other__list_draft_title)
+        }else if (dbName.equals(DbDao.CLIP)) {
+            setTitle(R.string.other__list_clip_title)
         } else {
-            type = CLIPBOARD
+            dbName = DbDao.CLIPBOARD
             setTitle(R.string.other__list_clipboard_title)
         }
 
@@ -137,15 +135,15 @@ class LiquidKeyboardActivity : AppCompatActivity() {
     fun getDbData() {
         binding.progressBar.visibility = View.VISIBLE
 
-        if (type.equals(COLLECTION)) {
-            dbName = type + ".db"
+        if (dbName.equals(DbDao.COLLECTION)) {
             beans = DbDao(dbName).getAllSimpleBean(-1, 0)
             binding.btnCollect.visibility = View.GONE
-        } else if (type.equals(DRAFT)) {
-            dbName = type + ".db"
+        } else if (dbName.equals(DbDao.DRAFT)) {
             beans = DbDao(dbName).getAllSimpleBean(1000, Config.get(this).draftTimeOut)
+        } else if (dbName.equals(DbDao.CLIP)) {
+            beans = DbDao(dbName).getAllSimpleBean(-1,0)
         } else {
-            dbName = CLIPBOARD + ".db"
+            dbName = DbDao.CLIPBOARD
             beans = DbDao(dbName).getAllSimpleBean(1000, Config.get(this).clipboardTimeOut)
         }
 

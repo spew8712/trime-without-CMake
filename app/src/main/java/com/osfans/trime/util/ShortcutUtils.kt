@@ -36,6 +36,7 @@ object ShortcutUtils {
             "commit" -> return option
             "run" -> startIntent(option)
             "share_text" -> Trime.getService().shareText()
+            "split_text" -> Trime.getService().splitText(option)
             "liquid_keyboard" -> Trime.getService().selectLiquidKeyboard(option)
             else -> startIntent(command, option)
         }

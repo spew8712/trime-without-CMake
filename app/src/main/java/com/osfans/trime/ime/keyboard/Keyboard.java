@@ -94,6 +94,7 @@ public class Keyboard {
   // 3. 由于高度只能取整数，缩放后仍然存在余数的，由 auto_height_index 指定的行吸收（遵循四舍五入）
   //    特别的，当值为负数时，为倒序序号（-1即倒数第一个）;当值大于按键行数时，为最后一行
   private int autoHeightIndex, keyboardHeight;
+  private String name;
 
   /**
    * Creates a keyboard from the given xml key layout file.
@@ -190,6 +191,7 @@ public class Keyboard {
 
   public Keyboard(Context context, String name) {
     this(context);
+    this.name = name;
     final boolean land =
         (context.getResources().getConfiguration().orientation
             == Configuration.ORIENTATION_LANDSCAPE);
@@ -424,6 +426,10 @@ public class Keyboard {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public String getName() {
+    return name;
   }
 
   public Key getmShiftKey() {

@@ -529,7 +529,7 @@ liquid_keyboard:
   key_height_land: 35
   single_width: 60
   label_text_size: 24
-  keyboards: [emoji, math, ascii, cn, history, clipboard, collection, draft, tabs,  exit, candidate, symbollist, list, ids , jp, table, symbol, pinyin, grease, rusa, korea, lation, yinbiao, unit, yanwenzi]  #tab列表
+  keyboards: [emoji, math, ascii, cn, history, clip, clipboard, collection, draft, tabs,  exit, candidate, symbollist, list, ids , jp, table, symbol, pinyin, grease, rusa, korea, lation, yinbiao, unit, yanwenzi]  #tab列表
   exit:
     name: 返回
     type: NO_KEY
@@ -549,6 +549,9 @@ liquid_keyboard:
   clipboard:
     type: CLIPBOARD
     name: 剪贴
+  clip:
+    type: CLIP
+    name: 切片
   collection:
     type: COLLECTION
     name: 收藏

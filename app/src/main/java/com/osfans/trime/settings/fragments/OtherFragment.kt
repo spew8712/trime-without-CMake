@@ -18,6 +18,7 @@ import com.osfans.trime.data.AppPrefs
 import com.osfans.trime.data.Config
 import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.settings.LiquidKeyboardActivity
+import com.osfans.trime.settings.LiquidKeyboardClipActivity
 
 class OtherFragment :
     PreferenceFragmentCompat(),
@@ -75,15 +76,31 @@ class OtherFragment :
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         val key = preference?.key
+
+        if ( key == "other__list_clip"
+
+        ){
+            if (Trime.getService() == null)
+                ToastUtils.showShort(R.string.setup__select_ime_hint)
+            else {
+                val intent = Intent(this.context, LiquidKeyboardClipActivity::class.java)
+                intent.putExtra("type", key.replace("other__list_", "")+".db")
+                startActivity(intent)
+            }
+            return true
+        }
+
         if (key == "other__list_clipboard" ||
             key == "other__list_collection" ||
-            key == "other__list_draft"
+            key == "other__list_draft" ||
+            key == "other__list_clip"
+
         ) {
             if (Trime.getService() == null)
                 ToastUtils.showShort(R.string.setup__select_ime_hint)
             else {
                 val intent = Intent(this.context, LiquidKeyboardActivity::class.java)
-                intent.putExtra("type", key.replace("other__list_", ""))
+                intent.putExtra("type", key.replace("other__list_", "")+".db")
                 startActivity(intent)
             }
             return true

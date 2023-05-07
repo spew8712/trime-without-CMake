@@ -241,6 +241,9 @@
     <string name="merge">合并</string>
     <string name="other__draft_time_out_title">自动清理超时的草稿</string>
     <string name="other__clipboard_time_out_title">自动清理超时的剪貼板</string>
+    <string name="other__list_clip_title">切片盒内容</string>
+    <string name="reset">重置</string>
+    <string name="reset_clip_fail">剪贴板的内容为空，因此没有变更切片盒内容</string>
     <string-array name="other__draft_time_out_entries">
         <item>1小时</item>
         <item>8小时</item>

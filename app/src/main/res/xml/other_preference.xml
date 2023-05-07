@@ -39,6 +39,10 @@
         app:iconSpaceReserved="false"
         android:title="@string/other__list_draft_title"/>
 
+    <Preference android:key="other__list_clip"
+       app:iconSpaceReserved="false"
+        android:title="@string/other__list_clip_title"/>
+
     <ListPreference
         android:defaultValue="100"
         app:iconSpaceReserved="false"

@@ -1,5 +1,6 @@
 package com.osfans.trime.ime.symbol;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.inputmethod.InputConnection;
@@ -94,6 +95,7 @@ public class LiquidKeyboard {
     calcPadding(tag.type);
     keyboardType = tag.type;
     switch (keyboardType) {
+      case CLIP:
       case CLIPBOARD:
       case COLLECTION:
       case DRAFT:
@@ -280,6 +282,7 @@ public class LiquidKeyboard {
         });
   }
 
+  @SuppressLint("NotifyDataSetChanged")
   private void initDbData(SymbolKeyboardType type) {
     keyboardView.removeAllViews();
     simpleAdapter = null;
@@ -308,6 +311,8 @@ public class LiquidKeyboard {
                   draft_pinned,
                   draft_max_size,
                   Config.get(context).getDraftTimeOut());
+    else if (type == SymbolKeyboardType.CLIP)
+      dbBeans = new DbDao(DbDao.CLIP).getAllSimpleBean(-1, 0);
     else
       dbBeans =
           new DbDao(DbDao.CLIPBOARD)
@@ -326,6 +331,11 @@ public class LiquidKeyboard {
           InputConnection ic = Trime.getService().getCurrentInputConnection();
           if (ic != null) {
             ic.commitText(dbBeans.get(position).getText(), 1);
+            if(type == SymbolKeyboardType.CLIP){
+              new DbDao(DbDao.CLIP).delete(dbBeans.get(position));
+              dbBeans.remove(position);
+              flexibleAdapter.notifyDataSetChanged();
+            }
           }
         });
   }

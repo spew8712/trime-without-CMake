@@ -1,5 +1,9 @@
 package com.osfans.trime.ime.symbol;
 
+import static android.content.Context.CLIPBOARD_SERVICE;
+
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,9 +12,14 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+
+import com.blankj.utilcode.util.ToastUtils;
 import com.osfans.trime.R;
+import com.osfans.trime.data.db.DbBean;
 import com.osfans.trime.data.db.DbDao;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -122,6 +131,32 @@ public class CheckableAdatper extends ArrayAdapter {
       new DbDao(DbDao.COLLECTION).add(bean);
     }
     return result;
+  }
+
+
+  public void resetClips() {
+    String text = "";
+    final ClipboardManager clipBoard = (ClipboardManager) getContext().getSystemService(CLIPBOARD_SERVICE);
+    final ClipData clipData = clipBoard.getPrimaryClip();
+    final ClipData.Item item = clipData.getItemAt(0);
+    if (item != null) text = item.coerceToText(getContext()).toString().trim();
+    if (text.isEmpty())
+      ToastUtils.showShort(R.string.reset_clip_fail);
+    else {
+      checked.clear();
+      words.clear();
+      DbDao dbDao = new DbDao(dbName);
+      dbDao.clear();
+
+      String[] strs = text.split("(\\s*)\\n(\\s*)");
+      for (int i = strs.length - 1; i >= 0; i--) {
+        String str = strs[i];
+        if (str.isEmpty()) continue;
+        dbDao.insert(new DbBean(str));
+        words.add(new SimpleKeyBean(str));
+      }
+      notifyDataSetChanged();
+    }
   }
 
   @Override

@@ -244,6 +244,9 @@
     <string name="merge">Merge</string>
     <string name="other__draft_time_out_title">Clean timeout drafts</string>
     <string name="other__clipboard_time_out_title">Clean timeout clipboard</string>
+    <string name="other__list_clip_title">Clips</string>
+    <string name="reset">Reset</string>
+    <string name="reset_clip_fail">Not reset clips because the contents of the clipboard are empty</string>
     <string-array name="other__draft_time_out_entries">
         <item>1 hours</item>
         <item>8 hours</item>

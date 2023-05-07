@@ -17,6 +17,7 @@ public class DbDao {
   public static String CLIPBOARD = "clipboard.db";
   public static String COLLECTION = "collection.db";
   public static String DRAFT = "draft.db";
+  public static String CLIP = "clip.db";
 
   public DbDao(String dbName) {
     DB_NAME = dbName;
@@ -74,10 +75,28 @@ public class DbDao {
     db.close();
   }
 
+
+  /** 清除记录 * */
+  public void clear() {
+    SQLiteDatabase db = helper.getWritableDatabase();
+    db.delete("t_data",null,null);
+    db.close();
+  }
+
+
   /** 删除记录 * */
   public void delete(@NonNull String str) {
     SQLiteDatabase db = helper.getWritableDatabase();
     db.delete("t_data", "text=?", new String[] {str});
+    db.close();
+  }
+
+
+  public void delete(SimpleKeyBean bean) {
+    SQLiteDatabase db = helper.getWritableDatabase();
+    if (bean.getId() > 0)
+      db.delete("t_data", "id=?", new String[] {Integer.toString(bean.getId())});
+    else db.delete("t_data", "text=?", new String[] {bean.getText()});
     db.close();
   }
 

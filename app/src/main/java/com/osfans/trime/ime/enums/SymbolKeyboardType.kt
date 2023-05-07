@@ -16,6 +16,9 @@ enum class SymbolKeyboardType {
     //  剪贴板（大段文本自动缩略，按键长度自适应。）
     CLIPBOARD,
 
+    // 切片盒 （把长文本用定长或固定符号切割到暂存区）
+    CLIP,
+
     //  收藏的文本, 复用剪贴板
     COLLECTION,
 
