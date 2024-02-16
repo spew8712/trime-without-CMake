@@ -131,10 +131,11 @@ style:
     #    - {start: "", click: "Page_Down", label: '✍'}
     - {start: "", composition: "%s", end: "", letter_spacing: 0.12} #letter_spacing需要Android5.0
     - {start: "\n", label: "%s.", candidate: "%s", comment: "%s", end: "", sep: "☁️️"}
-  menu_extra_keyboard: #无候选时，在方案指定的开关后显示的补充功能机
+  menu_extra_keyboard: #无候选时，在候选栏显示这些功能键（显示在方案指定的开关后方）
     - {click: "K_symbols50", label: "剪贴板"}
-    - {click: "cursor"}
-    - {click: "BACK", label: "▽"}
+    - {click: "symbol_tabs", label: " ⌘ "}
+    - {click: "cursor", label: " ↔ "}
+    - {click: "BACK", label: " ▽ "}
   liquid_keyboard_window: #液态键盘模式下显示的悬浮窗口組件
     - {start: "", click: "space", label: " 空格 "}
     - {start: "", click: "BackSpace", label: " 删除 "}
