@@ -1,6 +1,7 @@
 package com.osfans.trime.ime.text
 
 import android.graphics.Rect
+import com.osfans.trime.ime.keyboard.Event
 
 /**
  * Data class describing a computed candidate item.
@@ -37,6 +38,16 @@ sealed class ComputedCandidate(val geometry: Rect) {
     ) : ComputedCandidate(geometry) {
         override fun toString(): String {
             return "Symbol { arrow=$arrow, geometry=$geometry }"
+        }
+    }
+
+    class Key(
+        val label: String,
+        val event: Event?,
+        geometry: Rect
+    ) : ComputedCandidate(geometry) {
+        override fun toString(): String {
+            return "Key { label=\"$label\", event=\"$event\", geometry=$geometry }"
         }
     }
 }

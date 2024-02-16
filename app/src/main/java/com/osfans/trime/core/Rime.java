@@ -26,6 +26,7 @@ import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.data.DataManager;
 import com.osfans.trime.data.opencc.OpenCCDictManager;
 import com.osfans.trime.ime.core.Trime;
+import com.osfans.trime.ime.keyboard.Event;
 import com.osfans.trime.ime.symbol.SimpleKeyBean;
 import com.osfans.trime.util.ConfigGetter;
 import java.io.BufferedReader;
@@ -82,10 +83,17 @@ public class Rime {
   public static class RimeCandidate {
     public String text;
     public String comment;
+    public Event event;
 
     public RimeCandidate(String text, String comment) {
       this.text = text;
       this.comment = comment;
+    }
+
+    public RimeCandidate(String text, String comment, Event event) {
+      this.text = text;
+      this.comment = comment;
+      this.event = event;
     }
 
     public RimeCandidate() {}
@@ -216,23 +224,46 @@ public class Rime {
       }
     }
 
-    public RimeCandidate[] getCandidates() {
-      if (switches.isEmpty()) return null;
-      RimeCandidate[] candidates = new RimeCandidate[switches.size()];
-      int i = 0;
-      for (Map<String, Object> o : switches) {
-        candidates[i] = new RimeCandidate();
-        final List<?> states = (List<?>) o.get("states");
-        Integer value = (Integer) o.get("value");
-        if (value == null) value = 0;
-        candidates[i].text = states.get(value).toString();
+    private List<Rime.RimeCandidate> menuExtraKeyboardCandidate; // 无候选时显示的开关后方的按钮
 
-        String kRightArrow = "→ ";
-        if (showSwitchArrow)
-          candidates[i].comment =
-              o.containsKey("options") ? "" : kRightArrow + states.get(1 - value).toString();
-        else
-          candidates[i].comment = o.containsKey("options") ? "" : states.get(1 - value).toString();
+    public void setMenuExtraKeyboardCandidate(List<Rime.RimeCandidate> menuExtraKeyboardCandidate) {
+      this.menuExtraKeyboardCandidate = menuExtraKeyboardCandidate;
+    }
+
+    public RimeCandidate[] getCandidates() {
+      int size =
+          showSwitches
+              ? menuExtraKeyboardCandidate.size() + switches.size()
+              : menuExtraKeyboardCandidate.size();
+      RimeCandidate[] candidates = new RimeCandidate[size];
+
+      Timber.i(
+          "getCandidates() "
+              + " size="
+              + size
+              + ", menuExtraKeyboardCandidate="
+              + menuExtraKeyboardCandidate.size());
+
+      int i = 0;
+      if (showSwitches)
+        for (Map<String, Object> o : switches) {
+          candidates[i] = new RimeCandidate();
+          final List<?> states = (List<?>) o.get("states");
+          Integer value = (Integer) o.get("value");
+          if (value == null) value = 0;
+          candidates[i].text = states.get(value).toString();
+
+          String kRightArrow = "→ ";
+          if (showSwitchArrow)
+            candidates[i].comment =
+                o.containsKey("options") ? "" : kRightArrow + states.get(1 - value).toString();
+          else
+            candidates[i].comment =
+                o.containsKey("options") ? "" : states.get(1 - value).toString();
+          i++;
+        }
+      for (int j = 0; j < menuExtraKeyboardCandidate.size(); j++) {
+        candidates[i] = menuExtraKeyboardCandidate.get(j);
         i++;
       }
       return candidates;
@@ -377,6 +408,11 @@ public class Rime {
     mSymbols = mSchema.symbolMap;
   }
 
+  public static void setMenuExtraKeyboardCandidate(
+      List<Rime.RimeCandidate> menuExtraKeyboardCandidate) {
+    mSchema.setMenuExtraKeyboardCandidate(menuExtraKeyboardCandidate);
+  }
+
   public static String getKeyboardLayout() {
     return mSchema.keyboardLayout;
   }
@@ -507,7 +543,7 @@ public class Rime {
   }
 
   public static RimeCandidate[] getCandidates() {
-    if (!isComposing() && showSwitches) return mSchema.getCandidates();
+    if (!isComposing()) return mSchema.getCandidates();
     return mContext.getCandidates();
   }
 

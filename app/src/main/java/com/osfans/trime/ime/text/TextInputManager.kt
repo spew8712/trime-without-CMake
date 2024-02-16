@@ -516,4 +516,8 @@ class TextInputManager private constructor() :
             Candidate.PAGE_EX_BUTTON -> Trime.getService().selectLiquidKeyboard(SymbolKeyboardType.CANDIDATE)
         }
     }
+
+    override fun onKeyPressed(e: Event?) {
+        onEvent(e)
+    }
 }

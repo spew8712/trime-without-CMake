@@ -37,9 +37,12 @@ import com.osfans.trime.core.Rime;
 import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.data.Config;
 import com.osfans.trime.ime.core.Trime;
+import com.osfans.trime.ime.keyboard.Event;
 import com.osfans.trime.util.GraphicUtils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /** 顯示候選字詞 */
 public class Candidate extends View {
@@ -49,6 +52,8 @@ public class Candidate extends View {
     void onCandidatePressed(int index);
 
     void onCandidateSymbolPressed(String arrow);
+
+    void onKeyPressed(Event ecent);
   }
 
   private static final int MAX_CANDIDATE_COUNT = 30;
@@ -108,6 +113,30 @@ public class Candidate extends View {
 
     isCommentOnTop = config.getBoolean("comment_on_top");
     candidateUseCursor = config.getBoolean("candidate_use_cursor");
+
+    List<Rime.RimeCandidate> menuExtraKeyboardCandidate = new ArrayList<>();
+    List<Map<String, Object>> menu_extra_keyboard_comp = new ArrayList<>();
+    Object o = config.getValue("menu_extra_keyboard");
+    if (o != null) menu_extra_keyboard_comp = (List<Map<String, Object>>) o;
+
+    for (Map<String, ?> m : menu_extra_keyboard_comp) {
+      {
+        // copy from appendButton()
+        if (m.containsKey("when")) {
+          final String when = Config.getString(m, "when");
+          if (when.contentEquals("paging") && !Rime.isPaging()) return;
+          if (when.contentEquals("has_menu") && !Rime.hasMenu()) return;
+        }
+        final String label;
+        final Event e = new Event(Config.getString(m, "click"));
+        if (m.containsKey("label")) label = Config.getString(m, "label");
+        else label = e.getLabel();
+        if (!label.isEmpty()) {
+          menuExtraKeyboardCandidate.add(new Rime.RimeCandidate(label, "", e));
+        }
+      }
+    }
+    Rime.setMenuExtraKeyboardCandidate(menuExtraKeyboardCandidate);
     invalidate();
   }
 
@@ -183,6 +212,12 @@ public class Candidate extends View {
           String arrow = ((ComputedCandidate.Symbol) candidate).getArrow();
           if (listener.get() != null) {
             listener.get().onCandidateSymbolPressed(arrow);
+          }
+        }
+        if (candidate instanceof ComputedCandidate.Key) {
+          if (listener.get() != null) {
+            Event event = ((ComputedCandidate.Key) candidate).getEvent();
+            listener.get().onKeyPressed(event);
           }
         }
       }
@@ -262,6 +297,15 @@ public class Candidate extends View {
                 - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
         symbolPaint.setColor(isHighlighted(i) ? hilitedCommentTextColor : commentTextColor);
         canvas.drawText(arrow, arrowX, arrowY, symbolPaint);
+      } else if (computedCandidate instanceof ComputedCandidate.Key) {
+
+        float wordX = computedCandidate.getGeometry().centerX();
+        float wordY =
+            computedCandidates.get(0).getGeometry().centerY()
+                - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
+        String word = ((ComputedCandidate.Key) computedCandidate).getLabel();
+        candidatePaint.setColor(candidateTextColor);
+        graphicUtils.drawText(canvas, word, wordX, wordY, candidatePaint, candidateFont);
       }
       // Draw separators
       if (i + 1 < computedCandidates.size()) {
@@ -331,9 +375,16 @@ public class Candidate extends View {
         break;
       }
 
-      computedCandidates.add(
-          new ComputedCandidate.Word(
-              text, comment, new Rect(x, 0, (int) (x + candidateWidth), getMeasuredHeight())));
+      if (candidates[n].event == null)
+        computedCandidates.add(
+            new ComputedCandidate.Word(
+                text, comment, new Rect(x, 0, (int) (x + candidateWidth), getMeasuredHeight())));
+      else
+        computedCandidates.add(
+            new ComputedCandidate.Key(
+                text,
+                candidates[n].event,
+                new Rect(x, 0, (int) (x + candidateWidth), getMeasuredHeight())));
       x += candidateWidth + candidateSpacing;
     }
     if (Rime.hasLeft()) {
