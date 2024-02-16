@@ -331,7 +331,7 @@ public class LiquidKeyboard {
           InputConnection ic = Trime.getService().getCurrentInputConnection();
           if (ic != null) {
             ic.commitText(dbBeans.get(position).getText(), 1);
-            if(type == SymbolKeyboardType.CLIP){
+            if (type == SymbolKeyboardType.CLIP) {
               new DbDao(DbDao.CLIP).delete(dbBeans.get(position));
               dbBeans.remove(position);
               flexibleAdapter.notifyDataSetChanged();

@@ -49,7 +49,7 @@ class LiquidKeyboardActivity : AppCompatActivity() {
             setTitle(R.string.other__list_collection_title)
         } else if (dbName.equals(DbDao.DRAFT)) {
             setTitle(R.string.other__list_draft_title)
-        }else if (dbName.equals(DbDao.CLIP)) {
+        } else if (dbName.equals(DbDao.CLIP)) {
             setTitle(R.string.other__list_clip_title)
         } else {
             dbName = DbDao.CLIPBOARD
@@ -141,7 +141,7 @@ class LiquidKeyboardActivity : AppCompatActivity() {
         } else if (dbName.equals(DbDao.DRAFT)) {
             beans = DbDao(dbName).getAllSimpleBean(1000, Config.get(this).draftTimeOut)
         } else if (dbName.equals(DbDao.CLIP)) {
-            beans = DbDao(dbName).getAllSimpleBean(-1,0)
+            beans = DbDao(dbName).getAllSimpleBean(-1, 0)
         } else {
             dbName = DbDao.CLIPBOARD
             beans = DbDao(dbName).getAllSimpleBean(1000, Config.get(this).clipboardTimeOut)

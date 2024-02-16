@@ -12,14 +12,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
-
 import com.blankj.utilcode.util.ToastUtils;
 import com.osfans.trime.R;
 import com.osfans.trime.data.db.DbBean;
 import com.osfans.trime.data.db.DbDao;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -133,15 +130,14 @@ public class CheckableAdatper extends ArrayAdapter {
     return result;
   }
 
-
   public void resetClips() {
     String text = "";
-    final ClipboardManager clipBoard = (ClipboardManager) getContext().getSystemService(CLIPBOARD_SERVICE);
+    final ClipboardManager clipBoard =
+        (ClipboardManager) getContext().getSystemService(CLIPBOARD_SERVICE);
     final ClipData clipData = clipBoard.getPrimaryClip();
     final ClipData.Item item = clipData.getItemAt(0);
     if (item != null) text = item.coerceToText(getContext()).toString().trim();
-    if (text.isEmpty())
-      ToastUtils.showShort(R.string.reset_clip_fail);
+    if (text.isEmpty()) ToastUtils.showShort(R.string.reset_clip_fail);
     else {
       checked.clear();
       words.clear();

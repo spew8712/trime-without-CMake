@@ -75,14 +75,12 @@ public class DbDao {
     db.close();
   }
 
-
   /** 清除记录 * */
   public void clear() {
     SQLiteDatabase db = helper.getWritableDatabase();
-    db.delete("t_data",null,null);
+    db.delete("t_data", null, null);
     db.close();
   }
-
 
   /** 删除记录 * */
   public void delete(@NonNull String str) {
@@ -90,7 +88,6 @@ public class DbDao {
     db.delete("t_data", "text=?", new String[] {str});
     db.close();
   }
-
 
   public void delete(SimpleKeyBean bean) {
     SQLiteDatabase db = helper.getWritableDatabase();

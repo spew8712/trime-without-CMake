@@ -53,12 +53,10 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-
 import com.blankj.utilcode.util.BarUtils;
 import com.osfans.trime.BuildConfig;
 import com.osfans.trime.R;
@@ -94,10 +92,8 @@ import com.osfans.trime.settings.components.ThemePickerDialog;
 import com.osfans.trime.util.ShortcutUtils;
 import com.osfans.trime.util.StringUtils;
 import com.osfans.trime.util.ViewUtils;
-
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import kotlin.jvm.Synchronized;
 import timber.log.Timber;
 
@@ -1108,9 +1104,8 @@ public class Trime extends LifecycleInputMethodService {
     return false;
   }
 
-
   public boolean splitText(String s) {
-    if(s==null || s.isEmpty()){
+    if (s == null || s.isEmpty()) {
       final @Nullable InputConnection ic = getCurrentInputConnection();
       return false;
     }
@@ -1243,6 +1238,8 @@ public class Trime extends LifecycleInputMethodService {
         } else {
 
           startNum = mComposition.setWindow(minPopupSize, minPopupCheckSize, Integer.MAX_VALUE);
+
+          Timber.d("updateComposing() mCandidate.setText() startNum=%d", startNum);
           mCandidate.setText(startNum);
           // if isCursorUpdated, showCompositionView will be called in onUpdateCursorAnchorInfo
           // otherwise we need to call it here

@@ -77,14 +77,14 @@ class OtherFragment :
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         val key = preference?.key
 
-        if ( key == "other__list_clip"
+        if (key == "other__list_clip"
 
-        ){
+        ) {
             if (Trime.getService() == null)
                 ToastUtils.showShort(R.string.setup__select_ime_hint)
             else {
                 val intent = Intent(this.context, LiquidKeyboardClipActivity::class.java)
-                intent.putExtra("type", key.replace("other__list_", "")+".db")
+                intent.putExtra("type", key.replace("other__list_", "") + ".db")
                 startActivity(intent)
             }
             return true
@@ -100,7 +100,7 @@ class OtherFragment :
                 ToastUtils.showShort(R.string.setup__select_ime_hint)
             else {
                 val intent = Intent(this.context, LiquidKeyboardActivity::class.java)
-                intent.putExtra("type", key.replace("other__list_", "")+".db")
+                intent.putExtra("type", key.replace("other__list_", "") + ".db")
                 startActivity(intent)
             }
             return true

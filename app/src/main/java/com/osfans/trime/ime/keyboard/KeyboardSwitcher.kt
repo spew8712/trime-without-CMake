@@ -114,7 +114,7 @@ class KeyboardSwitcher {
     }
 
     private fun setKeyboard(id: Int) {
-        Timber.d("\t<TrimeInit>\tsetKeyboard()\t" + currentId + "->" + id + ", "+keyboards[id].name)
+        Timber.d("\t<TrimeInit>\tsetKeyboard()\t" + currentId + "->" + id + ", " + keyboards[id].name)
         lastId = currentId
         if (lastId.isValidId() && keyboards[lastId].isLock) {
             lastLockId = lastId
