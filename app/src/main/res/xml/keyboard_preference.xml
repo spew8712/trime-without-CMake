@@ -54,6 +54,11 @@
             android:key="keyboard__show_switch_arrow"
             android:title="@string/keyboard__show_switche_arrow_title"
             app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="keyboard__show_switch_next"
+            android:title="@string/keyboard__show_switche_next_title"
+            app:iconSpaceReserved="false" />
 
         <ListPreference
             android:defaultValue="0"

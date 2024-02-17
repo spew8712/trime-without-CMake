@@ -130,7 +130,8 @@
         <item name="1000">1000</item>
         <item name="-1">All</item>
     </string-array>
-    <string name="keyboard__show_switche_arrow_title">Show arrow for switch (→)</string>
+    <string name="keyboard__show_switche_arrow_title">Show arrow for candidate switch (→)</string>
+    <string name="keyboard__show_switche_next_title">Show next state for candidate switch</string>
     <string name="keyboard__fullscreen_mode_title">Landscape fullscreen input</string>
     <string name="deploy_finish">Deploy finish</string>
     <string-array name="keyboard__fullscreen_mode_entries">

@@ -129,7 +129,8 @@
         <item name="1000">1000</item>
         <item name="-1">全部</item>
     </string-array>
-    <string name="keyboard__show_switche_arrow_title">为开关显示箭头符号(→)</string>
+    <string name="keyboard__show_switche_arrow_title">候选栏开关显示箭头符号(→)</string>
+    <string name="keyboard__show_switche_next_title">候选栏开关提示下个状态</string>
     <string name="keyboard__fullscreen_mode_title">横屏时全屏编辑</string>
     <string name="deploy_finish">部署完成</string>
     <string-array name="keyboard__fullscreen_mode_entries">

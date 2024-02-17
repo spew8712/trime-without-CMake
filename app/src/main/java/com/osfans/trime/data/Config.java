@@ -382,6 +382,7 @@ public class Config {
       Timber.d("init() initLiquidKeyboard done");
       Rime.setShowSwitches(appPrefs.getKeyboard().getSwitchesEnabled());
       Rime.setShowSwitchArrow(appPrefs.getKeyboard().getSwitchArrowEnabled());
+      Rime.setShowSwitchNext(appPrefs.getKeyboard().getSwitchNextEnabled());
       reset();
       Timber.d("init() reset done");
       initCurrentColors();

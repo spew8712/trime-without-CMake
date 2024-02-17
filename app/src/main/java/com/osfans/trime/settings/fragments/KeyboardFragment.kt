@@ -45,6 +45,12 @@ class KeyboardFragment :
             "keyboard__show_switches" -> {
                 Rime.setShowSwitches(prefs.keyboard.switchesEnabled)
             }
+            "keyboard__show_switch_arrow" -> {
+                Rime.setShowSwitchArrow(prefs.keyboard.switchArrowEnabled)
+            }
+            "keyboard__show_switch_next" -> {
+                Rime.setShowSwitchNext(prefs.keyboard.switchNextEnabled)
+            }
             "keyboard__candidate_page_size" -> {
                 Rime.applySchemaChange()
             }

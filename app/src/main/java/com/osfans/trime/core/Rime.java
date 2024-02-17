@@ -252,14 +252,11 @@ public class Rime {
           Integer value = (Integer) o.get("value");
           if (value == null) value = 0;
           candidates[i].text = states.get(value).toString();
-
-          String kRightArrow = "→ ";
-          if (showSwitchArrow)
+          if (showSwitchNext) {
+            String kRightArrow = showSwitchArrow ? "→ " : "";
             candidates[i].comment =
                 o.containsKey("options") ? "" : kRightArrow + states.get(1 - value).toString();
-          else
-            candidates[i].comment =
-                o.containsKey("options") ? "" : states.get(1 - value).toString();
+          } else candidates[i].comment = "";
           i++;
         }
       for (int j = 0; j < menuExtraKeyboardCandidate.size(); j++) {
@@ -335,6 +332,7 @@ public class Rime {
   public static int META_RELEASE_ON = get_modifier_by_name("Release");
   private static boolean showSwitches = true;
   private static boolean showSwitchArrow = false;
+  private static boolean showSwitchNext = false;
 
   public static void setShowSwitches(boolean show) {
     showSwitches = show;
@@ -342,6 +340,10 @@ public class Rime {
 
   public static void setShowSwitchArrow(boolean show) {
     showSwitchArrow = show;
+  }
+
+  public static void setShowSwitchNext(boolean show) {
+    showSwitchNext = show;
   }
 
   public static boolean hasMenu() {

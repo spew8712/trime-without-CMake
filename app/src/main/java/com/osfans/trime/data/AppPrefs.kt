@@ -169,6 +169,7 @@ class AppPrefs(
             const val POPUP_KEY_PRESS_ENABLED = "keyboard__show_key_popup"
             const val SWITCHES_ENABLED = "keyboard__show_switches"
             const val SWITCH_ARROW_ENABLED = "keyboard__show_switch_arrow"
+            const val SWITCH_NEXT_ENABLED = "keyboard__show_switch_next"
             const val FULLSCREEN_MODE = "keyboard__fullscreen_mode"
             const val CANDIDATE_PAGE_SIZE = "keyboard__candidate_page_size"
 
@@ -218,11 +219,14 @@ class AppPrefs(
         var popupKeyPressEnabled: Boolean = false
             get() = prefs.getPref(POPUP_KEY_PRESS_ENABLED, false)
             private set
-        var switchesEnabled: Boolean = false
+        var switchesEnabled: Boolean = true
             get() = prefs.getPref(SWITCHES_ENABLED, true)
             private set
         var switchArrowEnabled: Boolean = false
-            get() = prefs.getPref(SWITCH_ARROW_ENABLED, true)
+            get() = prefs.getPref(SWITCH_ARROW_ENABLED, false)
+            private set
+        var switchNextEnabled: Boolean = false
+            get() = prefs.getPref(SWITCH_NEXT_ENABLED, false)
             private set
         var candidatePageSize: String = "0"
             get() = prefs.getPref(CANDIDATE_PAGE_SIZE, "0")
