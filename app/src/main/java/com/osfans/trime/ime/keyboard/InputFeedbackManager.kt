@@ -42,6 +42,8 @@ class InputFeedbackManager(
         if (prefs.keyboard.vibrationEnabled) {
             val vibrationDuration = prefs.keyboard.vibrationDuration.toLong()
             var vibrationAmplitude = prefs.keyboard.vibrationAmplitude
+            if(vibrationDuration==0L || vibrationAmplitude==0)
+                return
 
             val hapticsPerformed = if (vibrationDuration < 0) {
                 ims.window?.window?.decorView?.performHapticFeedback(

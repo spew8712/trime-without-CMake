@@ -231,10 +231,8 @@ public class Rime {
     }
 
     public RimeCandidate[] getCandidates() {
-      int size =
-          showSwitches
-              ? menuExtraKeyboardCandidate.size() + switches.size()
-              : menuExtraKeyboardCandidate.size();
+      int exSize = menuExtraKeyboardCandidate == null ? 0 : menuExtraKeyboardCandidate.size();
+      int size = showSwitches ? switches.size() + exSize : exSize;
       RimeCandidate[] candidates = new RimeCandidate[size];
 
       Timber.i(
@@ -242,7 +240,7 @@ public class Rime {
               + " size="
               + size
               + ", menuExtraKeyboardCandidate="
-              + menuExtraKeyboardCandidate.size());
+              + exSize);
 
       int i = 0;
       if (showSwitches)
@@ -259,7 +257,7 @@ public class Rime {
           } else candidates[i].comment = "";
           i++;
         }
-      for (int j = 0; j < menuExtraKeyboardCandidate.size(); j++) {
+      for (int j = 0; j < exSize; j++) {
         candidates[i] = menuExtraKeyboardCandidate.get(j);
         i++;
       }
