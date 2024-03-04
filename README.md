@@ -20,13 +20,12 @@
 已经修改包名、App name，与原版同文不存在冲突；但是如果在此版本和原版之间切换，建议先结束进程再切换。
 
 ## 使用/Use
-使用方法与原版完全相同。
-
-由于可能存在版本差异，建议与原版同文使用不同的文件夹。（设置方法：打开同文设置-输入配置-用户文件夹，修改路径并新建对应文件夹）
-新增和调整的功能可以在github commit和pr说明中查看，wiki也有整理较大的变化： https://github.com/tumuyan/trime-without-CMake/wiki  
+⚠很遗憾本仓库不会再同步官方仓库osfans/trime更新的代码，将永远停止在3.2.6-3.2.7之间。  
+后续会在 https://github.com/tumuyan/trime-without-CMake/tree/dev_20220524 这个分支进行一些更新，wiki有整理记录具体内容： [https://github.com/tumuyan/trime-without-CMake/wiki](https://github.com/tumuyan/trime-without-CMake/wiki/%E5%92%8C%E8%80%8C%E4%B8%8D%E5%90%8C%EF%BC%9A%E4%B8%8E%E5%AE%98%E6%96%B9%E4%BB%93%E5%BA%93%E5%B7%AE%E5%BC%82) 
+使用方法与原版基本相同。
 
 ## 在線編譯客製化APK✨
-本仓库提供了在线编译客制化APK的功能。  
+本仓库提供了在线编译客制化APK的功能。（正如上小节所述，由于不再同步官方仓库代码，因此愈发没有实用价值，仅作留念）  
 Fork本仓库后，先根据需求修改`.github/workflows/build-my-trime.yml`中的参数；然后在Github Action中可以看到多个Workflows。点击`Build My Trime`，在右侧再点击`Run workflow`，等待2分钟即可完成build。  
 ![](ci_1.jpg)
 
