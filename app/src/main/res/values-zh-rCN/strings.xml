@@ -255,5 +255,6 @@
         <item>90天</item>
         <item>永不</item>
     </string-array>
+    <string name="setup__setting_up">初始化中…</string>
     <string name="busy_progress">在忙…</string>
 </resources>
