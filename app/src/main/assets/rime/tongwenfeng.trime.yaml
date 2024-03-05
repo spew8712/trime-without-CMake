@@ -68,6 +68,18 @@ style:
 #    - {start: "", move: 'ㄓ ', end: ""}
     - {start: "", composition: "%s", end: "", letter_spacing: 0.12} #letter_spacing需要Android5.0
     - {start: "\n", label: "%s.", candidate: "%s", comment: "%s", end: "", sep: "☁️️"}
+  menu_extra_keyboard: #无候选时，在候选栏显示这些功能键（显示在方案指定的开关后方）
+    - {click: "liquid_keyboard_clipboard", label: "剪贴板"}
+    - {click: "liquid_keyboard_tabs", label: " ⌘ "}
+    - {click: "handwriting", label: " 手写 "}
+    - {click: "BACK", label: " ▽ "}
+  liquid_keyboard_window: #液态键盘模式下显示的悬浮窗口組件
+    - {start: "", click: "space", label: " 空格 "}
+    - {start: "", click: "BackSpace", label: " 删除 "}
+    - {start: "", click: "Return", label: " 回车 "}
+    - {start: "", click: "liquid_keyboard_tabs", label: " 全部 "}
+    - {start: "", click: "Escape", label: " 取消 "}
+    - {start: "", click: "liquid_keyboard_exit", label: " 返回 "}
   key_font: symbol.ttf #键盘字体
   key_height: *jpgd4 #键高
   key_long_text_size: 16 #长标签字号
@@ -128,6 +140,7 @@ fallback_colors:
   key_border_color: border_color
   key_text_color: candidate_text_color
   key_symbol_color: comment_text_color
+  hand_writing_color: key_symbol_color
   label_color: candidate_text_color
   off_key_back_color: key_back_color
   off_key_text_color: key_text_color
@@ -4110,6 +4123,11 @@ preset_keys:
   Keyboard_next: { label: 后退, functional: false, send: Eisu_toggle, select: .next }
   Keyboard_last: { label: 后退, functional: false, send: Eisu_toggle, select: .last }
   Keyboard_last_lock: { label: 返回, send: Eisu_toggle, select: .last_lock } #直接切換到下一键盘
+  # liquidKeyboard
+  liquid_keyboard_1: { label: 符号, send: function, command: liquid_keyboard, option: "1" }  #第二个液态键盘，即数学符号
+  liquid_keyboard_exit: { label: 返回, send: function, command: liquid_keyboard, option: "-1" }  #退出liquidkeyboard
+  liquid_keyboard_symobl: { label: Symbol, send: function, command: liquid_keyboard, option: "符号表" }
+  liquid_keyboard_tabs: { label: 全部, send: function, command: liquid_keyboard, option: "更多" }
   liquid_keyboard_switch: { label: 更多, send: function, command: liquid_keyboard, option: "特殊" }
   liquid_keyboard_switch2: { toggle: _liquid_keyboard, send: Mode_switch, states: [ 更多, 更多 ] }
   liquid_keyboard_emoji: { label: 🙂, send: function, command: liquid_keyboard, option: "emoji" }
@@ -4120,6 +4138,9 @@ preset_keys:
   Henkan: {toggle: simplification, send: Mode_switch, states: [ 汉字, 汉字 ]}
   Charset_switch: {toggle: extended_charset, send: Mode_switch, states: [ 常用, 增广 ]}
   Punct_switch: {toggle: ascii_punct, send: Mode_switch, states: [ 。，, ．， ]}
+  handwriting: {toggle: _handwriting, send: Mode_switch, states: [ 手写, 手写 ] }
+  handwriting1: {toggle: _handwriting, send: Mode_switch, states: [ 写, 写 ] }
+
   # trime设置
   IME_switch: {label: 🌐, send: LANGUAGE_SWITCH} #彈出對話框選擇輸入法
   IME_last: {label: 上一输入法, send: LANGUAGE_SWITCH, select: .last} #直接切換到上一輸入法

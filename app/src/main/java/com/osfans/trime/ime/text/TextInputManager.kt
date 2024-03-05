@@ -1,10 +1,14 @@
 package com.osfans.trime.ime.text
 
+import android.content.ComponentName
+import android.content.Intent
+import android.os.Build
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.core.content.ContextCompat.startForegroundService
 import com.osfans.trime.core.Rime
 import com.osfans.trime.data.AppPrefs
 import com.osfans.trime.data.Config
@@ -20,6 +24,7 @@ import com.osfans.trime.ime.keyboard.Event
 import com.osfans.trime.ime.keyboard.Keyboard.printModifierKeyState
 import com.osfans.trime.ime.keyboard.KeyboardSwitcher
 import com.osfans.trime.ime.keyboard.KeyboardView
+import com.osfans.trime.setup.Rsa
 import com.osfans.trime.util.ShortcutUtils
 import com.osfans.trime.util.startsWithAsciiChar
 import kotlinx.coroutines.CoroutineScope
@@ -263,6 +268,7 @@ class TextInputManager private constructor() :
             "_liquid_keyboard" -> trime.selectLiquidKeyboard(0)
             "_hide_key_hint" -> if (mainKeyboardView != null) mainKeyboardView!!.setShowHint(!value)
             "_hide_key_symbol" -> if (mainKeyboardView != null) mainKeyboardView!!.setShowSymbol(!value)
+            "_handwriting" -> trime.handwriting(true)
             else -> if (option.startsWith("_keyboard_") &&
                 option.length > 10 && value
             ) {
@@ -520,4 +526,5 @@ class TextInputManager private constructor() :
     override fun onKeyPressed(e: Event?) {
         onEvent(e)
     }
+
 }

@@ -921,6 +921,8 @@ preset_keys:
   Henkan: {toggle: simplification, send: Mode_switch, states: [ 漢字, 汉字 ]}
   Charset_switch: {toggle: extended_charset, send: Mode_switch, states: [ 常用, 增廣 ]}
   Punct_switch: {toggle: ascii_punct, send: Mode_switch, states: [ 。，, ．， ]}
+  handwriting: { toggle: _handwriting, send: Mode_switch, states: [ 手写, 手写 ] }
+  handwriting1: { toggle: _handwriting, send: Mode_switch, states: [ 写, 写 ] }
   #切换键盘
   Keyboard_symbols: {label: 符號, send: Eisu_toggle, select: symbols}
   Keyboard_number: {label: 數字, send: Eisu_toggle, select: number}

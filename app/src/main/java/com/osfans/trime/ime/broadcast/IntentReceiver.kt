@@ -22,6 +22,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import com.osfans.trime.core.Rime
+import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.util.RimeUtils.deploy
 import com.osfans.trime.util.RimeUtils.sync
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +43,11 @@ class IntentReceiver : BroadcastReceiver(), CoroutineScope by MainScope() {
             COMMAND_SYNC -> async {
                 sync(context)
             }
+            COMMAND_COMMIT -> async {
+                val ext_app = intent.getStringExtra("ext_app")
+                val text = intent.getStringExtra("text")
+                Trime.getService().extAppCommit(text, ext_app)
+            }
             Intent.ACTION_SHUTDOWN -> Rime.destroy()
             else -> return
         }
@@ -51,6 +57,7 @@ class IntentReceiver : BroadcastReceiver(), CoroutineScope by MainScope() {
         context.registerReceiver(this, IntentFilter(COMMAND_DEPLOY))
         context.registerReceiver(this, IntentFilter(COMMAND_SYNC))
         context.registerReceiver(this, IntentFilter(Intent.ACTION_SHUTDOWN))
+        context.registerReceiver(this, IntentFilter(COMMAND_COMMIT));
     }
 
     fun unregisterReceiver(context: Context) {
@@ -60,5 +67,6 @@ class IntentReceiver : BroadcastReceiver(), CoroutineScope by MainScope() {
     companion object {
         private const val COMMAND_DEPLOY = "com.osfans.trime.deploy"
         private const val COMMAND_SYNC = "com.osfans.trime.sync"
+        private const val COMMAND_COMMIT = "com.osfans.trime.commit"
     }
 }

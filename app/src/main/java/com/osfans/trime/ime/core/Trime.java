@@ -23,6 +23,7 @@ import static android.graphics.Color.parseColor;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -30,6 +31,7 @@ import android.graphics.Color;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.InputMethodService;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
@@ -53,10 +55,12 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+
 import com.blankj.utilcode.util.BarUtils;
 import com.osfans.trime.BuildConfig;
 import com.osfans.trime.R;
@@ -65,7 +69,6 @@ import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.data.Config;
 import com.osfans.trime.databinding.CompositionRootBinding;
 import com.osfans.trime.databinding.InputRootBinding;
-import com.osfans.trime.ime.broadcast.IntentReceiver;
 import com.osfans.trime.ime.enums.Keycode;
 import com.osfans.trime.ime.enums.PositionType;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
@@ -89,11 +92,14 @@ import com.osfans.trime.settings.components.ColorPickerDialog;
 import com.osfans.trime.settings.components.SchemaPickerDialog;
 import com.osfans.trime.settings.components.SoundPickerDialog;
 import com.osfans.trime.settings.components.ThemePickerDialog;
+import com.osfans.trime.setup.Rsa;
 import com.osfans.trime.util.ShortcutUtils;
 import com.osfans.trime.util.StringUtils;
 import com.osfans.trime.util.ViewUtils;
+
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import kotlin.jvm.Synchronized;
 import timber.log.Timber;
 
@@ -101,6 +107,7 @@ import timber.log.Timber;
 public class Trime extends LifecycleInputMethodService {
   private static Trime self = null;
   private LiquidKeyboard liquidKeyboard;
+
   private boolean normalTextEditor;
 
   @NonNull
@@ -118,7 +125,7 @@ public class Trime extends LifecycleInputMethodService {
   private boolean darkMode; // 当前键盘主题是否处于暗黑模式
   private KeyboardView mainKeyboardView; // 主軟鍵盤
   public KeyboardSwitcher keyboardSwitcher; // 键盘切换器
-
+  private Rsa rsa;
   private Candidate mCandidate; // 候選
   private Composition mComposition; // 編碼
   private CompositionRootBinding compositionRootBinding = null;
@@ -649,6 +656,7 @@ public class Trime extends LifecycleInputMethodService {
       if (listener != null) listener.onDestroy();
     }
     eventListeners.clear();
+    if (rsa != null) handwriting(false);
     super.onDestroy();
 
     self = null;
@@ -883,6 +891,7 @@ public class Trime extends LifecycleInputMethodService {
     super.onFinishInputView(finishingInput);
     // Dismiss any pop-ups when the input-view is being finished and hidden.
     mainKeyboardView.closing();
+    if (rsa != null) handwriting(false);
     performEscape();
     try {
       hideCompositionView();
@@ -1531,5 +1540,57 @@ public class Trime extends LifecycleInputMethodService {
 
   public String getCurrentApp() {
     return currentApp;
+  }
+
+  /**
+   * 外部App发送加密字符串并上屏
+   *
+   * @param text 使用base64编码的rsa加密字符串
+   * @param ext_app 外部App包名
+   */
+  public void extAppCommit(String text, String ext_app) {
+    //  外部手写输入App的包名，暂未实现选择器
+    String ext_app1 = "com.example.input";
+    if (text == null || !ext_app1.equals(ext_app)) return;
+    text = rsa.privateDecode(text);
+    if (text.length() < 1) return;
+    if (text.equals("keycode:KEYCODE_FORWARD_DEL")) {
+      Timber.d("backspace");
+      sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
+      // 可能需要 textInputManager.onKey类似的函数
+      return;
+    }
+    if (inputFeedbackManager != null) inputFeedbackManager.textCommitSpeak(text);
+    final @Nullable InputConnection ic = getCurrentInputConnection();
+    if (ic != null) {
+      ic.commitText(text, 1);
+//      lastCommittedText = text;
+    }
+  }
+
+  public void handwriting(boolean open) {
+    Intent intent = new Intent();
+    intent.setComponent(
+            new ComponentName("com.example.input", "com.example.softwaretest.HWService"));
+
+    if (mainKeyboardView != null && open) {
+      rsa = new Rsa();
+      final Config mConfig = getImeConfig();
+      intent.putExtra("key", rsa.getPublicKey());
+      intent.putExtra("height", inputRootBinding.inputRoot.getHeight());
+      if (mCandidateRoot.getHeight() > 0)
+        intent.putExtra("candidate_view_height", mCandidateRoot.getHeight());
+      else intent.putExtra("candidate_view_height", mConfig.getPixel("candidate_view_height"));
+      intent.putExtra("hand_writing_color", mConfig.getCurrentColor_("hand_writing_color"));
+      intent.putExtra("back_color", mConfig.getCurrentColor_("back_color"));
+      intent.putExtra("text_color", mConfig.getCurrentColor_("text_color"));
+      intent.putExtra("candidate_text_color", mConfig.getCurrentColor_("candidate_text_color"));
+    } else {
+      rsa = null;
+      intent.putExtra("height", -1);
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
+    else startService(intent);
   }
 }
