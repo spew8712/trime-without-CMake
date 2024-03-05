@@ -263,21 +263,20 @@ public class Candidate extends View {
       if (computedCandidate instanceof ComputedCandidate.Word) {
         float wordX = computedCandidate.getGeometry().centerX();
         float wordY =
-            computedCandidates.get(0).getGeometry().centerY()
-                - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
+                computedCandidates.get(0).getGeometry().centerY()
+                        - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
+        if (shouldShowComment && isCommentOnTop) wordY += commentHeight / 2.0f;
         if (shouldShowComment) {
           String comment = ((ComputedCandidate.Word) computedCandidate).getComment();
           if (comment != null && !comment.isEmpty()) {
             float commentX = computedCandidate.getGeometry().centerX();
             float commentY =
-                commentHeight / 2.0f - (commentPaint.ascent() + commentPaint.descent()) / 2;
-            wordY += commentHeight / 2.0f;
+                    commentHeight / 2.0f - (commentPaint.ascent() + commentPaint.descent()) / 2;
             if (!isCommentOnTop) {
               float commentWidth = graphicUtils.measureText(commentPaint, comment, commentFont);
               commentX = computedCandidate.getGeometry().right - commentWidth / 2;
               commentY += computedCandidates.get(0).getGeometry().bottom - commentHeight;
               wordX -= commentWidth / 2.0f;
-              wordY -= commentHeight / 2.0f;
             }
             commentPaint.setColor(isHighlighted(i) ? hilitedCommentTextColor : commentTextColor);
             graphicUtils.drawText(canvas, comment, commentX, commentY, commentPaint, commentFont);
@@ -290,21 +289,24 @@ public class Candidate extends View {
         // Draw page up / down buttons
         String arrow = ((ComputedCandidate.Symbol) computedCandidate).getArrow();
         float arrowX =
-            computedCandidate.getGeometry().centerX()
-                - graphicUtils.measureText(symbolPaint, arrow, symbolFont) / 2;
+                computedCandidate.getGeometry().centerX()
+                        - graphicUtils.measureText(symbolPaint, arrow, symbolFont) / 2;
         float arrowY =
-            computedCandidates.get(0).getGeometry().centerY()
-                - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
+                computedCandidates.get(0).getGeometry().centerY()
+                        - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
         symbolPaint.setColor(isHighlighted(i) ? hilitedCommentTextColor : commentTextColor);
         canvas.drawText(arrow, arrowX, arrowY, symbolPaint);
       } else if (computedCandidate instanceof ComputedCandidate.Key) {
 
         float wordX = computedCandidate.getGeometry().centerX();
         float wordY =
-            computedCandidates.get(0).getGeometry().centerY()
-                - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
+                computedCandidates.get(0).getGeometry().centerY()
+                        - (candidatePaint.ascent() + candidatePaint.descent()) / 2;
+        if (shouldShowComment && isCommentOnTop) wordY += commentHeight / 2.0f;
         String word = ((ComputedCandidate.Key) computedCandidate).getLabel();
         candidatePaint.setColor(candidateTextColor);
+
+
         graphicUtils.drawText(canvas, word, wordX, wordY, candidatePaint, candidateFont);
       }
       // Draw separators

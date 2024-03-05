@@ -491,7 +491,7 @@ public class Composition extends AppCompatTextView {
     end = ss.length();
     ss.setSpan(getAlign(m), start, end, span);
     ss.setSpan(new EventSpan(e), start, end, span);
-    ss.setSpan(new AbsoluteSizeSpan(key_text_size), start, end, span);
+    ss.setSpan(new AbsoluteSizeSpan(candidate_text_size), start, end, span);
     sep = Config.getString(m, "end");
     if (!TextUtils.isEmpty(sep)) ss.append(sep);
   }
