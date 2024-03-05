@@ -252,8 +252,9 @@ public class Rime {
           candidates[i].text = states.get(value).toString();
           if (showSwitchNext) {
             String kRightArrow = showSwitchArrow ? "→ " : "";
-            candidates[i].comment =
-                o.containsKey("options") ? "" : kRightArrow + states.get(1 - value).toString();
+            int v = (value + 1) % states.size();
+            String comment = states.get(v).toString();
+            candidates[i].comment = (comment.isEmpty() ? "" : kRightArrow + comment);
           } else candidates[i].comment = "";
           i++;
         }
