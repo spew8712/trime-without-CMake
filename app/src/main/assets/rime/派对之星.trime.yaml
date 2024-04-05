@@ -1,7 +1,7 @@
 # Trime default style settings
 # encoding: utf-8
 
-config_version: "0.13.7, for同文3.2.7"
+config_version: "0.13.7.3, for同文3.2.7"
 name: 派对之星 #主题名称
 author: tumuyan
 log:
@@ -132,7 +132,8 @@ style:
     - {start: "", composition: "%s", end: "", letter_spacing: 0.12} #letter_spacing需要Android5.0
     - {start: "\n", label: "%s.", candidate: "%s", comment: "%s", end: "", sep: "☁️️"}
   menu_extra_keyboard: #无候选时，在候选栏显示这些功能键（显示在方案指定的开关后方）
-    - {click: "K_symbols50", label: "剪贴板"}
+    - {click: "handwriting_switch", label: "手写"}
+    - {click: "K_symbols50", label: "剪贴"}
     - {click: "symbol_tabs", label: " ⌘ "}
     - {click: "cursor", label: " ↔ "}
     - {click: "BACK", label: " ▽ "}
@@ -151,7 +152,7 @@ style:
   key_long_text_border: 1 #长文本按键描边宽度
   key_text_size: 20 #键字号
   key_width: 10.0 #键宽，占银幕宽的百分比
-  keyboards: [.default, default, defaultVJ, letter, letterfh, number, hack,  use, cursor, menu, menux, symbols, symbols01, symbols11, symbols12, symbols13, symbols14, symbols21, symbols22, symbols31, symbols32, symbols33, symbols34, symbols35, symbols36, symbols81, symbols82, symbols83] #键盘配置
+  keyboards: [.default, default, defaultVJ, letter, letterfh, number, hack,  use, cursor, menu, menux, symbols, symbols01, symbols11, symbols12, symbols13, symbols14, symbols21, symbols22, symbols31, symbols32, symbols33, symbols34, symbols35, symbols36, symbols81, symbols82, symbols83, mini] #键盘配置
   label_text_size: 14 #悬浮窗序号字号
   label_font: ziti.ttf #标签字型
   latin_font: ziti.ttf #西文字型
@@ -236,10 +237,10 @@ preset_color_schemes:
     name: "哔哩哔哩・红蓝"
     sound: 打字机
     dark_scheme: ns
-    back_color: 0x66fffaf8 #背景色
+    back_color: 0xffece9e8 #背景色
     border_color: 0xffe9e9e9 #悬浮窗边框
     keyboard_back_color: 0x44fcfcfc #键盘区整体背景
-    candidate_background: 0x66ffffff #候选区背景
+    candidate_background: 0x00ffffff #候选区背景
     candidate_separator_color: 0x00000000 #候选分割背景
     candidate_text_color: 0x5a676e #状态栏及次选文字色
     comment_text_color: 0xFFF45A8D #候选提示
@@ -275,6 +276,27 @@ preset_color_schemes:
     ktl2:  0xffffffff #左下方按键提示文本的颜色
     ktr2:  0xffffffff #右下方按键提示文本的颜色
     transparent: 0x00ffffff #透明
+  eva2:
+    name: "EVA·初号机"
+    author: "tumuyan"
+    text_color: 0xffffffff					  #悬浮窗编码
+    back_color: 0xff75409A					  #悬浮窗背景色，按键背景色也fall back到这里了，重要
+    border_color: 0xff464b53				  #悬浮窗边框，实际上整体背景也fall back到这里了，重要
+    hilited_text_color: 0xffffffff			  #悬浮窗高亮编码
+    hilited_back_color: 0xffFFA500			  #悬浮窗高亮背景
+    # candidate_text_color: 0xffffffff
+    comment_text_color: 0xffffffff			  #候选词comment文字颜色 （fallback为candidate_text_color，建议设置为 key_symbol_color 相同色
+    # hilited_candidate_text_color: 0xffffffff  #高亮候选文本
+    hilited_comment_text_color: 0xffffffff		#高亮候选词comment文字颜色
+    transparent: 0x00ffffff #透明
+    kbl: 0xff00FF80 #左下方按键背景色 @右下按键按下背景
+    kbr: 0xffFFA500 #右下方按键背景色 @左下按键按下背景
+    ktl: 0x000000 #左下方按键文本颜色
+    ktr: 0xffFC3A13 #右下方按键文本颜色
+    # ktl2:  0x000000 #左下方按键提示文本的颜色	实际上并没有使用
+    # ktr2:  0xffFC3A13 #右下方按键提示文本的颜色	实际上并没有使用
+    hilited_off_key_back_color: 0xffFFA500
+    hilited_off_key_text_color: 0xff75409A
   ns:
     name: "Nintendo Switch"
     author: "tumuyan"
@@ -411,6 +433,7 @@ preset_color_schemes:
     ktr2:  0xff000000 #右下方按键提示文本的颜色
     hilited_off_key_back_color: 0xff000000
     hilited_off_key_text_color: 0xffffffff
+
   gray:
     name: "浅灰"
     author: "tumuyan"
@@ -436,6 +459,7 @@ preset_color_schemes:
     ktr2:  0xff000000 #右下方按键提示文本的颜色
     hilited_off_key_back_color: 0xff0197FE
     hilited_off_key_text_color: 0xffffffff
+
   yb:
     name: "黄黑"
     author: "tumuyan"
@@ -488,27 +512,6 @@ preset_color_schemes:
     ktr2:  0xffFC3A13 #右下方按键提示文本的颜色
     hilited_off_key_back_color: 0xffffffff
     hilited_off_key_text_color: 0xffFC3A13
-  eva:
-    name: "EVA·初号机"
-    author: "tumuyan"
-    text_color: 0xffffffff
-    back_color: 0xff75409A
-    border_color: 0xff464b53
-    hilited_text_color: 0xffffffff
-    hilited_back_color: 0xffFFA500
-    candidate_text_color: 0xffffffff
-    comment_text_color: 0xffffffff
-    hilited_candidate_text_color: 0xffffffff
-    hilited_comment_text_color: 0xffffffff
-    transparent: 0x00ffffff #透明
-    kbl: 0xff00FF80 #左下方按键背景色 @右下按键按下背景
-    kbr: 0xffFFA500 #右下方按键背景色 @左下按键按下背景
-    ktl: 0x000000 #左下方按键文本颜色
-    ktr: 0xffFC3A13 #右下方按键文本颜色
-    ktl2:  0x000000 #左下方按键提示文本的颜色
-    ktr2:  0xffFC3A13 #右下方按键提示文本的颜色
-    hilited_off_key_back_color: 0xffFFA500
-    hilited_off_key_text_color: 0xff75409A
   starcraft_ii:
     name: "星際爭霸Ⅱ"
     author: "Patricivs <ipatrickmac@me.com>"
@@ -550,7 +553,7 @@ liquid_keyboard:
     type: HISTORY
   emoji:
     type: SINGLE
-    keys: "🙂😂🤣😆🙃😅🥺😎👀👁🙈🙉🙊☹😑😄🤐😨😱🌚🌝🤔❤💔🌹💣👌👍😣😥😮🙄😏😕😯😪😫😴😌🤑😉😋😎😍😘😚😛😜😝😒😓😔😲😷🤒😇🤓🤗🤕🙁😖😞😟😤😢😭😦😧😨😩😬😰😳😵😡😠☝✌🖕👎🙏🤘👏💪💋☘🍀🌸☕🍵🍺🍻🍦🍬🍚🍜🍲🍖🎂🍔💤"
+    keys: "🙂😂🤣😆🙃😅🥺😎👀👁🙈🙉🙊☹😑😄🤐😨😱🌚🌝🤔❤💔🌹💣💩👌👍😣😥😮🙄😏😕😯😪😫😴😌🤑😉😋😎😍😘😚😛😜😝😒😓😔😲😷🤒😇🤓🤗🤕🙁😖😞😟😤😢😭😦😧😨😩😬😰😳😵😡😠☝✌🖕👎🙏🤘👏💪💋☘🍀🌸☕🍵🍺🍻🍦🍬🍚🍜🍲🍖🎂🍔💤"
   emoji_full:
     type: SINGLE
     name: 全emoji
@@ -680,6 +683,19 @@ liquid_keyboard:
     type: SYMBOL
     name: 符号表
     keys: [ 符号: '/fh', 电脑: '/dn', 象棋: '/xq', 麻将: '/mj', 骰子: '/sz', 扑克: '/pk', 天气: '/tq', 音乐: '/yy', 八卦: '/bg', 易经: '/lssg', 天体: '/tt',  星座: '/xz',  星号: '/xh',  方块: '/fk',  几何: '/jh',  箭头: '/jt',  数学: '/sx',  上标: '/sb',  下标: '/xb',  单位: '/dw',  货币: '/hb',  拼音: '/py',  注音: '/zy',  假名: '/jm',  片假: '/pjm',  韩文: '/hw',  希腊: '/xl',  希大: '/xld', 罗马:   '/lm',  罗大:   '/lmd', 俄语:   '/ey',  俄大:   '/eyd', 表情:  '/bq',  一: '/1',  二: '/2',  三: '/3',  四: '/4',  五: '/5',  六: '/6',  七: '/7',  八: '/8',  九: '/9',  零: '/0',  十: '/10',  分数: '/fs',  标点: '/bd',  偏旁: '/pp',  竖标:  '/bdz'  ]
+  transform: #未使用
+    type: SINGLE
+    name: 变换
+    keys:
+      - { click: "\uef00", label: "Hex" }  #文本视图将使用并删除光标前的四个字符，将其转换为十六进制数字，并插入相应的 Unicode 代码点。
+      - { click: "\uef01", label: "选择" } #文本视图显示包含杂项符号的字符选择器对话框。
+      - { click: "" } # 内容为空可以强制令键盘从此处新起一行，以下为组合变音静键字符：
+      - { click: "\u0300", label: "重音" }
+      - { click: "\u0301", label: "尖音" }
+      - { click: "\u0302", label: "抑扬音" }
+      - { click: "\u0303", label: "腭化音" }
+      - { click: "\u0308", label: "元音变音" }
+      - { click: "" } # 内容为空可以强制令键盘从此处新起一行
 
 
 # 键盘布局
@@ -706,7 +722,7 @@ preset_keyboards:
       - {click: e, swipe_up: "3", long_click: 3, swipe_down: {commit: "- [ ] "} , hint: "- [ ]"}
       - {click: r, swipe_up: "4", long_click: 4, swipe_down: '[]{Left}', hint: "[]"}
       - {click: t, swipe_up: "5", swipe_down: commit_tab, long_click: 5, hint: Tab}
-      - {click: y, swipe_up: "6", long_click: 6,}
+      - {click: y, swipe_up: "6", long_click: 6}
       - {click: u, swipe_up: "7", long_click: 7, swipe_down: Sound_settings, hint: 音效}
       - {click: i, swipe_up: "8", swipe_down: symbol_list, long_click: 8, hint: Symbol}
       #      - {click: o, swipe_up: "9", swipe_down: Candidate_switch1, long_click: 9}
@@ -739,11 +755,11 @@ preset_keyboards:
       - {click: n, swipe_up: {commit: "："}, swipe_down:  {commit: "；"}, long_click: "/", label_symbol: "：；/"}
       - {click: m, swipe_up: '“”', swipe_down: "'", long_click: "`", label_symbol: "＂＇`"}
       # 退格鍵 上滑删除一行，下滑向后刪除
-      - {click: BackSpace, swipe_up: ClearH, swipe_down: Delete, key_back_color: kbr, key_text_color: ktr, hilited_key_back_color: kbl, key_symbol_color: ktr2, width: 15}
+      - {click: BackSpace, swipe_up: ClearH, swipe_down: Delete, key_back_color: kbr, key_text_color: ktr, key_symbol_color: ktr2, hilited_key_back_color: kbl, width: 15}
       # 第四行  序号30-34
       #点击进入数字符号键盘K_symbols123 K_number，长按选择方案，上滑设置界面
       - {height: *VJM, click: K_number, composing: K_symbols123, swipe_right: K_symbols10, swipe_left: K_symbols10, long_click: Menu, swipe_up: K_menu, swipe_down: K_menu, key_symbol_offset_x: 0, key_back_color: kbl, key_text_color: ktl, key_symbol_color: ktl2, hilited_key_back_color: kbr, width: 20} #方案选择
-      - {click: ",", composing: "cursor", key_symbol_offset_x: 0, swipe_up: "!", swipe_down: "!", long_click: CHS_DOT1, width: 15, key_back_color: kbl, key_text_color: ktl, key_symbol_color: ktl2, hilited_key_back_color: kbr, hilited_key_text_color: ktr2}
+      - {click: ",", composing: "cursor", key_symbol_offset_x: 0, swipe_up: "!", swipe_down: "!", long_click: CHS_DOT1, width: 15, key_back_color: kbl, key_text_color: ktl, key_symbol_color: ktl2, hilited_key_back_color: kbr}
       # 空格键，点击发送空格(发送候选词)，长按选择输入法，上滑切换中英文
       - {click: space, long_click: IME_switch2, swipe_up: Mode_switch, swipe_down: Mode_switch, swipe_left: "Left", swipe_right: "Right", width: 30}
       - {click: ".", composing: delimiterJ, swipe_up: "?", swipe_down: "?", long_click: "CHS_DOT2", width: 15, key_back_color: kbr, key_text_color: ktr, key_symbol_color: ktr2, hilited_key_back_color: kbl}
@@ -815,7 +831,6 @@ preset_keyboards:
       "keys/@32/long_click": ""
     ascii_mode: 1
     lock: false
-    keyboard_back_color: Enb
     key_symbol_offset_x: 0
     name: "letter26键"
 
@@ -844,6 +859,8 @@ preset_keyboards:
     "reset_ascii_mode": true  #显示键盘时重置为ascii_mode指定的状态
   number:
     ascii_mode: 1
+    name: "数字"
+    width: 20
     author: tumuyan
     height: *VJG
     horizontal_gap: *VJL
@@ -871,10 +888,37 @@ preset_keyboards:
       - {click: KP_0, long_click: paste3 , key_symbol_offset_y: 6}
       - {click: . , long_click: "," , key_symbol_offset_y: 6}
       - {click: Return, key_back_color: kbl, key_text_color: ktl, key_symbol_color: ktl2}
+  mini:
+    name: 精简键盘
+    author: "tumuyan"
+    ascii_mode: 0
+    width: 10
+    height: 44
+    keyboard_height: 120
+    lock: true #切換程序時記憶鍵盤
+    keys:
+      - {click: '1', long_click: '!'}
+      - {click: '2', long_click: '@'}
+      - {click: '3', long_click: '#'}
+      - {click: '4', long_click: '$'}
+      - {click: '5', long_click: '%'}
+      - {click: '6', long_click: '^'}
+      - {click: '7', long_click: '&'}
+      - {click: '8', long_click: '*'}
+      - {click: '9', long_click: '('}
+      - {click: '0', long_click: ')'}
+      - {click: Shift_L}
+      - {click: K_back, swipe_right: K_symbols10,}
+      - {click: "'", long_click: '"'}
+      - {click: '-', long_click: '_'}
+      - {click: '=', long_click: '+'}
+      - {click: ',', long_click: '<'}
+      - {click: '.', long_click: '>'}
+      - {click: '/', long_click: '?'}
+      - {click: Mode_switch, long_click: Menu}
+      - {click: Return, composing: Return1, long_click: CommitComment}
 
-    keyboard_back_color: Enb
-    name: "数字"
-    width: 20
+
   cursor:
     ascii_mode: 0
     author: tumuyan
@@ -1577,8 +1621,8 @@ preset_keyboards:
     name: "制表3"
     width: 13.5
 
-android_keys:
 
+android_keys:
   when:
     ascii: 西文标签
     paging: 翻页标签

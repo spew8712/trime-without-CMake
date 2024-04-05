@@ -39,6 +39,7 @@ class ConfFragment : PreferenceFragmentCompat(), CoroutineScope by MainScope() {
                 val progressDialog = createLoadingDialog(requireContext(), R.string.sync_progress)
                 launch {
                     try {
+                        progressDialog.show()
                         RimeUtils.sync(requireContext())
                     } catch (ex: Exception) {
                         Timber.e(ex, "Sync Exception")

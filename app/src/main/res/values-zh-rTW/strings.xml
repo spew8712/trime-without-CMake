@@ -258,4 +258,5 @@
     </string-array>
     <string name="setup__setting_up">初始化中…</string>
     <string name="busy_progress">在忙...</string>
+    <string name="sync_finish">同步完成</string>
 </resources>

@@ -260,4 +260,5 @@
     </string-array>
     <string name="setup__setting_up">Setting up…</string>
     <string name="busy_progress">Busy...</string>
+    <string name="sync_finish">Sync finish.</string>
 </resources>

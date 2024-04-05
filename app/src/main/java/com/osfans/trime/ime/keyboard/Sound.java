@@ -3,9 +3,12 @@ package com.osfans.trime.ime.keyboard;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.util.Log;
 import android.view.KeyEvent;
+
 import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.util.ConfigGetter;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,6 +126,7 @@ public class Sound {
           if (progress >= melody.length) progress = 0;
           currStreamId = melody[progress];
           progress++;
+          Log.i("playSound", "progress="+progress+"/"+melody.length+", id="+currStreamId);
         } else if (lastKeycode != keycode) {
           lastKeycode = keycode;
           for (Key key : keyset) {

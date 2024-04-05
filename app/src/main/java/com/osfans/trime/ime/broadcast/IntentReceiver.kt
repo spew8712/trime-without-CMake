@@ -21,6 +21,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import com.blankj.utilcode.util.ToastUtils
+import com.osfans.trime.R
 import com.osfans.trime.core.Rime
 import com.osfans.trime.ime.core.Trime
 import com.osfans.trime.util.RimeUtils.deploy
@@ -41,7 +43,9 @@ class IntentReceiver : BroadcastReceiver(), CoroutineScope by MainScope() {
                 deploy(context)
             }
             COMMAND_SYNC -> async {
+                ToastUtils.showLong(R.string.sync_progress)
                 sync(context)
+                ToastUtils.showLong(R.string.sync_finish)
             }
             COMMAND_COMMIT -> async {
                 val ext_app = intent.getStringExtra("ext_app")
