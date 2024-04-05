@@ -134,6 +134,7 @@ public class Composition extends AppCompatTextView {
 
     @Override
     public void onClick(View tv) {
+      Timber.i("event="+event.toString());
       textInputManager.onPress(event.getCode());
       textInputManager.onEvent(event);
     }
@@ -141,11 +142,10 @@ public class Composition extends AppCompatTextView {
     @Override
     public void updateDrawState(TextPaint ds) {
       ds.setUnderlineText(false);
-      ds.setColor(key_text_color);
-      if (key_back_color != null) ds.bgColor = key_back_color;
+      ds.setColor(text_color);
+      ds.bgColor = back_color;
     }
   }
-
   public static class LetterSpacingSpan extends UnderlineSpan {
     private final float letterSpacing;
 
@@ -172,6 +172,8 @@ public class Composition extends AppCompatTextView {
   @SuppressLint("ClickableViewAccessibility")
   @Override
   public boolean onTouchEvent(@NonNull MotionEvent event) {
+    if(liquidKeyboardToolbar)
+      return super.onTouchEvent(event);
     int action = event.getAction();
     if (action == MotionEvent.ACTION_UP) {
       int n = getOffsetForPosition(event.getX(), event.getY());
@@ -527,6 +529,7 @@ public class Composition extends AppCompatTextView {
    * @return 悬浮窗显示的候选词数量
    */
   public int setWindow(int charLength, int minCheck, int maxPopup) {
+    liquidKeyboardToolbar = false;
     return setWindow(charLength, minCheck);
   }
 
@@ -573,8 +576,10 @@ public class Composition extends AppCompatTextView {
     return start_num;
   }
 
+  private boolean liquidKeyboardToolbar = false;
   /** 设置悬浮窗, 用于liquidKeyboard的悬浮窗工具栏 */
   public void setWindow() {
+    liquidKeyboardToolbar = true;
     if (getVisibility() != View.VISIBLE) return;
     if (liquid_keyboard_window_comp.isEmpty()) {
       this.setVisibility(GONE);
@@ -584,8 +589,16 @@ public class Composition extends AppCompatTextView {
     ss = new SpannableStringBuilder();
 
     for (Map<String, ?> m : liquid_keyboard_window_comp) {
-      if (m.containsKey("composition")) appendComposition(m);
-      else if (m.containsKey("click")) appendButton(m);
+      if (m.containsKey("composition")) {
+        appendComposition(m);
+        Timber.i("event: add liquid_keyboard_window_comp composition, composition="+m.get("composition") +", "+ m.toString());
+      }
+      else if (m.containsKey("click")) {
+        appendButton(m);
+        Timber.i("event: add liquid_keyboard_window_comp click, key="+m.get("click") +", "+ m.toString());
+      }else{
+        Timber.i("event: add liquid_keyboard_window_comp else, "+ m.toString());
+      }
     }
     setSingleLine(!ss.toString().contains("\n"));
 
