@@ -17,6 +17,7 @@ import com.osfans.trime.data.Config;
 import com.osfans.trime.data.db.DbBean;
 import com.osfans.trime.data.db.DbDao;
 import com.osfans.trime.ime.core.Trime;
+import com.osfans.trime.ime.enums.Keycode;
 import com.osfans.trime.ime.enums.SymbolKeyboardType;
 import com.osfans.trime.ime.text.TextInputManager;
 import com.osfans.trime.util.ConfigGetter;
@@ -246,12 +247,16 @@ public class LiquidKeyboard {
     simpleAdapter.setOnItemClickListener(
         (view, position) -> {
           if (keyboardType == SymbolKeyboardType.SYMBOL) {
-            Trime.getService().inputSymbol(simpleKeyBeans.get(position).getText());
+            final String s = simpleKeyBeans.get(position).getText();
+            TextInputManager.Companion.getInstance().onPress(Keycode.fromString(s).ordinal());
+            Trime.getService().inputSymbol(s);
           } else if (keyboardType != SymbolKeyboardType.TABS) {
             InputConnection ic = Trime.getService().getCurrentInputConnection();
             if (ic != null) {
               SimpleKeyBean bean = simpleKeyBeans.get(position);
-              ic.commitText(bean.getText(), 1);
+              final String s = bean.getText();
+              TextInputManager.Companion.getInstance().onPress(Keycode.fromString(s).ordinal());
+              ic.commitText(s, 1);
 
               if (keyboardType != SymbolKeyboardType.HISTORY) {
                 historyBeans.add(0, bean);
