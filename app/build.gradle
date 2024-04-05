@@ -33,6 +33,13 @@ android {
         }
     }
 
+    android.applicationVariants.all {
+        variant ->
+            variant.outputs.all {
+                outputFileName = "Trime-${getBuildDate()}-${variant.versionName}-tumuyan.Apk"
+            }
+    }
+
     def propsFile = rootProject.file('gradle.properties') //store release config in gradle.properties
     def configName = 'release'
 
