@@ -10,6 +10,7 @@ import android.speech.tts.TextToSpeech
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import com.osfans.trime.data.AppPrefs
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.ln
 
@@ -42,7 +43,7 @@ class InputFeedbackManager(
         if (prefs.keyboard.vibrationEnabled) {
             val vibrationDuration = prefs.keyboard.vibrationDuration.toLong()
             var vibrationAmplitude = prefs.keyboard.vibrationAmplitude
-            if(vibrationDuration==0L || vibrationAmplitude==0)
+            if (vibrationDuration == 0L || vibrationAmplitude == 0)
                 return
 
             val hapticsPerformed = if (vibrationDuration < 0) {
@@ -85,7 +86,9 @@ class InputFeedbackManager(
                 tts?.language
             }
         }
-        set(v) { tts?.language = v }
+        set(v) {
+            tts?.language = v
+        }
 
     /**
      * Makes a key press sound if the user has this feature enabled in the preferences.
@@ -93,10 +96,22 @@ class InputFeedbackManager(
     fun keyPressSound(keyCode: Int? = null) {
         if (prefs.keyboard.soundEnabled) {
             val soundVolume = prefs.keyboard.soundVolume
+            val soundVolumeMax = prefs.keyboard.soundVolumeMax
+            val systemVolumeMax = audioManager!!.getStreamMaxVolume(AudioManager.STREAM_SYSTEM)
+            val systemVolume =
+                audioManager!!.getStreamVolume(AudioManager.STREAM_SYSTEM) * 100 / systemVolumeMax
+            var volume =
+                if (systemVolume >= soundVolumeMax)
+                    soundVolumeMax * 100 / systemVolume
+                else
+                    soundVolume
+
+            Timber.i("keyPressSound(), soundVolume=$soundVolume, soundVolumeMax=$soundVolumeMax, systemVolume=$systemVolume, volume=$volume")
+
             if (Sound.isEnable())
-                Sound.get().play(keyCode, soundVolume)
+                Sound.get().play(keyCode, volume)
             else {
-                if (soundVolume > 0) {
+                if (volume > 0) {
                     val effect = when (keyCode) {
                         KeyEvent.KEYCODE_SPACE -> AudioManager.FX_KEYPRESS_SPACEBAR
                         KeyEvent.KEYCODE_DEL -> AudioManager.FX_KEYPRESS_DELETE
@@ -105,7 +120,7 @@ class InputFeedbackManager(
                     }
                     audioManager!!.playSoundEffect(
                         effect,
-                        (1 - (ln((101.0 - soundVolume)) / ln(101.0))).toFloat()
+                        (1 - (ln((101.0 - volume)) / ln(101.0))).toFloat()
                     )
                 }
             }
@@ -134,6 +149,7 @@ class InputFeedbackManager(
                     .replace("_", " ")
                     .lowercase(Locale.getDefault())
             }
+
             "" is T -> content as String
             else -> null
         } ?: return

@@ -56,6 +56,7 @@
     <string name="settings__keyboard_preferences_title">偏好設定</string>
     <string name="keyboard__key_sound_title">按鍵聲音</string>
     <string name="keyboard__key_sound_volume_title">按鍵音量</string>
+    <string name="keyboard__key_sound_volume_max_title">按键最高音量</string>
     <string name="keyboard__key_vibration_title">按鍵時振動</string>
     <string name="keyboard__key_vibration_duration_title">按鍵振動時長</string>
     <string name="keyboard__key_vibration_amplitude_title">按鍵振動強度</string>

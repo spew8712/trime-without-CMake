@@ -186,6 +186,7 @@ class AppPrefs(
 
             const val SOUND_ENABLED = "keyboard__key_sound"
             const val SOUND_VOLUME = "keyboard__key_sound_volume"
+            const val SOUND_VOLUME_MAX = "keyboard__key_sound_volume_max"
             const val SOUND_PACKAGE = "keyboard__key_sound_package"
 
             const val VIBRATION_ENABLED = "keyboard__key_vibration"
@@ -271,6 +272,9 @@ class AppPrefs(
             set(v) = prefs.setPref(SOUND_PACKAGE, v)
         var soundVolume: Int = 0
             get() = prefs.getPref(SOUND_VOLUME, 100)
+            private set
+        var soundVolumeMax: Int = 0
+            get() = prefs.getPref(SOUND_VOLUME_MAX, 100)
             private set
         var vibrationEnabled: Boolean = false
             get() = prefs.getPref(VIBRATION_ENABLED, false)

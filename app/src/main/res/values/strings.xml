@@ -58,6 +58,7 @@
     <string name="settings__keyboard_preferences_title">Preferences</string>
     <string name="keyboard__key_sound_title">Sound on keypress</string>
     <string name="keyboard__key_sound_volume_title">Sound volume on key press</string>
+    <string name="keyboard__key_sound_volume_max_title">Sound max volume on key press</string>
     <string name="keyboard__key_vibration_title">Vibrate on key press</string>
     <string name="keyboard__key_vibration_duration_title">Vibration length on key press</string>
     <string name="keyboard__key_vibration_amplitude_title">Vibration amplitude on key press</string>
