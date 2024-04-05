@@ -56,7 +56,7 @@ public class Composition extends AppCompatTextView {
   private int key_text_size, text_size, label_text_size, candidate_text_size, comment_text_size;
   private int key_text_color, text_color, label_color, candidate_text_color, comment_text_color;
   private int hilited_text_color, hilited_candidate_text_color, hilited_comment_text_color;
-  private int back_color, hilited_back_color, hilited_candidate_back_color;
+  private int back_color, text_back_color, hilited_back_color, hilited_candidate_back_color;
   private Integer key_back_color;
   private Typeface tfText, tfLabel, tfCandidate, tfComment;
   private final int[] composition_pos = new int[2];
@@ -142,8 +142,8 @@ public class Composition extends AppCompatTextView {
     @Override
     public void updateDrawState(TextPaint ds) {
       ds.setUnderlineText(false);
-      ds.setColor(text_color);
-      ds.bgColor = back_color;
+      ds.setColor(candidate_text_color);
+      ds.bgColor = text_back_color;
     }
   }
   public static class LetterSpacingSpan extends UnderlineSpan {
@@ -241,6 +241,7 @@ public class Composition extends AppCompatTextView {
     }
 
     back_color = config.getColor("back_color");
+    text_back_color = config.getColor("text_back_color");
     hilited_back_color = config.getColor("hilited_back_color");
     hilited_candidate_back_color = config.getColor("hilited_candidate_back_color");
 
