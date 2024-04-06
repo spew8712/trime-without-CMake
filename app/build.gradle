@@ -36,6 +36,7 @@ android {
     android.applicationVariants.all {
         variant ->
             variant.outputs.all {
+                // 只考虑输出一个文件
                 outputFileName = "Trime-${getBuildDate()}-${variant.versionName}-tumuyan.Apk"
             }
     }

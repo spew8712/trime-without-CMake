@@ -13,7 +13,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import javax.crypto.Cipher;
 
-
 public class Rsa {
   static final String RSA = "RSA";
 
@@ -44,7 +43,7 @@ public class Rsa {
         RSAPrivateKey rsaPrivateKey = (RSAPrivateKey) keyPair.getPrivate();
 
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec =
-                new PKCS8EncodedKeySpec(rsaPrivateKey.getEncoded());
+            new PKCS8EncodedKeySpec(rsaPrivateKey.getEncoded());
         privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
 
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(rsaPublicKey.getEncoded());

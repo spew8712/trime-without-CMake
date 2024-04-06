@@ -235,12 +235,7 @@ public class Rime {
       int size = showSwitches ? switches.size() + exSize : exSize;
       RimeCandidate[] candidates = new RimeCandidate[size];
 
-      Timber.i(
-          "getCandidates() "
-              + " size="
-              + size
-              + ", menuExtraKeyboardCandidate="
-              + exSize);
+      Timber.i("getCandidates() " + " size=" + size + ", menuExtraKeyboardCandidate=" + exSize);
 
       int i = 0;
       if (showSwitches)

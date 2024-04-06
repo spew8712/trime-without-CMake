@@ -134,7 +134,7 @@ public class Composition extends AppCompatTextView {
 
     @Override
     public void onClick(View tv) {
-      Timber.i("event="+event.toString());
+      Timber.i("event=" + event.toString());
       textInputManager.onPress(event.getCode());
       textInputManager.onEvent(event);
     }
@@ -146,6 +146,7 @@ public class Composition extends AppCompatTextView {
       ds.bgColor = text_back_color;
     }
   }
+
   public static class LetterSpacingSpan extends UnderlineSpan {
     private final float letterSpacing;
 
@@ -172,8 +173,7 @@ public class Composition extends AppCompatTextView {
   @SuppressLint("ClickableViewAccessibility")
   @Override
   public boolean onTouchEvent(@NonNull MotionEvent event) {
-    if(liquidKeyboardToolbar)
-      return super.onTouchEvent(event);
+    if (liquidKeyboardToolbar) return super.onTouchEvent(event);
     int action = event.getAction();
     if (action == MotionEvent.ACTION_UP) {
       int n = getOffsetForPosition(event.getX(), event.getY());
@@ -592,13 +592,20 @@ public class Composition extends AppCompatTextView {
     for (Map<String, ?> m : liquid_keyboard_window_comp) {
       if (m.containsKey("composition")) {
         appendComposition(m);
-        Timber.i("event: add liquid_keyboard_window_comp composition, composition="+m.get("composition") +", "+ m.toString());
-      }
-      else if (m.containsKey("click")) {
+        Timber.i(
+            "event: add liquid_keyboard_window_comp composition, composition="
+                + m.get("composition")
+                + ", "
+                + m.toString());
+      } else if (m.containsKey("click")) {
         appendButton(m);
-        Timber.i("event: add liquid_keyboard_window_comp click, key="+m.get("click") +", "+ m.toString());
-      }else{
-        Timber.i("event: add liquid_keyboard_window_comp else, "+ m.toString());
+        Timber.i(
+            "event: add liquid_keyboard_window_comp click, key="
+                + m.get("click")
+                + ", "
+                + m.toString());
+      } else {
+        Timber.i("event: add liquid_keyboard_window_comp else, " + m.toString());
       }
     }
     setSingleLine(!ss.toString().contains("\n"));

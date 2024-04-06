@@ -61,7 +61,7 @@ class IntentReceiver : BroadcastReceiver(), CoroutineScope by MainScope() {
         context.registerReceiver(this, IntentFilter(COMMAND_DEPLOY))
         context.registerReceiver(this, IntentFilter(COMMAND_SYNC))
         context.registerReceiver(this, IntentFilter(Intent.ACTION_SHUTDOWN))
-        context.registerReceiver(this, IntentFilter(COMMAND_COMMIT));
+        context.registerReceiver(this, IntentFilter(COMMAND_COMMIT))
     }
 
     fun unregisterReceiver(context: Context) {

@@ -22,7 +22,6 @@ object DataManager {
         }
     }
 
-
     fun copyFile(file: File, outputPath: String): Boolean {
         if (file.exists()) {
             try {

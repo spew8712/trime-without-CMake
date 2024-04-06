@@ -5,10 +5,8 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.util.Log;
 import android.view.KeyEvent;
-
 import com.osfans.trime.data.AppPrefs;
 import com.osfans.trime.util.ConfigGetter;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,13 +119,15 @@ public class Sound {
   public void play(Integer keycode, Integer volume) {
     if (volume > 0) {
       if (sound.length > 0) {
+
+        Log.w("playSound", "keycode=" + keycode);
         float soundVolume = volume / 100f;
         if (progress >= 0) {
           if (progress >= melody.length) progress = 0;
           currStreamId = melody[progress];
           progress++;
-          Log.i("playSound", "progress="+progress+"/"+melody.length+", id="+currStreamId);
-        } else if (lastKeycode != keycode) {
+          Log.i("playSound", "progress=" + progress + "/" + melody.length + ", id=" + currStreamId);
+        } else if (lastKeycode != keycode || lastKeycode == KeyEvent.KEYCODE_UNKNOWN) {
           lastKeycode = keycode;
           for (Key key : keyset) {
             currStreamId = key.getSound(keycode);

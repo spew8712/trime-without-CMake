@@ -55,12 +55,10 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-
 import com.blankj.utilcode.util.BarUtils;
 import com.osfans.trime.BuildConfig;
 import com.osfans.trime.R;
@@ -96,10 +94,8 @@ import com.osfans.trime.setup.Rsa;
 import com.osfans.trime.util.ShortcutUtils;
 import com.osfans.trime.util.StringUtils;
 import com.osfans.trime.util.ViewUtils;
-
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import kotlin.jvm.Synchronized;
 import timber.log.Timber;
 
@@ -1564,31 +1560,27 @@ public class Trime extends LifecycleInputMethodService {
     final @Nullable InputConnection ic = getCurrentInputConnection();
     if (ic != null) {
       ic.commitText(text, 1);
-//      lastCommittedText = text;
+      //      lastCommittedText = text;
     }
   }
 
   public void extAppCommand(boolean open, String option) {
     String[] strs = option.split("/");
     String pkg = strs[0];
-    String cls = strs.length>1?strs[1]:"com.example.softwaretest.HWService";
-    if (pkg.isEmpty())
-      pkg = "com.example.input";
-    if (cls.isEmpty())
-      cls = "com.example.softwaretest.HWService";
+    String cls = strs.length > 1 ? strs[1] : "com.example.softwaretest.HWService";
+    if (pkg.isEmpty()) pkg = "com.example.input";
+    if (cls.isEmpty()) cls = "com.example.softwaretest.HWService";
 
     // 如果调用的外部App发生变化，或命令为关闭，需要关闭上一个App；
-    if (currentExtApp!=null && (pkg.equals(currentExtApp) ^ open )) {
+    if (currentExtApp != null && (pkg.equals(currentExtApp) ^ open)) {
       rsa = null;
       Intent intent = new Intent();
-      intent.setComponent(
-              new ComponentName(currentExtApp, currentExtAppCls));
+      intent.setComponent(new ComponentName(currentExtApp, currentExtAppCls));
       intent.putExtra("height", -1);
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
       else startService(intent);
       currentExtApp = null;
     }
-
 
     if (mainKeyboardView != null && open) {
       rsa = new Rsa();
@@ -1611,6 +1603,5 @@ public class Trime extends LifecycleInputMethodService {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
       else startService(intent);
     }
-
   }
 }

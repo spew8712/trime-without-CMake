@@ -263,7 +263,7 @@ class TextInputManager private constructor() :
             "_liquid_keyboard" -> trime.selectLiquidKeyboard(0)
             "_hide_key_hint" -> if (mainKeyboardView != null) mainKeyboardView!!.setShowHint(!value)
             "_hide_key_symbol" -> if (mainKeyboardView != null) mainKeyboardView!!.setShowSymbol(!value)
-            "_handwriting" -> trime.extAppCommand(true,"")
+            "_handwriting" -> trime.extAppCommand(true, "")
             else -> if (option.startsWith("_keyboard_") &&
                 option.length > 10 && value
             ) {
@@ -521,5 +521,4 @@ class TextInputManager private constructor() :
     override fun onKeyPressed(e: Event?) {
         onEvent(e)
     }
-
 }
