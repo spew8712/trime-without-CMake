@@ -144,7 +144,7 @@
             android:dependency="keyboard__key_sound"
             app:iconSpaceReserved="false" />
         <com.osfans.trime.settings.components.DialogSeekBarPreference
-            android:defaultValue="-1"
+            android:defaultValue="50"
             android:dependency="keyboard__key_sound"
             android:key="keyboard__key_sound_volume"
             android:title="@string/keyboard__key_sound_volume_title"
@@ -153,11 +153,9 @@
             app:max="100"
             app:min="0"
             app:seekBarIncrement="1"
-            app:systemDefaultValue="-1"
-            app:systemDefaultValueText="@string/pref__system_default"
             app:unit="%" />
         <com.osfans.trime.settings.components.DialogSeekBarPreference
-            android:defaultValue="-1"
+            android:defaultValue="15"
             android:dependency="keyboard__key_sound"
             android:key="keyboard__key_sound_volume_max"
             android:title="@string/keyboard__key_sound_volume_max_title"
@@ -166,8 +164,6 @@
             app:max="100"
             app:min="0"
             app:seekBarIncrement="1"
-            app:systemDefaultValue="-1"
-            app:systemDefaultValueText="@string/pref__system_default"
             app:unit="%" />
         <SwitchPreferenceCompat
             android:key="keyboard__key_vibration"

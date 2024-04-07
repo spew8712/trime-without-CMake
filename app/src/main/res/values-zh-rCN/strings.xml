@@ -54,7 +54,7 @@
     <string name="conf__reset_summary">使用默认设置覆盖共享文件夹下同名文件</string>
     <string name="settings__keyboard_preferences_title">偏好设置</string>
     <string name="keyboard__key_sound_title">按键声音</string>
-    <string name="keyboard__key_sound_volume_title">按键音量</string>
+    <string name="keyboard__key_sound_volume_title">按键相对音量</string>
     <string name="keyboard__key_sound_volume_max_title">按键最高音量</string>
     <string name="keyboard__key_vibration_title">按键时振动</string>
     <string name="keyboard__key_vibration_duration_title">按键振动时长</string>

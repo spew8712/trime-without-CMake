@@ -94,17 +94,19 @@ class InputFeedbackManager(
      * Makes a key press sound if the user has this feature enabled in the preferences.
      */
     fun keyPressSound(keyCode: Int? = null) {
-        if (prefs.keyboard.soundEnabled) {
-            val soundVolume = prefs.keyboard.soundVolume
+        val soundVolume = prefs.keyboard.soundVolume
+        if (prefs.keyboard.soundEnabled && soundVolume > 0) {
             val soundVolumeMax = prefs.keyboard.soundVolumeMax
             val systemVolumeMax = audioManager!!.getStreamMaxVolume(AudioManager.STREAM_SYSTEM)
             val systemVolume =
                 audioManager!!.getStreamVolume(AudioManager.STREAM_SYSTEM) * 100 / systemVolumeMax
             var volume =
-                if (systemVolume >= soundVolumeMax)
-                    soundVolumeMax * 100 / systemVolume
-                else
+                if (systemVolume <= soundVolumeMax)
                     soundVolume
+                else
+                    soundVolume * soundVolumeMax / systemVolume
+            if (volume < 1)
+                volume = 1
 
             Timber.i("keyPressSound(), soundVolume=$soundVolume, soundVolumeMax=$soundVolumeMax, systemVolume=$systemVolume, volume=$volume")
 
