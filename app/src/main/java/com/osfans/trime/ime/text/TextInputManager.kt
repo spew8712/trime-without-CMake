@@ -70,8 +70,10 @@ class TextInputManager private constructor() :
     companion object {
         /** Delimiter regex for key property group, their format like `{property_1: value_1, property_2: value_2}` */
         private val DELIMITER_PROPERTY_GROUP = """^(\{[^{}]+\}).*$""".toRegex()
+
         /** Delimiter regex for property key tag, its format like `Escape: ` following a property group like above */
         private val DELIMITER_PROPERTY_KEY = """^((\{Escape\})?[^{}]+).*$""".toRegex()
+
         /** Delimiter regex to split language/locale tags. */
         private val DELIMITER_SPLITTER = """[-_]""".toRegex()
         private var instance: TextInputManager? = null
@@ -191,6 +193,7 @@ class TextInputManager private constructor() :
                     tempAsciiMode = true
                     ".ascii"
                 }
+
                 else -> {
                     val inputAttrsRaw = instance.editorInfo!!.inputType
                     when (inputAttrsRaw and InputType.TYPE_MASK_CLASS) {
@@ -199,11 +202,13 @@ class TextInputManager private constructor() :
                         InputType.TYPE_CLASS_DATETIME -> {
                             "number"
                         }
+
                         InputType.TYPE_CLASS_TEXT -> {
                             when (inputAttrsRaw and InputType.TYPE_MASK_VARIATION) {
                                 InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE -> {
                                     null.also { performEnterAsLineBreak = true }
                                 }
+
                                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
                                 InputType.TYPE_TEXT_VARIATION_PASSWORD,
                                 InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
@@ -218,9 +223,11 @@ class TextInputManager private constructor() :
                                     tempAsciiMode = true
                                     ".ascii"
                                 }
+
                                 else -> null.also { isComposable = true }
                             }
                         }
+
                         else -> {
                             if (inputAttrsRaw <= 0) return
                             null.also { isComposable = inputAttrsRaw > 0 }
@@ -255,11 +262,13 @@ class TextInputManager private constructor() :
                 trime.inputFeedbackManager.ttsLanguage =
                     locales[if (value) 1 else 0]
             }
+
             "_hide_comment" -> trime.setShowComment(!value)
             "_hide_candidate" -> {
                 candidateRoot?.visibility = if (!value) View.VISIBLE else View.GONE
                 trime.setCandidatesViewShown(isComposable && !value)
             }
+
             "_liquid_keyboard" -> trime.selectLiquidKeyboard(0)
             "_hide_key_hint" -> if (mainKeyboardView != null) mainKeyboardView!!.setShowHint(!value)
             "_hide_key_symbol" -> if (mainKeyboardView != null) mainKeyboardView!!.setShowSymbol(!value)
@@ -330,6 +339,7 @@ class TextInputManager private constructor() :
                 Rime.toggleOption(event.toggle)
                 activeEditorInstance.commitRimeText()
             }
+
             KeyEvent.KEYCODE_EISU -> { // Switch keyboard
                 keyboardSwitcher.switchToKeyboard(event.select)
                 /** Set ascii mode according to keyboard's settings, can not place into [Rime.handleRimeNotification] */
@@ -337,19 +347,23 @@ class TextInputManager private constructor() :
                 trime.bindKeyboardToInputView()
                 trime.updateComposing()
             }
+
             KeyEvent.KEYCODE_LANGUAGE_SWITCH -> { // Switch IME
                 when {
                     event.select!!.contentEquals(".next") -> {
                         trime.switchToNextIme()
                     }
+
                     event.select.isNotEmpty() -> {
                         trime.switchToPrevIme()
                     }
+
                     else -> {
                         imeManager.showInputMethodPicker()
                     }
                 }
             }
+
             KeyEvent.KEYCODE_FUNCTION -> { // Command Express
                 // Comments from trime.yaml:
                 // %s或者%1$s爲當前字符
@@ -361,7 +375,7 @@ class TextInputManager private constructor() :
                 if (arg.matches(activeTextRegex)) {
                     var activeTextMode =
                         arg.replaceFirst(activeTextRegex, "$1").toDouble().toInt()
-                    if (activeTextMode <1)
+                    if (activeTextMode < 1)
                         activeTextMode = 1
                     val activeText = activeEditorInstance.getActiveText(activeTextMode)
                     arg = String.format(
@@ -386,6 +400,7 @@ class TextInputManager private constructor() :
                     }
                 }
             }
+
             KeyEvent.KEYCODE_VOICE_ASSIST -> Speech(trime).startListening() // Speech Recognition
             KeyEvent.KEYCODE_SETTINGS -> { // Settings
                 when (event.option) {
@@ -396,6 +411,7 @@ class TextInputManager private constructor() :
                     else -> trime.launchSettings()
                 }
             }
+
             KeyEvent.KEYCODE_PROG_RED -> trime.showColorDialog() // Color schemes
             KeyEvent.KEYCODE_MENU -> trime.showOptionsDialog()
             else -> {
@@ -442,7 +458,10 @@ class TextInputManager private constructor() :
         }
         // 小键盘自动增加锁定
         if (keyEventCode >= KeyEvent.KEYCODE_NUMPAD_0 && keyEventCode <= KeyEvent.KEYCODE_NUMPAD_EQUALS) {
-            activeEditorInstance.sendDownUpKeyEvent(keyEventCode, metaState or KeyEvent.META_NUM_LOCK_ON)
+            activeEditorInstance.sendDownUpKeyEvent(
+                keyEventCode,
+                metaState or KeyEvent.META_NUM_LOCK_ON
+            )
             return
         }
         // 大写字母和部分符号转换为Shift+Android keyevent
@@ -470,10 +489,12 @@ class TextInputManager private constructor() :
                     }
                     trime.updateComposing()
                 }
+
                 propertyGroupMatcher.matches() -> {
                     target = propertyGroupMatcher.group(1) ?: ""
                     onEvent(Event(target))
                 }
+
                 else -> {
                     target = textToParse.substring(0, 1)
                     onEvent(Event(target))
@@ -495,14 +516,14 @@ class TextInputManager private constructor() :
                 trime.updateComposing()
             }
         } else if (prefs.keyboard.hookCandidate || index > 9) {
-            if (Rime.selectCandidate(index)) {
-                if (prefs.keyboard.hookCandidateCommit) {
-                    // todo 找到切换高亮候选词的API，并把此处改为模拟移动候选后发送空格
-                    // 如果使用了lua处理候选上屏，模拟数字键、空格键是非常有必要的
-                    activeEditorInstance.commitRimeText()
-                } else
-                    activeEditorInstance.commitRimeText()
-            }
+            // 如果使用了lua处理候选上屏，模拟数字键、空格键是非常有必要的
+            if (prefs.keyboard.hookCandidateCommit) {
+                // todo 利用highlightCandidate的返回值确认操作是否成功
+                // 目前悬浮窗点击后返回值始终为false
+                Rime.highlightCandidate(index)
+                trime.handleKey(KeyEvent.KEYCODE_SPACE, 0)
+            } else if (Rime.selectCandidate(index))
+                activeEditorInstance.commitRimeText()
         } else if (index == 9) {
             trime.handleKey(KeyEvent.KEYCODE_0, 0)
         } else {
@@ -514,7 +535,8 @@ class TextInputManager private constructor() :
         when (arrow) {
             Candidate.PAGE_UP_BUTTON -> onKey(KeyEvent.KEYCODE_PAGE_UP, 0)
             Candidate.PAGE_DOWN_BUTTON -> onKey(KeyEvent.KEYCODE_PAGE_DOWN, 0)
-            Candidate.PAGE_EX_BUTTON -> Trime.getService().selectLiquidKeyboard(SymbolKeyboardType.CANDIDATE)
+            Candidate.PAGE_EX_BUTTON -> Trime.getService()
+                .selectLiquidKeyboard(SymbolKeyboardType.CANDIDATE)
         }
     }
 

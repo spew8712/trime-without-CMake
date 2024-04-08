@@ -236,11 +236,11 @@ class AppPrefs(
         var hookFastInput: Boolean = false
             get() = prefs.getPref(HOOK_FAST_INPUT, false)
             private set
-        var hookCandidate: Boolean = false
-            get() = prefs.getPref(HOOK_CANDIDATE, false)
+        var hookCandidate: Boolean = true
+            get() = prefs.getPref(HOOK_CANDIDATE, true)
             private set
-        var hookCandidateCommit: Boolean = false
-            get() = prefs.getPref(HOOK_CANDIDATE_COMMIT, false)
+        var hookCandidateCommit: Boolean = true
+            get() = prefs.getPref(HOOK_CANDIDATE_COMMIT, true)
             private set
         var hookCtrlA: Boolean = false
             get() = prefs.getPref(HOOK_CTRL_A, false)

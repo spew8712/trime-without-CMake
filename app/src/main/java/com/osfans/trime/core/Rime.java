@@ -577,6 +577,12 @@ public class Rime {
     getContexts();
   }
 
+  public static boolean highlightCandidate(int index) {
+    boolean b = highlight_candidate_on_current_page(index);
+    getContexts();
+    return b;
+  }
+
   public static boolean selectCandidate(int index) {
     boolean b = select_candidate_on_current_page(index);
     getContexts();
@@ -925,6 +931,8 @@ public class Rime {
   public static native void set_caret_pos(int caret_pos);
 
   public static native boolean select_candidate(int index);
+
+  public static native boolean highlight_candidate_on_current_page(int index);
 
   public static native boolean select_candidate_on_current_page(int index);
 

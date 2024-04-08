@@ -613,6 +613,12 @@ Java_com_osfans_trime_core_Rime_select_1candidate(JNIEnv *env, jclass /* thiz */
 
 extern "C"
 JNIEXPORT jboolean JNICALL
+        Java_com_osfans_trime_core_Rime_highlight_1candidate_1on_1current_1page(JNIEnv *env, jclass /* thiz */, jint index) {
+return rime_get_api()->highlight_candidate_on_current_page(activated_session_id, index);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
 Java_com_osfans_trime_core_Rime_select_1candidate_1on_1current_1page(JNIEnv *env, jclass /* thiz */, jint index) {
     return rime_get_api()->select_candidate_on_current_page(activated_session_id, index);
 }
