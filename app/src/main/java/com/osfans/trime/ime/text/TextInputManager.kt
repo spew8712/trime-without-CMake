@@ -393,11 +393,16 @@ class TextInputManager private constructor() :
                     trime.selectLiquidKeyboard(arg)
                 } else if (event.command == "paste_by_char") {
                     trime.pasteByChar()
-                } else if(event.command == "input"){
+                } else if (event.command == "input") {
                     Timber.i("command_input, arg=$arg, lastInputText=${activeEditorInstance.lastInputText}, lastCommittedText=${activeEditorInstance.lastCommittedText}")
                     Rime.RimeSetInput(arg)
                     trime.updateComposing()
-                }else {
+                } else if (event.command == "re_input") {
+                    if (activeEditorInstance.isLastCommitedText()) {
+                        Rime.RimeSetInput(activeEditorInstance.lastInputText as String?)
+                        trime.updateComposing()
+                    }
+                } else {
                     val textFromCommand = ShortcutUtils
                         .call(trime, event.command, arg)
                     if (textFromCommand != null) {

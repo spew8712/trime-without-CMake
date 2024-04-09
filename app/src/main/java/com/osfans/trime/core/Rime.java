@@ -750,7 +750,7 @@ public class Rime {
     return s == null ? "" : s;
   }
 
-  public static boolean RimeSetInput(String input){
+  public static boolean RimeSetInput(String input) {
     boolean b = set_input(input);
     getContexts();
     return b;

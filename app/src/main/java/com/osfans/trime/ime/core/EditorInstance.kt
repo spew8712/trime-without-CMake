@@ -151,6 +151,30 @@ class EditorInstance(private val ims: InputMethodService) {
         return s
     }
 
+    // 剛上屏字是否与光标前的文字一致
+    fun isLastCommitedText(): Boolean {
+        val ic = inputConnection
+        if (ic == null || TextUtils.isEmpty(lastCommittedText))
+            return false
+        val l = lastCommittedText.length
+        val s = ic.getTextBeforeCursor(l, 0)
+        Timber.i("isLastCommitedText(), lastCommittedText=$lastCommittedText, s=$s, r=${s?.equals(lastCommittedText)}")
+        if (s?.equals(lastCommittedText) == true) {
+
+            var end = ic.getExtractedText(ExtractedTextRequest(), 0)?.selectionEnd
+            if (end == null)
+                end = 0
+            var start = if (end> l) end - l else 0
+            ic.setSelection(start, end)
+
+            return true
+        }
+        return false
+    }
+
+    fun reInputText() {
+    }
+
     /**
      * Constructs a meta state integer flag which can be used for setting the `metaState` field when sending a KeyEvent
      * to the input connection. If this method is called without a meta modifier set to true, the default value `0` is
@@ -293,10 +317,10 @@ class EditorInstance(private val ims: InputMethodService) {
 
     fun updataLastInput() {
         val input = Rime.RimeGetInput()
-        if(input.isNotBlank()) {
+        if (input.isNotBlank()) {
             lastInputText = input
             Timber.i("update_input v, lastInputText=$lastInputText")
-        }else
+        } else
             Timber.i("update_input x, lastInputText=$lastInputText")
     }
 }
