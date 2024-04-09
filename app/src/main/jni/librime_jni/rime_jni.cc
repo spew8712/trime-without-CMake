@@ -636,6 +636,13 @@ Java_com_osfans_trime_core_Rime_delete_1candidate_1on_1current_1page(JNIEnv *env
 }
 
 extern "C"
+JNIEXPORT jboolean JNICALL
+        Java_com_osfans_trime_core_Rime_set_1input(JNIEnv *env, jclass /* thiz */, jstring input) {
+    const char* s = env->GetStringUTFChars(input, nullptr);
+    return rime_get_api()->set_input(activated_session_id, s);
+}
+
+extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_osfans_trime_core_Rime_get_1version(JNIEnv *env, jclass /* thiz */) {
     return env->NewStringUTF(rime_get_api()->get_version());

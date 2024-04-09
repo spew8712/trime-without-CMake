@@ -750,6 +750,12 @@ public class Rime {
     return s == null ? "" : s;
   }
 
+  public static boolean RimeSetInput(String input){
+    boolean b = set_input(input);
+    getContexts();
+    return b;
+  }
+
   public static int RimeGetCaretPos() {
     return get_caret_pos();
   }
@@ -925,6 +931,8 @@ public class Rime {
   public static native boolean simulate_key_sequence(String key_sequence);
 
   public static native String get_input();
+
+  public static native boolean set_input(String input);
 
   public static native int get_caret_pos();
 

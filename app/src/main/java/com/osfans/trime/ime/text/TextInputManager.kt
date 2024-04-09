@@ -370,6 +370,7 @@ class TextInputManager private constructor() :
                 // %2$s爲當前輸入的編碼
                 // %3$s爲光標前字符
                 // %4$s爲光標前所有字符
+                // %5$s爲上次上屏前输入的编码
                 var arg = event.option
                 val activeTextRegex = Regex(".*%(\\d*)\\$" + "s.*")
                 if (arg.matches(activeTextRegex)) {
@@ -383,7 +384,8 @@ class TextInputManager private constructor() :
                         activeEditorInstance.lastCommittedText,
                         Rime.RimeGetInput(),
                         activeText,
-                        activeText
+                        activeText,
+                        activeEditorInstance.lastInputText
                     )
                 }
 
@@ -391,7 +393,11 @@ class TextInputManager private constructor() :
                     trime.selectLiquidKeyboard(arg)
                 } else if (event.command == "paste_by_char") {
                     trime.pasteByChar()
-                } else {
+                } else if(event.command == "input"){
+                    Timber.i("command_input, arg=$arg, lastInputText=${activeEditorInstance.lastInputText}, lastCommittedText=${activeEditorInstance.lastCommittedText}")
+                    Rime.RimeSetInput(arg)
+                    trime.updateComposing()
+                }else {
                     val textFromCommand = ShortcutUtils
                         .call(trime, event.command, arg)
                     if (textFromCommand != null) {

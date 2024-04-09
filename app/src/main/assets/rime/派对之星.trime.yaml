@@ -1,7 +1,7 @@
 # Trime default style settings
 # encoding: utf-8
 
-config_version: "0.13.7.3, for同文3.2.7"
+config_version: "0.13.7.4, for同文3.2.7"
 name: 派对之星 #主题名称
 author: tumuyan
 log:
@@ -138,12 +138,12 @@ style:
     - {click: "cursor", label: " ↔ "}
     - {click: "BACK", label: " ▽ "}
   liquid_keyboard_window: #液态键盘模式下显示的悬浮窗口組件
-    - {start: "", click: "space", label: " 空格 "}
-    - {start: "", click: "BackSpace", label: " 删除 "}
-    - {start: "", click: "Return", label: " 回车 "}
-    - {start: "", click: "symbol_tabs", label: " 全部 "}
-    - {start: "", click: "Escape", label: " 取消 "}
-    - {start: "", click: "liquid_keyboard_exit", label: " 返回 "}
+    - {click: "space", label: " 空格 "}
+    - {click: "BackSpace", label: " 删除 "}
+    - {click: "Return", label: " 回车 "}
+    - {click: "symbol_tabs", label: " 全部 "}
+    - {click: "Escape", label: " 取消 "}
+    - {click: "liquid_keyboard_exit", label: " 返回 "}
   key_font: TH-Feon.ttf #键盘字型
   key_height: *FJG #符号键盘键高
   keyboard_height: 250 #锁定键盘高度，避免切换时键盘高度变化而造成闪烁
@@ -512,6 +512,27 @@ preset_color_schemes:
     ktr2:  0xffFC3A13 #右下方按键提示文本的颜色
     hilited_off_key_back_color: 0xffffffff
     hilited_off_key_text_color: 0xffFC3A13
+  eva:
+    name: "EVA·初号机"
+    author: "tumuyan"
+    text_color: 0xffffffff
+    back_color: 0xff75409A
+    border_color: 0xff464b53
+    hilited_text_color: 0xffffffff
+    hilited_back_color: 0xffFFA500
+    candidate_text_color: 0xffffffff
+    comment_text_color: 0xffffffff
+    hilited_candidate_text_color: 0xffffffff
+    hilited_comment_text_color: 0xffffffff
+    transparent: 0x00ffffff #透明
+    kbl: 0xff00FF80 #左下方按键背景色 @右下按键按下背景
+    kbr: 0xffFFA500 #右下方按键背景色 @左下按键按下背景
+    ktl: 0x000000 #左下方按键文本颜色
+    ktr: 0xffFC3A13 #右下方按键文本颜色
+    ktl2:  0x000000 #左下方按键提示文本的颜色
+    ktr2:  0xffFC3A13 #右下方按键提示文本的颜色
+    hilited_off_key_back_color: 0xffFFA500
+    hilited_off_key_text_color: 0xff75409A
   starcraft_ii:
     name: "星際爭霸Ⅱ"
     author: "Patricivs <ipatrickmac@me.com>"
@@ -722,7 +743,7 @@ preset_keyboards:
       - {click: e, swipe_up: "3", long_click: 3, swipe_down: {commit: "- [ ] "} , hint: "- [ ]"}
       - {click: r, swipe_up: "4", long_click: 4, swipe_down: '[]{Left}', hint: "[]"}
       - {click: t, swipe_up: "5", swipe_down: commit_tab, long_click: 5, hint: Tab}
-      - {click: y, swipe_up: "6", long_click: 6}
+      - {click: y, swipe_up: "6", long_click: 6, swipe_down: repeat_input, hint: "重录"}
       - {click: u, swipe_up: "7", long_click: 7, swipe_down: Sound_settings, hint: 音效}
       - {click: i, swipe_up: "8", swipe_down: symbol_list, long_click: 8, hint: Symbol}
       #      - {click: o, swipe_up: "9", swipe_down: Candidate_switch1, long_click: 9}
@@ -1666,6 +1687,7 @@ preset_keys:
   cursor_pre2: {label: "<", functional: false, text: ","}
   spaceX: {label: 测试24, functional: false, text: "{space}{Return}"}
   repeat_commit: {label: "重复",  command: commit, option: "%1$s"}
+  repeat_input: {label: "重录",  command: input, option: "%5$s"}
   #发送空格+换行（选择第一个候选词，并回车换行/完成
   SR: {label: 换行, functional: false, text: "{space}{Return}"}
   CHS_DOT1: {label: "！ 、",  commit: "、"}

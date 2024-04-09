@@ -33,7 +33,10 @@ class EditorInstance(private val ims: InputMethodService) {
     val textInputManager: TextInputManager
         get() = (ims as Trime).textInputManager
 
+    // 刚上屏的字
     var lastCommittedText: CharSequence = ""
+    // 刚上屏的内容的编码
+    var lastInputText: CharSequence = ""
     var draftCache: String = ""
 
     // 直接commit不做任何处理
@@ -286,5 +289,14 @@ class EditorInstance(private val ims: InputMethodService) {
 
         ic.endBatchEdit()
         return true
+    }
+
+    fun updataLastInput() {
+        val input = Rime.RimeGetInput()
+        if(input.isNotBlank()) {
+            lastInputText = input
+            Timber.i("update_input v, lastInputText=$lastInputText")
+        }else
+            Timber.i("update_input x, lastInputText=$lastInputText")
     }
 }
