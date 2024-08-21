@@ -4,7 +4,7 @@
 Fixes will automatically close the related issues
 <!-- Each issue should be on it's own line -->
 Fixes #
-Fixes #
+Fixes # 
 
 #### Feature
 Describe features of this pull request
